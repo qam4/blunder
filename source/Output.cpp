@@ -26,7 +26,7 @@ string Output::board(const class Board board)
         }
         ss << '|' << row + 1 << endl;
     }
-    ss << " ABCDEFGH  " << endl;
+    ss << "  ABCDEFGH  " << endl;
     ss << ((board.side_to_move() == WHITE) ? "WHITE" : "BLACK") << " turn" << endl;
     ss << "Ply: " << board.get_game_ply() << endl;
     return ss.str();
@@ -85,11 +85,10 @@ string Output::square(U8 square)
 
 string Output::move(Move_t move, const class Board& board)
 {
-    (void)board;
     stringstream ss;
     if(is_castle(move))
     {
-        if(move == KING_CASTLE) ss << "0-0";
+        if(move == build_castle(KING_CASTLE)) ss << "0-0";
         else ss << "0-0-0";
         return ss.str();
     }

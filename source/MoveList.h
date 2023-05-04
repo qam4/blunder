@@ -22,21 +22,21 @@ public:
   MoveList() { size = 0; }
   void inline push(Move_t move)
   {
-#ifdef DEBUG
+#ifndef NDEBUG
     assert(size < MAX_MOVELIST_LENGTH);
 #endif
     data[size++] = move;
   }
   Move_t inline pop()
   {
-#ifdef DEBUG
+#ifndef NDEBUG
     assert(size > 0);
 #endif
     return data[--size];
   }
   void set_move(const int idx, Move_t move)
   {
-#ifdef DEBUG
+#ifndef NDEBUG
     assert(size > 0);
 #endif
     data[idx] = move;

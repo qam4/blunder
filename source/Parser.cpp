@@ -47,17 +47,15 @@ class Board Parser::parse_fen(string fen)
     U8 side_to_move = Parser::side(fen[pos++]);
     board.set_side_to_move(side_to_move);
 
-    if (pos++ >= len)
-        return board;
-
     while (fen[pos] == ' ')
         if (pos++ >= len)
             return board;
 
     // castling rights
     U8 rights = 0;
-    while(fen[pos++] != ' '){
-        rights |= Parser::castling_right(fen[pos]);
+    while (fen[pos] != ' ')
+    {
+        rights |= Parser::castling_right(fen[pos++]);
     }
     board.set_castling_rights(rights);
 
@@ -65,16 +63,38 @@ class Board Parser::parse_fen(string fen)
         if (pos++ >= len)
             return board;
 
+    // ep square
+    if (fen[pos] == '-')
+    {
+        pos++;
+    }
+    else
+    {
+        char square[2] = { fen[pos], fen[pos + 1] };
+        board.set_ep_square(Parser::square(square));
+        while (fen[pos] != ' ')
+            if (pos++ >= len)
+                return board;
+    }
+
+    while (fen[pos] == ' ')
+        if (pos++ >= len)
+            return board;
+
     // half-move-count
     int half_move_count = 0;
-    while(fen[pos] >= '0' && fen[pos] <= '9'){
+    while (fen[pos] >= '0' && fen[pos] <= '9')
+    {
         half_move_count = half_move_count * 10 + (fen[pos] - '0');
-        if (pos++ >= len) return board;
+        if (pos++ >= len)
+            return board;
     }
 
     board.set_half_move_count(static_cast<U8>(half_move_count));
 
-    while(fen[pos] == ' ') if (pos++ >= len) return board;
+    while (fen[pos] == ' ')
+        if (pos++ >= len)
+            return board;
 
     // full-move-count
     int full_move_count = 0;
@@ -105,12 +125,18 @@ U8 Parser::side(char c)
     return WHITE;
 }
 
-U8 Parser::castling_right(char c){
-    switch(c){
-        case 'K': return WHITE_KING_SIDE;
-        case 'Q': return WHITE_QUEEN_SIDE;
-        case 'k': return BLACK_KING_SIDE;
-        case 'q': return BLACK_QUEEN_SIDE;
+U8 Parser::castling_right(char c)
+{
+    switch (c)
+    {
+        case 'K':
+            return WHITE_KING_SIDE;
+        case 'Q':
+            return WHITE_QUEEN_SIDE;
+        case 'k':
+            return BLACK_KING_SIDE;
+        case 'q':
+            return BLACK_QUEEN_SIDE;
     }
     return 0;
 }
@@ -141,6 +167,7 @@ U32 Parser::move(string str, Board& board)
         return 0;
     // TODO
     U8 flags = NO_FLAGS;
+    (void)piece;
     // U8 flags = NO_FLAGS | board.last_move_sideways();
     // Check if tie-fighter sideway move
     // cout << "piece=" << ((piece&(~1)) == TIEFIGHTER)

@@ -14,13 +14,15 @@
 
 // Move ordering table
 // Move valuable victim, least valuable attacker
-const U16 MVVLVA[5][5] =
+const U8 MVVLVA[NUM_PIECES / 2][NUM_PIECES / 2] =
 {
-    {0, 0, 0, 0, 0},   // victim = None, attacker None, W, X, T, D
-    {0, 0, 0, 0, 0},   // victim = wall, attacker None, W, X, T, D
-    {0, 0, 11, 10, 0}, // victim = xwing, attacker None, W, X, T, D
-    {0, 0, 21, 20, 0}, // victim = tiefighter, attacker None, W, X, T, D
-    {0, 0, 31, 30, 0},   // victim = deathstar, attacker None, W, X, T, D
+    {0, 0, 0, 0, 0, 0, 0},        // victim = None, attacker None, P, K, B, R, Q, K
+    {0, 15, 14, 13, 12, 11, 10},  // victim = pawn, attacker None, P, K, B, R, Q, K
+    {0, 25, 24, 23, 22, 21, 20},  // victim = knight, attacker None, P, K, B, R, Q, K
+    {0, 35, 34, 33, 32, 31, 30},  // victim = bishop, attacker None, P, K, B, R, Q, K
+    {0, 45, 44, 43, 42, 41, 40},  // victim = rook, attacker None, P, K, B, R, Q, K
+    {0, 55, 54, 53, 52, 51, 50},  // victim = queen, attacker None, P, K, B, R, Q, K
+    {0, 65, 64, 63, 62, 61, 60},  // victim = king, attacker None, P, K, B, R, Q, K
 };
 
 // https://www.chessprogramming.org/BitScan
@@ -47,7 +49,7 @@ const U8 index64[64] = {
 */
 U8 inline bit_scan_forward(U64 bb)
 {
-#ifdef DEBUG
+#ifndef NDEBUG
     assert(bb > 0);
 #endif
    const U64 debruijn64 = C64(0x07EDD5E59A4E28C2);
@@ -58,7 +60,7 @@ U8 inline bit_scan_forward(U64 bb)
 
 U64 inline circular_left_shift(U64 target, int shift)
 {
-#ifdef DEBUG
+#ifndef NDEBUG
     assert(shift >= 0);
     assert(shift <= 64);
 #endif
@@ -87,7 +89,7 @@ private:
     // ie white pawn push diff = 56, black pawn push diff = 8
     // add_moves assumes moving to blank square
     static void add_moves(U8 from, U64 targets, class MoveList &list, const class Board &board, const U8 flags);
-    static void add_moves_with_diff(int diff, U64 targets, class MoveList &list, const class Board &board, const U8 flags);
+    static void add_moves_with_diff(int diff, U64 targets, class MoveList &list, const class Board &board, const U8 flags, const U8 extra_capture);
     static void add_promotions_with_diff(int diff, U64 targets, class MoveList &list, const class Board &board, const U8 flags);
     static U64 byteswap(U64 x);
     static U64 flipVertical(U64 x);

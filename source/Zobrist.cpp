@@ -20,11 +20,15 @@ Zobrist::Zobrist()
         }
     }
 
-    // for (int i = 0; i < 4; i++)
-    // {
-    //     last_move_sideways[i] = rand64();
-    // }
+    for (int i = 0; i < FULL_CASTLING_RIGHTS + 1; i++)
+    {
+        castling_rights[i] = rand64();
+    }
 
+    for (int i = 0; i < NUM_PIECES; i++)
+    {
+        ep_square[i] = rand64();
+    }
     side = rand64();
 }
 
@@ -44,7 +48,8 @@ U64 Zobrist::get_zobrist_key(const Board& board)
         zobrist_key ^= pieces[piece][i];
     }
 
-    // zobrist_key ^= last_move_sideways[board.last_move_sideways()];
+    zobrist_key ^= castling_rights[board.castling_rights()];
+    zobrist_key ^= ep_square[board.ep_square()];
     if (board.side_to_move())
     {
         zobrist_key ^= side;

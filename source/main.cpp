@@ -24,7 +24,7 @@ int main()
 {
     bool computer_plays[2] = { false };
 
-    string fen = "++++++++/1TT1TT1+/2~*~2+/XX3XX+/7+/xx3xx+/2+@+2+/1tt1tt1+";
+    string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     Board board = Parser::parse_fen(fen);
 
     while (true)

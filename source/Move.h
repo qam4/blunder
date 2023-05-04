@@ -28,7 +28,8 @@ Move_t inline build_capture(U8 from, U8 to, U8 capture) { return (from & 0x3FU) 
 Move_t inline build_ep_capture(U8 from, U8 to, U8 capture) { return (from & 0x3FU) | (to & 0x3FU) << 6 | (capture & 0xFU) << 12 | EP_CAPTURE << 16; }
 Move_t inline build_promotion(U8 from, U8 to, U8 promote_to) { return (from & 0x3FU) | (to & 0x3FU) << 6 | ((promote_to & 0xFU) << 16); }
 Move_t inline build_capture_promotion(U8 from, U8 to, U8 capture, U8 promote_to){ return (from & 0x3FU) | (to & 0x3FU) << 6 | (capture & 0xFU) << 12 | ((promote_to & 0xFU) << 16); }
-Move_t inline build_pawn_double_push(U8 from, U8 to) { return (from & 0x3FU) | (to & 0x3FU) << 6 | PAWN_DOUBLE_PUSH <<16; }
+Move_t inline build_pawn_double_push(U8 from, U8 to) { return (from & 0x3FU) | (to & 0x3FU) << 6 | PAWN_DOUBLE_PUSH << 16; }
+Move_t inline build_castle(U8 flags) { return static_cast<U32>(flags & CASTLE_MASK) << 16; }
 
 
 Move_t inline build_move_flags(U8 from, U8 to, U8 flags) { return (from & 0x3FU) | (to & 0x3FU) << 6 | (flags & 0xFFU) << 16; }

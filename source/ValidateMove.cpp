@@ -3,6 +3,7 @@
  *
  */
 #include "ValidateMove.h"
+#include "Output.h"
 
 string static is_valid_move_err(Move_t move, const class Board& board);
 
@@ -13,7 +14,8 @@ bool is_valid_move(Move_t move, const class Board& board)
     {
         return true;
     }
-    cerr << "INVALID MOVE: " << error << endl;
+    cerr << "INVALID MOVE " << Output::move(move, board) << ": " << error << endl;
+    cerr << Output::board(board);
     return false;
 }
 
@@ -29,8 +31,8 @@ string is_valid_move_err(Move_t move, const class Board& board)
     // check castle first
     if(is_castle(move)){
         if((move & 0xFFFFFF) != 0) return "Castle move shouldn't have data in lower 3 bytes";
-        if(move != KING_CASTLE && move != QUEEN_CASTLE) return "Invalid castle move";
-        if(move == KING_CASTLE){
+        if(move != build_castle(KING_CASTLE) && move != build_castle(QUEEN_CASTLE)) return "Invalid castle move";
+        if(move == build_castle(KING_CASTLE)){
             if(side == WHITE){
                 if(!(board.castling_rights() & WHITE_KING_SIDE)) return "White doesn't have king-side castling rights";
             } else {

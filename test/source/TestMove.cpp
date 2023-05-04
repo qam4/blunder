@@ -50,8 +50,9 @@ TEST_CASE("move", "[move]")
     REQUIRE(move_promote_to(move) == WHITE_BISHOP);
 
     // test castle
-    move = KING_CASTLE;
+    move = build_castle(KING_CASTLE);
     REQUIRE(is_castle(move));
+
     // test ep capture
     move = build_ep_capture(C5, D6, BLACK_PAWN);
     REQUIRE(move_from(move) == C5);

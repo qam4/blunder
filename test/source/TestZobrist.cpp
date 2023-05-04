@@ -27,13 +27,18 @@ TEST_CASE("zobrist", "[zobrist]")
     board.remove_piece(D2);
     REQUIRE(key == zobrist.get_zobrist_key(board));
 
-    // TODO
-    // board.set_last_move_sideways(BLACK_MOVED_SIDEWAYS);
-    // REQUIRE(key != zobrist.get_zobrist_key(board));
-    // board.set_last_move_sideways(WHITE_MOVED_SIDEWAYS);
-    // REQUIRE(key != zobrist.get_zobrist_key(board));
-    // board.set_last_move_sideways(BLACK_MOVED_SIDEWAYS | WHITE_MOVED_SIDEWAYS);
-    // REQUIRE(key != zobrist.get_zobrist_key(board));
-    // board.set_last_move_sideways(NO_MOVED_SIDEWAYS);
-    // REQUIRE(key == zobrist.get_zobrist_key(board));
+    board.set_castling_rights(WHITE_KING_SIDE);
+    REQUIRE(key != zobrist.get_zobrist_key(board));
+    board.set_castling_rights(BLACK_KING_SIDE);
+    REQUIRE(key != zobrist.get_zobrist_key(board));
+    board.set_castling_rights(BLACK_QUEEN_SIDE | WHITE_QUEEN_SIDE);
+    REQUIRE(key != zobrist.get_zobrist_key(board));
+    board.set_castling_rights(FULL_CASTLING_RIGHTS);
+    REQUIRE(key == zobrist.get_zobrist_key(board));
+
+    board.set_ep_square(D2);
+    REQUIRE(key != zobrist.get_zobrist_key(board));
+    board.set_ep_square(NULL_SQUARE);
+    REQUIRE(key == zobrist.get_zobrist_key(board));
+
 }

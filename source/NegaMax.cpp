@@ -52,7 +52,7 @@ Move_t Board::negamax_root(int depth)
     bestvalue = -MAX_SCORE;
 
     MoveGenerator::add_all_moves(list, *this, side_to_move());
-    // cout << Output::movelist(list, *this, false, false);
+    // cout << Output::movelist(list, *this);
     n = list.length();
 
     for (i = 0; i < n; i++)

@@ -57,13 +57,13 @@ void MoveGenerator::add_moves(
 }
 
 void MoveGenerator::add_moves_with_diff(
-    int diff, U64 targets, class MoveList& list, const class Board& board, const U8 flags)
+    int diff, U64 targets, class MoveList& list, const class Board& board, const U8 flags, const U8 extra_capture)
 {
     while (targets)
     {
         U8 to = bit_scan_forward(targets);
         U8 from = static_cast<U8>(to - diff) % 64;
-        U8 capture = board[to];
+        U8 capture = board[to] | extra_capture;
         Move_t move = build_move_all(from, to, flags, capture);
         list.push(move);
         targets &= targets - 1;
@@ -289,8 +289,8 @@ void MoveGenerator::add_rook_moves(class MoveList& list,
         U8 from = bit_scan_forward(rooks);
 
         U64 targets;
-        // Add file attacks
-        targets = fileAttacks(occupied, from);
+        // Add file and rank attacks
+        targets = fileAttacks(occupied, from) + rankAttacks(occupied, from);
         targets &= ~(friendly);
         add_moves(from, targets, list, board, NO_FLAGS);
 
@@ -330,8 +330,8 @@ void MoveGenerator::add_queen_moves(class MoveList& list, const class Board& boa
         U8 from = bit_scan_forward(queens);
 
         U64 targets;
-        // Add diagonal, antidiagonal attacks and file attacks
-        targets = diagAttacks(occupied, from) + antiDiagAttacks(occupied, from) + fileAttacks(occupied, from);
+        // Add diagonal, antidiagonal, file and rank attacks
+        targets = diagAttacks(occupied, from) + antiDiagAttacks(occupied, from) + fileAttacks(occupied, from) + rankAttacks(occupied, from);
         targets &= ~(friendly);
         add_moves(from, targets, list, board, NO_FLAGS);
 
@@ -352,7 +352,7 @@ void MoveGenerator::add_pawn_pushes(class MoveList &list, const class Board& boa
 
     // ADD SINGLE PUSHES
     pushes = circular_left_shift(pawns, diff) & free_squares;
-    add_moves_with_diff(diff, pushes & (~promotions_mask[side]), list, board, NO_FLAGS);
+    add_moves_with_diff(diff, pushes & (~promotions_mask[side]), list, board, NO_FLAGS, 0);
 
     // ADD PROMOTIONS
     promotions = pushes & promotions_mask[side];
@@ -360,7 +360,7 @@ void MoveGenerator::add_pawn_pushes(class MoveList &list, const class Board& boa
 
     // ADD DOUBLE PUSHES
     double_pushes = circular_left_shift(pushes & start_row_plus_one_mask[side], diff) & free_squares;
-    add_moves_with_diff(diff+diff, double_pushes, list, board, PAWN_DOUBLE_PUSH);
+    add_moves_with_diff(diff+diff, double_pushes, list, board, PAWN_DOUBLE_PUSH, 0);
 }
 
 void MoveGenerator::add_pawn_attacks(class MoveList &list, const class Board &board, const U8 side)
@@ -380,15 +380,18 @@ void MoveGenerator::add_pawn_attacks(class MoveList &list, const class Board &bo
 
         // ADD ATTACKS
         attacks = enemy & targets;
-        add_moves_with_diff(diff, attacks & (~promotions_mask[side]), list, board, NO_FLAGS);
+        add_moves_with_diff(diff, attacks & (~promotions_mask[side]), list, board, NO_FLAGS, 0);
 
         // ADD EP ATTACKS
-        ep_attacks = targets & (1ULL << board.irrev.ep_square);
-        add_moves_with_diff(diff, ep_attacks, list, board, EP_CAPTURE | (PAWN|(!side)));
+        // if (board.irrev.ep_square != NULL_SQUARE)
+        // {
+        //     ep_attacks = targets & (1ULL << board.irrev.ep_square);
+        //     add_moves_with_diff(diff, ep_attacks, list, board, EP_CAPTURE, PAWN|(!side));
+        // }
 
-        // ADD PROMOTION ATTACKS
-        promotions = attacks & promotions_mask[side];
-        add_promotions_with_diff(diff, promotions, list, board, side);
+        // // ADD PROMOTION ATTACKS
+        // promotions = attacks & promotions_mask[side];
+        // add_promotions_with_diff(diff, promotions, list, board, side);
     }
 }
 
@@ -427,6 +430,9 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
     add_rook_moves(list, board, side);
     add_queen_moves(list, board, side);
     add_king_moves(list, board, side);
+#ifndef NDEBUG
+    assert(list.contains_valid_moves(board));
+#endif
 }
 
 void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
@@ -438,7 +444,7 @@ void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
         Move_t move = list[i];
         U8 from = move_from(move);
         U8 to = move_to(move);
-        U16 score = MVVLVA[board[to] >> 1][board[from] >> 1];
+        U8 score = MVVLVA[board[to] >> 1][board[from] >> 1];
 
         move_add_score(&move, score);
         list.set_move(i, move);

@@ -34,7 +34,7 @@ bool Board::is_blank()
 
 void Board::add_piece(U8 piece, int square)
 {
-#ifdef DEBUG
+#ifndef NDEBUG
     assert(is_valid_piece(piece));
     assert(is_valid_square(square));
     assert(board_array[square] == EMPTY);
@@ -47,7 +47,7 @@ void Board::add_piece(U8 piece, int square)
 
 void Board::remove_piece(int square)
 {
-#ifdef DEBUG
+#ifndef NDEBUG
     assert(is_valid_square(square));
     assert(board_array[square] != EMPTY);
 #endif
@@ -78,7 +78,7 @@ void Board::reset()
 
 U8 Board::operator[](const int square) const
 {
-#ifdef DEBUG
+#ifndef NDEBUG
     assert(is_valid_square(square));
 #endif
     return board_array[square];
@@ -86,35 +86,41 @@ U8 Board::operator[](const int square) const
 
 U64 Board::bitboard(const int type) const
 {
-#ifdef DEBUG
+#ifndef NDEBUG
     assert(type >= 0 && type <= BLACK_QUEEN);
 #endif
     return bitboards[type];
 }
 
-// [fm] TODO
+// [fm] TODO: gonna need a stack for irrev
+// handle special moves, caste, promo, ep
+// with promotion, there should be no pawn on row 1 or 8
 void Board::do_move(Move_t move)
 {
-    U8 piece = board_array[move_from(move)];
+    U8 from = move_from(move);
+    U8 to = move_to(move);
+    U8 piece = board_array[from];
     // cout << "do_move:" << Output::move(move, *this) << endl;
     // cout << "do_move: move_flag=" << hex << move << endl;
-    // cout << "do_move: last_move_sideways=" <<(int)irrev.last_move_sideways << endl;
 
-    if (is_capture(move))
+    irrev.ep_square = NULL_SQUARE;
+    if (is_pawn_double_push(move))
     {
-        remove_piece(move_to(move));
+        irrev.ep_square = (to + from) >> 1;
     }
-    remove_piece(move_from(move));
-    add_piece(piece, move_to(move));
+    else if (is_ep_capture(move))
+    {
+            // TODO
+    }
+    else if (is_capture(move))
+    {
+        remove_piece(to);
+    }
+    remove_piece(from);
+    add_piece(piece, to);
 
-    // // update flags
-    // // First reset the flag, then check if the current move is sideways to set the flag
-
-    // irrev.last_move_sideways &= static_cast<U8>(~(1 << irrev.side_to_move));
-
-    // if ((move_flags(move) & MOVED_SIDEWAYS) != 0)
-    //     irrev.last_move_sideways |= static_cast<U8>(1 << irrev.side_to_move);
-    // // cout << "do_move: last_move_sideways=" << (int)irrev.last_move_sideways << endl;
+    // update flags
+    irrev.half_move_count++;
 
     // update side_to_move
     irrev.side_to_move ^= 1;
@@ -126,23 +132,25 @@ void Board::do_move(Move_t move)
 
 void Board::undo_move(Move_t move)
 {
-    U8 piece = board_array[move_to(move)];
+    U8 from = move_from(move);
+    U8 to = move_to(move);
+    U8 piece = board_array[to];
     // cout << "undo_move:" << Output::move(move, *this) << endl;
     // cout << "undo_move: move_flag=" << hex << move << endl;
-    // cout << "undo_move: last_move_sideways=" <<(int)irrev.last_move_sideways << endl;
 
     // update side_to_move
     irrev.side_to_move ^= 1;
 
-    remove_piece(move_to(move));
-    add_piece(piece, move_from(move));
+    remove_piece(to);
+    add_piece(piece, from);
     if (is_capture(move))
     {
-        add_piece(move_captured(move), move_to(move));
+        add_piece(move_captured(move), to);
     }
+
     // update flags
-    // irrev.last_move_sideways = move_flags(move) & LAST_MOVE_SIDEWAYS_MASK;
-    // // cout << "undo_move: last_move_sideways=" <<(int)irrev.last_move_sideways << endl;
+    irrev.half_move_count--;
+    irrev.ep_square = NULL_SQUARE;
 
     game_ply--;
     search_ply--;

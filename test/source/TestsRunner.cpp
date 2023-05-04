@@ -12,4 +12,5 @@ board.undo_move()
 board.evaluate()
 parser.move()
 movegenerator.add_all_moves()
+movegenerator.can_generate_queen_moves
 */

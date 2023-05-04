@@ -23,8 +23,8 @@ const U8 BLACK = 1;
 
 const U8 PAWN = 2;
 const U8 KNIGHT = 4;
-const U8 ROOK = 6;
-const U8 BISHOP = 8;
+const U8 BISHOP = 6;
+const U8 ROOK = 8;
 const U8 QUEEN = 10;
 const U8 KING = 12;
 
@@ -32,10 +32,10 @@ const U8 WHITE_PAWN = 2;
 const U8 BLACK_PAWN = 3;
 const U8 WHITE_KNIGHT = 4;
 const U8 BLACK_KNIGHT = 5;
-const U8 WHITE_ROOK   = 6;
-const U8 BLACK_ROOK   = 7;
-const U8 WHITE_BISHOP = 8;
-const U8 BLACK_BISHOP = 9;
+const U8 WHITE_BISHOP = 6;
+const U8 BLACK_BISHOP = 7;
+const U8 WHITE_ROOK   = 8;
+const U8 BLACK_ROOK   = 9;
 const U8 WHITE_QUEEN  = 10;
 const U8 BLACK_QUEEN  = 11;
 const U8 WHITE_KING   = 12;
