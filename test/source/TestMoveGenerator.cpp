@@ -7,26 +7,25 @@
 
 #include "Tests.h"
 
-TEST_CASE("move_generator_can_generate_tiefighter_moves", "[move generator]")
+TEST_CASE("move_generator_can_generate_rook_moves", "[move generator]")
 {
-    cout << "- Can generate tie-fighter moves" << endl;
+    cout << "- Can generate rook moves" << endl;
     Board board;
-    board.add_piece(WHITE_TIEFIGHTER, D2);
+    board.add_piece(WHITE_ROOK, D2);
     // cout << Output::board(board);
     MoveList list;
     // check normal moves
-    // check can only move backwards if move is a capture
-    MoveGenerator::add_tiefighter_moves(list, board, board.side_to_move());
+    MoveGenerator::add_rook_moves(list, board, board.side_to_move());
     // cout << Output::movelist(list, board, true, false);
     REQUIRE(list.length() == 11);
     REQUIRE(list.contains_valid_moves(board));
     REQUIRE(!list.contains_duplicates());
-    REQUIRE(list.contains(build_move_flags(D2, A2, MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(D2, B2, MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(D2, C2, MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(D2, E2, MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(D2, F2, MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(D2, G2, MOVED_SIDEWAYS)));
+    REQUIRE(list.contains(build_move(D2, A2)));
+    REQUIRE(list.contains(build_move(D2, B2)));
+    REQUIRE(list.contains(build_move(D2, C2)));
+    REQUIRE(list.contains(build_move(D2, E2)));
+    REQUIRE(list.contains(build_move(D2, F2)));
+    REQUIRE(list.contains(build_move(D2, G2)));
     REQUIRE(list.contains(build_move(D2, D3)));
     REQUIRE(list.contains(build_move(D2, D4)));
     REQUIRE(list.contains(build_move(D2, D5)));
@@ -35,73 +34,52 @@ TEST_CASE("move_generator_can_generate_tiefighter_moves", "[move generator]")
     list.reset();
     board.reset();
 
-    // check black player, captures, move forward
-    board.add_piece(BLACK_TIEFIGHTER, D5);
-    board.add_piece(WHITE_TIEFIGHTER, D2);
-    board.add_piece(WHITE_DEATHSTAR, G5);  // cannot be taken forward
-    board.add_piece(WHITE_XWING, D7);
+    // check black player, captures
+    board.add_piece(BLACK_ROOK, D5);
+    board.add_piece(WHITE_ROOK, D2);
+    board.add_piece(WHITE_BISHOP, D7);
     board.set_side_to_move(BLACK);
-    MoveGenerator::add_tiefighter_moves(list, board, board.side_to_move());
+    MoveGenerator::add_rook_moves(list, board, board.side_to_move());
     // cout << Output::movelist(list, board, true, false);
     REQUIRE(list.length() == 9);
     REQUIRE(list.contains_valid_moves(board));
     REQUIRE(!list.contains_duplicates());
-    REQUIRE(list.contains(build_move_flags(D5, A5, MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(D5, B5, MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(D5, C5, MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(D5, E5, MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(D5, F5, MOVED_SIDEWAYS)));
+    REQUIRE(list.contains(build_move(D5, A5)));
+    REQUIRE(list.contains(build_move(D5, B5)));
+    REQUIRE(list.contains(build_move(D5, C5)));
+    REQUIRE(list.contains(build_move(D5, E5)));
+    REQUIRE(list.contains(build_move(D5, F5)));
     REQUIRE(list.contains(build_move(D5, D4)));
     REQUIRE(list.contains(build_move(D5, D3)));
-    REQUIRE(list.contains(build_capture(D5, D2, WHITE_TIEFIGHTER)));
-    REQUIRE(list.contains(build_capture(D5, D7, WHITE_XWING)));
-    list.reset();
-
-    // check last_move_sideway
-    board.reset();
-    board.add_piece(BLACK_TIEFIGHTER, D5);
-    board.add_piece(WHITE_TIEFIGHTER, D2);
-
-    board.do_move(build_move_flags(D2, B2, MOVED_SIDEWAYS));
-    board.do_move(build_move_flags(D5, E5, MOVED_SIDEWAYS));
-    MoveGenerator::add_tiefighter_moves(list, board, board.side_to_move());
-    // cout << Output::movelist(list, board, true, false);
-    // cout << Output::board_with_movelist(list, board);
-    REQUIRE(list.length() == 5);
-    REQUIRE(list.contains_valid_moves(board));
-    REQUIRE(!list.contains_duplicates());
-    REQUIRE(list.contains(build_move_flags(B2, B3, WHITE_MOVED_SIDEWAYS | BLACK_MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(B2, B4, WHITE_MOVED_SIDEWAYS | BLACK_MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(B2, B5, WHITE_MOVED_SIDEWAYS | BLACK_MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(B2, B6, WHITE_MOVED_SIDEWAYS | BLACK_MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(B2, B7, WHITE_MOVED_SIDEWAYS | BLACK_MOVED_SIDEWAYS)));
+    REQUIRE(list.contains(build_capture(D5, D2, WHITE_ROOK)));
+    REQUIRE(list.contains(build_capture(D5, D7, WHITE_BISHOP)));
     list.reset();
 
     board.do_move(build_move(B2, B3));
-    MoveGenerator::add_tiefighter_moves(list, board, board.side_to_move());
+    MoveGenerator::add_rook_moves(list, board, board.side_to_move());
     // cout << Output::movelist(list, board, true, false);
     // cout << Output::board_with_movelist(list, board);
     REQUIRE(list.length() == 4);
     REQUIRE(list.contains_valid_moves(board));
     REQUIRE(!list.contains_duplicates());
-    REQUIRE(list.contains(build_move_flags(E5, E4, BLACK_MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(E5, E3, BLACK_MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(E5, E2, BLACK_MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(E5, E1, BLACK_MOVED_SIDEWAYS)));
+    REQUIRE(list.contains(build_move(E5, E4)));
+    REQUIRE(list.contains(build_move(E5, E3)));
+    REQUIRE(list.contains(build_move(E5, E2)));
+    REQUIRE(list.contains(build_move(E5, E1)));
     list.reset();
 
     board.do_move(build_move(E5, E4));
-    MoveGenerator::add_tiefighter_moves(list, board, board.side_to_move());
+    MoveGenerator::add_rook_moves(list, board, board.side_to_move());
     // cout << Output::movelist(list, board, true, false);
     // cout << Output::board_with_movelist(list, board);
     REQUIRE(list.length() == 10);
     REQUIRE(list.contains_valid_moves(board));
     REQUIRE(!list.contains_duplicates());
-    REQUIRE(list.contains(build_move_flags(B3, A3, MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(B3, C3, MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(B3, D3, MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(B3, E3, MOVED_SIDEWAYS)));
-    REQUIRE(list.contains(build_move_flags(B3, F3, MOVED_SIDEWAYS)));
+    REQUIRE(list.contains(build_move(B3, A3)));
+    REQUIRE(list.contains(build_move(B3, C3)));
+    REQUIRE(list.contains(build_move(B3, D3)));
+    REQUIRE(list.contains(build_move(B3, E3)));
+    REQUIRE(list.contains(build_move(B3, F3)));
     REQUIRE(list.contains(build_move(B3, B4)));
     REQUIRE(list.contains(build_move(B3, B5)));
     REQUIRE(list.contains(build_move(B3, B6)));
@@ -109,15 +87,14 @@ TEST_CASE("move_generator_can_generate_tiefighter_moves", "[move generator]")
     list.reset();
 }
 
-TEST_CASE("move_generator_can_generate_xwing_moves", "[move generator]")
+TEST_CASE("move_generator_can_generate_bishop_moves", "[move generator]")
 {
-    cout << "- Can generate xwing moves" << endl;
+    cout << "- Can generate bishop moves" << endl;
     Board board;
-    board.add_piece(WHITE_XWING, D2);
+    board.add_piece(WHITE_BISHOP, D2);
     MoveList list;
     // check normal moves
-    // check can only move backwards if move is a capture
-    MoveGenerator::add_xwing_moves(list, board, WHITE);
+    MoveGenerator::add_bishop_moves(list, board, WHITE);
     // cout << Output::movelist(list, board, true, false);
     REQUIRE(list.length() == 6);
     REQUIRE(list.contains_valid_moves(board));
@@ -132,13 +109,10 @@ TEST_CASE("move_generator_can_generate_xwing_moves", "[move generator]")
 
     // check black player
     // check captures
-    // check can only move backwards if move is a capture
-    // check wall
-    board.add_piece(BLACK_XWING, D5);
-    board.add_piece(WHITE_DEATHSTAR, F7);
-    board.add_piece(WHITE_XWING, B3);
+    board.add_piece(BLACK_BISHOP, D5);
+    board.add_piece(WHITE_BISHOP, B3);
     board.set_side_to_move(BLACK);
-    MoveGenerator::add_xwing_moves(list, board, BLACK);
+    MoveGenerator::add_bishop_moves(list, board, BLACK);
     // cout << Output::movelist(list, board, true, false);
     // cout << Output::board_with_movelist(list, board);
     REQUIRE(list.length() == 6);
@@ -148,12 +122,10 @@ TEST_CASE("move_generator_can_generate_xwing_moves", "[move generator]")
     REQUIRE(list.contains(build_move(D5, F3)));
     REQUIRE(list.contains(build_move(D5, G2)));
     REQUIRE(list.contains(build_move(D5, C4)));
-    REQUIRE(list.contains(build_capture(D5, B3, WHITE_XWING)));
-    REQUIRE(list.contains(build_capture(D5, F7, WHITE_DEATHSTAR)));
+    REQUIRE(list.contains(build_capture(D5, B3, WHITE_BISHOP)));
     list.reset();
 }
 
-#if 0
 TEST_CASE("move_generator_can_generate_pawn_pushes", "[move generator]"){
     cout << "- Can generate pawn pushes" << endl;
     Board board;
@@ -161,9 +133,9 @@ TEST_CASE("move_generator_can_generate_pawn_pushes", "[move generator]"){
     for(U8 sq = A2; sq <= H2; sq++){
         board.add_piece(WHITE_PAWN, sq);
     }
-    REQUIRE(board.bitboards[WHITE_PAWN] == 0xFF00ULL);
-    REQUIRE(board.bitboards[WHITE] == 0xFF00ULL);
-    REQUIRE(board.bitboards[BLACK] == 0x0ULL);
+    REQUIRE(board[WHITE_PAWN] == 0xFF00ULL);
+    REQUIRE(board[WHITE] == 0xFF00ULL);
+    REQUIRE(board[BLACK] == 0x0ULL);
     MoveList list;
     MoveGenerator::add_pawn_pushes(list, board, WHITE);
     // check 8 pushes generated and 8 double pushes
@@ -427,4 +399,3 @@ TEST_CASE("move_generator_can_generate_king_moves", "[move generator]"){
     REQUIRE(!list.contains_duplicates());
     REQUIRE(list.contains_valid_moves(board));
 }
-#endif

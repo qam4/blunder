@@ -49,24 +49,32 @@ class Board Parser::parse_fen(string fen)
 
     if (pos++ >= len)
         return board;
+
     while (fen[pos] == ' ')
         if (pos++ >= len)
             return board;
 
-    // last move sideways
-    U8 last_move_sideways = NO_MOVED_SIDEWAYS;
-    while (fen[pos] != ' ')
-    {
-        // cout << "fen:msw=" << fen[pos] << endl;
-        last_move_sideways = last_move_sideways | Parser::last_move_sideways(fen[pos]);
-        board.set_last_move_sideways(last_move_sideways);
+    // castling rights
+    U8 rights = 0;
+    while(fen[pos++] != ' '){
+        rights |= Parser::castling_right(fen[pos]);
+    }
+    board.set_castling_rights(rights);
+
+    while (fen[pos] == ' ')
         if (pos++ >= len)
             return board;
+
+    // half-move-count
+    int half_move_count = 0;
+    while(fen[pos] >= '0' && fen[pos] <= '9'){
+        half_move_count = half_move_count * 10 + (fen[pos] - '0');
+        if (pos++ >= len) return board;
     }
 
-    while (fen[pos] == ' ')
-        if (pos++ >= len)
-            return board;
+    board.set_half_move_count(static_cast<U8>(half_move_count));
+
+    while(fen[pos] == ' ') if (pos++ >= len) return board;
 
     // full-move-count
     int full_move_count = 0;
@@ -97,27 +105,24 @@ U8 Parser::side(char c)
     return WHITE;
 }
 
-U8 Parser::last_move_sideways(char c)
-{
-    if (c == 'b' || c == 'B')
-        return BLACK_MOVED_SIDEWAYS;
-    if (c == 'w' || c == 'W')
-        return WHITE_MOVED_SIDEWAYS;
-    return NO_MOVED_SIDEWAYS;
+U8 Parser::castling_right(char c){
+    switch(c){
+        case 'K': return WHITE_KING_SIDE;
+        case 'Q': return WHITE_QUEEN_SIDE;
+        case 'k': return BLACK_KING_SIDE;
+        case 'q': return BLACK_QUEEN_SIDE;
+    }
+    return 0;
 }
 
 U8 Parser::square(char sq[])
 {
-    if ((sq[0] < 'A') || (sq[0] > 'G'))
-        return NULL_SQUARE;
-    if ((sq[1] < '1') || (sq[1] > '7'))
-        return NULL_SQUARE;
-
-    int col = sq[0] - 'A';
+    int col = sq[0] - 'a';
     int row = sq[1] - '1';
     return static_cast<U8>((row * 8) + col);
 }
 
+// [fm] TODO
 U32 Parser::move(string str, Board& board)
 {
     size_t len = str.length();
@@ -134,17 +139,19 @@ U32 Parser::move(string str, Board& board)
     capture = board[to];
     if ((from == NULL_SQUARE) || (to == NULL_SQUARE))
         return 0;
-    U8 flags = NO_FLAGS | board.last_move_sideways();
+    // TODO
+    U8 flags = NO_FLAGS;
+    // U8 flags = NO_FLAGS | board.last_move_sideways();
     // Check if tie-fighter sideway move
     // cout << "piece=" << ((piece&(~1)) == TIEFIGHTER)
     // << ((to&(~C64(0x7))) == (from&(~C64(0x7))))
     // << ", from=" << (int)from << "-" << (int)(from&(~C64(0x7)))
     // << ", to=" << (int)to << "-" << (int)(to&(~C64(0x7))) << endl;
-    if (((piece & (~1)) == TIEFIGHTER) && ((to & (~C64(0x7))) == (from & (~C64(0x7)))))
-    {
-        // cout << "this is a move sideways"  << endl;
-        flags |= MOVED_SIDEWAYS;
-    }
+    // if (((piece & (~1)) == TIEFIGHTER) && ((to & (~C64(0x7))) == (from & (~C64(0x7)))))
+    // {
+    //     // cout << "this is a move sideways"  << endl;
+    //     flags |= MOVED_SIDEWAYS;
+    // }
     move |= build_move_all(from, to, flags, capture);
     // cout << "move=" << hex<<move << endl;
     return move;

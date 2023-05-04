@@ -15,8 +15,8 @@ public:
     static class Board parse_fen(string fen);
     static U8 parse_piece(char piece);
     static U8 side(char c);
+    static U8 castling_right(char c);
     static U8 square(char sq[]);
-    static U8 last_move_sideways(char c);
     static U32 move(string str, Board &board);
 
 private:

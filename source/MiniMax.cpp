@@ -91,7 +91,7 @@ Move_t Board::minimax_root(int depth, bool maximizing_player)
             do_move(move);
             value = minimax(depth - 1, false);
             undo_move(move);
-            cout << Output::move_fancy(move, *this) << " (" << dec << value << "), ";
+            cout << Output::move(move, *this) << " (" << dec << value << "), ";
             if ((i % 4 == 3) || (i == n - 1))
             {
                 cout << endl;
@@ -118,7 +118,7 @@ Move_t Board::minimax_root(int depth, bool maximizing_player)
             do_move(move);
             value = minimax(depth - 1, true);
             undo_move(move);
-            cout << Output::move_fancy(move, *this) << " (" << dec << value << "), ";
+            cout << Output::move(move, *this) << " (" << dec << value << "), ";
             if ((i % 4 == 3) || (i == n - 1))
             {
                 cout << endl;

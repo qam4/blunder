@@ -62,7 +62,7 @@ Move_t Board::negamax_root(int depth)
         do_move(move);
         value = -negamax(depth - 1);
         undo_move(move);
-        cout << Output::move_fancy(move, *this) << " (" << dec << value << "), ";
+        cout << Output::move(move, *this) << " (" << dec << value << "), ";
         if ((i % 4 == 3) || (i == n - 1))
         {
             cout << endl;

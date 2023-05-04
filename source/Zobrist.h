@@ -23,7 +23,7 @@ private:
     U64 rand64();
 
     U64 pieces[NUM_PIECES][NUM_SQUARES];  // [piece type][square]
-    U64 last_move_sideways[4];            // Four different last_move_sideways
+    // U64 last_move_sideways[4];            // Four different last_move_sideways
     U64 side;                             // side to move
 
     std::mt19937_64 gen;                  // Random generator

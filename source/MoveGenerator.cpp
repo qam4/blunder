@@ -5,7 +5,6 @@
 
 #include "MoveGenerator.h"
 
-#if 0
 const U64 KNIGHT_LOOKUP_TABLE[64] = {
         0x0000000000020400ULL, 0x0000000000050800ULL, 0x00000000000A1100ULL, 0x0000000000142200ULL,
         0x0000000000284400ULL, 0x0000000000508800ULL, 0x0000000000A01000ULL, 0x0000000000402000ULL,
@@ -43,7 +42,6 @@ const U64 KING_LOOKUP_TABLE[64] = {
         0x0203000000000000ULL, 0x0507000000000000ULL, 0x0A0E000000000000ULL, 0x141C000000000000ULL,
         0x2838000000000000ULL, 0x5070000000000000ULL, 0xA0E0000000000000ULL, 0x40C0000000000000ULL,
         };
-#endif
 
 void MoveGenerator::add_moves(
     U8 from, U64 targets, class MoveList& list, const class Board& board, const U8 flags)
@@ -58,42 +56,6 @@ void MoveGenerator::add_moves(
     }
 }
 
-void MoveGenerator::add_moves_check(U8 from,
-                                    U64 targets,
-                                    class MoveList& list,
-                                    const class Board& board,
-                                    const U8 flags,
-                                    const U8 side)
-{
-    while (targets)
-    {
-        U8 to = bit_scan_forward(targets);
-        U8 capture = board[to];
-        Move_t move;
-        if (capture != EMPTY)
-        {
-            // this is a capture, we need to check if the capture is backwards for DEATHSTAR
-            if (!(((capture & (~1)) == DEATHSTAR)
-                  && (((side == WHITE) && (to > from)) || ((side == BLACK) && (to < from)))))
-            {
-                // cout << "capture:" <<capture<< endl;
-                move = build_move_all(from, to, flags, capture);
-                list.push(move);
-            }
-        }
-        else
-        {
-            // this is a not capture, we need to check if the move is forward
-            if (((side == WHITE) && (to > from)) || ((side == BLACK) && (to < from)))
-            {
-                move = build_move_flags(from, to, flags);
-                list.push(move);
-            }
-        }
-        targets &= targets - 1;
-    }
-}
-
 void MoveGenerator::add_moves_with_diff(
     int diff, U64 targets, class MoveList& list, const class Board& board, const U8 flags)
 {
@@ -104,6 +66,23 @@ void MoveGenerator::add_moves_with_diff(
         U8 capture = board[to];
         Move_t move = build_move_all(from, to, flags, capture);
         list.push(move);
+        targets &= targets - 1;
+    }
+}
+
+void MoveGenerator::add_promotions_with_diff(int diff, U64 targets, class MoveList& list, const class Board &board, const U8 side)
+{
+    U8 flags = side;
+    while(targets)
+    {
+        U8 to = bit_scan_forward(targets);
+        U8 from = static_cast<U8>(to - diff) % 64;
+        U8 capture = board[to];
+        Move_t move = build_move_all(from, to, flags, capture);
+        list.push(move | (KNIGHT << 16));
+        list.push(move | (BISHOP << 16));
+        list.push(move | (ROOK   << 16));
+        list.push(move | (QUEEN  << 16));
         targets &= targets - 1;
     }
 }
@@ -205,10 +184,10 @@ U64 MoveGenerator::antiDiagMaskEx(int sq)
 }
 
 #if 0
-U64 MoveGenerator::tiefighterMask  (int sq) {return rankMask(sq)     | fileMask(sq);}
-U64 MoveGenerator::xwingMask       (int sq) {return diagonalMask(sq) | antiDiagMask(sq);}
-U64 MoveGenerator::tiefighterMaskEx(int sq) {return rankMask(sq)     ^ fileMask(sq);}
-U64 MoveGenerator::xwingMaskEx     (int sq) {return diagonalMask(sq) ^ antiDiagMask(sq);}
+U64 MoveGenerator::rookMask    (int sq) {return rankMask(sq)     | fileMask(sq);}
+U64 MoveGenerator::bishopMask  (int sq) {return diagonalMask(sq) | antiDiagMask(sq);}
+U64 MoveGenerator::rookMaskEx  (int sq) {return rankMask(sq)     ^ fileMask(sq);}
+U64 MoveGenerator::bishopMaskEx(int sq) {return diagonalMask(sq) ^ antiDiagMask(sq);}
 #endif
 
 // https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks
@@ -288,106 +267,80 @@ U64 MoveGenerator::rankAttacks(U64 occ, int sq)
     return forward;
 }
 
-void MoveGenerator::add_tiefighter_moves(class MoveList& list,
+void MoveGenerator::add_rook_moves(class MoveList& list,
                                          const class Board& board,
                                          const U8 side)
 {
-    U64 tiefighters = board.bitboards[TIEFIGHTER | side];
+    U64 rooks = board.bitboards[ROOK | side];
     U64 occupied = board.bitboards[WHITE] | board.bitboards[BLACK];
-    U64 friendly = board.bitboards[side] | board.bitboards[BLACK_WALL] | board.bitboards[WHITE_WALL]
-        | BOARD_LIMITS;  // own pieces and walls
+    U64 friendly = board.bitboards[side];
 
 #if 0
-    cout << "tiefighters=0x" << hex << tiefighters<< endl;
-    cout << Output::bitboard(tiefighters);
+    cout << "rooks=0x" << hex << rooks<< endl;
+    cout << Output::bitboard(rooks);
     cout << "occupied=0x" << hex << occupied<< endl;
     cout << Output::bitboard(occupied);
     cout << "friendly=0x" << hex << occupied<< endl;
     cout << Output::bitboard(friendly);
 #endif
 
-    while (tiefighters)
+    while (rooks)
     {
-        U8 from = bit_scan_forward(tiefighters);
+        U8 from = bit_scan_forward(rooks);
 
         U64 targets;
-        // Can only go sideways if it was not done before.
-        if ((board.last_move_sideways() & (1 << side)) == 0)
-        {
-            targets = rankAttacks(occupied, from);
-            targets &= ~(friendly | board.bitboards[DEATHSTAR | !side]);
-            add_moves(from, targets, list, board, MOVED_SIDEWAYS | board.last_move_sideways());
-        }
-        // Add file attacks, can only move backwards if capture
+        // Add file attacks
         targets = fileAttacks(occupied, from);
         targets &= ~(friendly);
-        add_moves_check(from, targets, list, board, NO_FLAGS | board.last_move_sideways(), side);
+        add_moves(from, targets, list, board, NO_FLAGS);
 
-        tiefighters &= tiefighters - 1;
+        rooks &= rooks - 1;
     }
-    // cout << "found " <<dec<<list.length() << " moves" << endl;
+    // cout << "found " << dec <<list.length() << " moves" << endl;
 }
 
-void MoveGenerator::add_xwing_moves(class MoveList& list, const class Board& board, const U8 side)
+void MoveGenerator::add_bishop_moves(class MoveList& list, const class Board& board, const U8 side)
 {
-    U64 xwings = board.bitboards[XWING | side];
+    U64 bishops = board.bitboards[BISHOP | side];
     U64 occupied = board.bitboards[WHITE] | board.bitboards[BLACK];
-    U64 friendly = board.bitboards[side] | board.bitboards[BLACK_WALL] | board.bitboards[WHITE_WALL]
-        | BOARD_LIMITS;  // own pieces and walls
+    U64 friendly = board.bitboards[side];  // own pieces
 
-    while (xwings)
+    while (bishops)
     {
-        U8 from = bit_scan_forward(xwings);
+        U8 from = bit_scan_forward(bishops);
 
         U64 targets;
-        // Add diagonal and antidiagonal attacks, can only move backwards if capture
+        // Add diagonal and antidiagonal attacks
         targets = diagAttacks(occupied, from) + antiDiagAttacks(occupied, from);
         targets &= ~(friendly);
-        add_moves_check(from, targets, list, board, NO_FLAGS | board.last_move_sideways(), side);
+        add_moves(from, targets, list, board, NO_FLAGS);
 
-        xwings &= xwings - 1;
+        bishops &= bishops - 1;
     }
 }
 
-void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board, const U8 side)
+void MoveGenerator::add_queen_moves(class MoveList& list, const class Board& board, const U8 side)
 {
-    add_tiefighter_moves(list, board, side);
-    add_xwing_moves(list, board, side);
-}
+    U64 queens = board.bitboards[QUEEN | side];
+    U64 occupied = board.bitboards[WHITE] | board.bitboards[BLACK];
+    U64 friendly = board.bitboards[side];  // own pieces
 
-void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
-{
-    int n = list.length();
-
-    for (int i = 0; i < n; i++)
+    while (queens)
     {
-        Move_t move = list[i];
-        U8 from = move_from(move);
-        U8 to = move_to(move);
-        U16 score = MVVLVA[board[to] >> 1][board[from] >> 1];
+        U8 from = bit_scan_forward(queens);
 
-        // Special case
-        // xwing on same square color (DARK) as the deathstar is worth more
-        // since it can capture the deathstar
-        if ((board[to] & (~1)) == XWING)
-        {
-            int row = (to & 56) >> 3;
-            int file = to & 7;
-            int square_color = (row + file) & 1;
+        U64 targets;
+        // Add diagonal, antidiagonal attacks and file attacks
+        targets = diagAttacks(occupied, from) + antiDiagAttacks(occupied, from) + fileAttacks(occupied, from);
+        targets &= ~(friendly);
+        add_moves(from, targets, list, board, NO_FLAGS);
 
-            if (square_color == 0)
-            {
-                score += 1;
-            }
-        }
-
-        move_add_score(&move, score);
-        list.set_move(i, move);
+        queens &= queens - 1;
     }
 }
 
-#if 0
-void MoveGenerator::add_pawn_pushes(class MoveList &list, const class Board &board, const int side){
+void MoveGenerator::add_pawn_pushes(class MoveList &list, const class Board& board, const U8 side)
+{
     const int diffs[2]                   = {8, 64-8};
     const U64 promotions_mask[2]         = {ROW_8, ROW_1};
     const U64 start_row_plus_one_mask[2] = {ROW_3, ROW_6};
@@ -396,18 +349,22 @@ void MoveGenerator::add_pawn_pushes(class MoveList &list, const class Board &boa
     int diff = diffs[side];
     pawns = board.bitboards[side | PAWN];
     free_squares = ~(board.bitboards[WHITE] | board.bitboards[BLACK]);
+
     // ADD SINGLE PUSHES
     pushes = circular_left_shift(pawns, diff) & free_squares;
     add_moves_with_diff(diff, pushes & (~promotions_mask[side]), list, board, NO_FLAGS);
+
     // ADD PROMOTIONS
     promotions = pushes & promotions_mask[side];
     add_promotions_with_diff(diff, promotions, list, board, side);
+
     // ADD DOUBLE PUSHES
     double_pushes = circular_left_shift(pushes & start_row_plus_one_mask[side], diff) & free_squares;
     add_moves_with_diff(diff+diff, double_pushes, list, board, PAWN_DOUBLE_PUSH);
 }
 
-void MoveGenerator::add_pawn_attacks(class MoveList &list, const class Board &board, const int side){
+void MoveGenerator::add_pawn_attacks(class MoveList &list, const class Board &board, const U8 side)
+{
     const int diffs[2][2]        = {{7, 64-9}, {9, 64-7}};
     const U64 promotions_mask[2] = {ROW_8, ROW_1};
     const U64 file_mask[2]       = {~FILE_H, ~FILE_A};
@@ -435,25 +392,12 @@ void MoveGenerator::add_pawn_attacks(class MoveList &list, const class Board &bo
     }
 }
 
-void MoveGenerator::add_promotions_with_diff(int diff, U64 targets, class MoveList& list, const class Board &board, const U32 side){
-    U32 flags = side << 16; // move to third byte
-    while(targets){
-        U32 to = bit_scan_forward(targets);
-        U32 from = ((U32)(to - diff)) % 64;
-        U32 capture = board[to];
-        U32 move = build_move_all(from, to, flags, capture);
-        list.push(move | (KNIGHT << 16));
-        list.push(move | (BISHOP << 16));
-        list.push(move | (ROOK   << 16));
-        list.push(move | (QUEEN  << 16));
-        targets &= targets - 1;
-    }
-}
-
-void MoveGenerator::add_knight_moves(class MoveList &list, const class Board &board, const int side){
+void MoveGenerator::add_knight_moves(class MoveList &list, const class Board &board, const U8 side)
+{
     U64 knights = board.bitboards[KNIGHT|side];
     U64 non_friendly = ~board.bitboards[side];
-    while(knights){
+    while(knights)
+    {
         U8 from = bit_scan_forward(knights);
         U64 targets = KNIGHT_LOOKUP_TABLE[from] & non_friendly;
         add_moves(from, targets, list, board, NO_FLAGS);
@@ -461,10 +405,12 @@ void MoveGenerator::add_knight_moves(class MoveList &list, const class Board &bo
     }
 }
 
-void MoveGenerator::add_king_moves(class MoveList &list, const class Board &board, const int side){
+void MoveGenerator::add_king_moves(class MoveList &list, const class Board &board, const U8 side)
+{
     U64 kings = board.bitboards[KING|side];
     U64 non_friendly = ~board.bitboards[side];
-    while(kings){
+    while(kings)
+    {
         U8 from = bit_scan_forward(kings);
         U64 targets = KING_LOOKUP_TABLE[from] & non_friendly;
         add_moves(from, targets, list, board, NO_FLAGS);
@@ -472,7 +418,35 @@ void MoveGenerator::add_king_moves(class MoveList &list, const class Board &boar
     }
 }
 
-void MoveGenerator::generate_move_lookup_tables(){
+void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board, const U8 side)
+{
+    add_pawn_pushes(list, board, side);
+    add_pawn_attacks(list, board, side);
+    add_knight_moves(list, board, side);
+    add_bishop_moves(list, board, side);
+    add_rook_moves(list, board, side);
+    add_queen_moves(list, board, side);
+    add_king_moves(list, board, side);
+}
+
+void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
+{
+    int n = list.length();
+
+    for (int i = 0; i < n; i++)
+    {
+        Move_t move = list[i];
+        U8 from = move_from(move);
+        U8 to = move_to(move);
+        U16 score = MVVLVA[board[to] >> 1][board[from] >> 1];
+
+        move_add_score(&move, score);
+        list.set_move(i, move);
+    }
+}
+
+void MoveGenerator::generate_move_lookup_tables()
+{
     cout << "GENERATING LOOKUP TABLES FOR KNIGHT MOVES" << endl;
     cout << "const U64 KNIGHT_LOOKUP_TABLE[64] = {" << endl << '\t';
     for(int row = 0; row < 8; row++){
@@ -518,4 +492,3 @@ void MoveGenerator::generate_move_lookup_tables(){
     }
     cout << "};" << endl;
 }
-#endif

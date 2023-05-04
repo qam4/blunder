@@ -39,7 +39,7 @@ void Board::print_pv()
         }
 
         Move_t move = pv_table[i];
-        cout << Output::move_fancy(move, *this) << " ";
+        cout << Output::move(move, *this) << " ";
         do_move(move);
     }
     for (int i = pv_length[0] - 1; i >= 0; i--)
@@ -69,7 +69,7 @@ void Board::sort_pv_move(class MoveList& list, Move_t best_move)
         Move_t move = list[i];
         if (list[i] == best_move)
         {
-            move_add_score(&move, 1000);
+            move_add_score(&move, 128);
             return;
         }
     }
@@ -84,7 +84,7 @@ void Board::sort_pv_move(class MoveList& list, Move_t best_move)
             if (move == pv_table[search_ply])
             {
                 follow_pv = 1;
-                move_add_score(&move, 500);
+                move_add_score(&move, 64);
                 break;
             }
         }

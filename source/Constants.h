@@ -8,20 +8,6 @@
 
 #include "Common.h"
 
-/*
-   Initial position
-
-7  - T T - T T - (BLACK)
-6  - - ~ * ~ - -
-5  X X - - - X X
-4  - - - - - - -
-3  x x - - - x x
-2  - - + @ + - -
-1  - t t - t t -  (WHITE)
-
-   A B C D E F G
-*/
-
 const int UNKNOWN_SCORE = 5000;
 const int MAX_SCORE = 2000;
 const int MATE_SCORE = 1000;
@@ -35,27 +21,36 @@ const U8 EMPTY = 0;
 const U8 WHITE = 0;
 const U8 BLACK = 1;
 
-const U8 WALL = 2;
-const U8 XWING = 4;
-const U8 TIEFIGHTER = 6;
-const U8 DEATHSTAR = 8;
+const U8 PAWN = 2;
+const U8 KNIGHT = 4;
+const U8 ROOK = 6;
+const U8 BISHOP = 8;
+const U8 QUEEN = 10;
+const U8 KING = 12;
 
-const U8 WHITE_WALL = 2;       // +
-const U8 BLACK_WALL = 3;       // ~
-const U8 WHITE_XWING = 4;      // x
-const U8 BLACK_XWING = 5;      // X
-const U8 WHITE_TIEFIGHTER = 6; // t
-const U8 BLACK_TIEFIGHTER = 7; // T
-const U8 WHITE_DEATHSTAR = 8;  // @
-const U8 BLACK_DEATHSTAR = 9;  // *
-const int NUM_PIECES = 10;
+const U8 WHITE_PAWN = 2;
+const U8 BLACK_PAWN = 3;
+const U8 WHITE_KNIGHT = 4;
+const U8 BLACK_KNIGHT = 5;
+const U8 WHITE_ROOK   = 6;
+const U8 BLACK_ROOK   = 7;
+const U8 WHITE_BISHOP = 8;
+const U8 BLACK_BISHOP = 9;
+const U8 WHITE_QUEEN  = 10;
+const U8 BLACK_QUEEN  = 11;
+const U8 WHITE_KING   = 12;
+const U8 BLACK_KING   = 13;
+const int NUM_PIECES = 14;
 
-const string PIECE_CHARS = "-E+~xXtT@*";
+const string PIECE_CHARS = "_EPpNnRrBbQqKk";
 
-//
-const U8 NO_MOVED_SIDEWAYS = 0;
-const U8 WHITE_MOVED_SIDEWAYS = 1;
-const U8 BLACK_MOVED_SIDEWAYS = 2;
+// CASTLING RIGHTS
+
+const U8 WHITE_KING_SIDE  = 1;
+const U8 WHITE_QUEEN_SIDE = 2;
+const U8 BLACK_KING_SIDE  = 4;
+const U8 BLACK_QUEEN_SIDE = 8;
+const U8 FULL_CASTLING_RIGHTS = 1 | 2 | 4 | 8;
 
 // SQUARES
 const U64 LIGHT_SQUARES = C64(0x55AA55AA55AA55AA);
@@ -157,7 +152,5 @@ const U64 ROW_5 = 0xFFULL << (4 * 8);
 const U64 ROW_6 = 0xFFULL << (5 * 8);
 const U64 ROW_7 = 0xFFULL << (6 * 8);
 const U64 ROW_8 = 0xFFULL << (7 * 8);
-
-const U64 BOARD_LIMITS = FILE_H | ROW_8;
 
 #endif /* CONSTANTS_H */

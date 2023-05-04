@@ -57,7 +57,7 @@ int main()
             cout << "searched moves per second: " << int(board.get_searched_moves() / elapsed_secs)
                  << endl;
 
-            cout << "Computer move: " << Output::move_fancy(move, board) << endl;
+            cout << "Computer move: " << Output::move(move, board) << endl;
             board.do_move(move);
             continue;
         }

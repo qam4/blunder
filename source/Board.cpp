@@ -69,7 +69,9 @@ void Board::reset()
     {
         bitboards[i] = 0ULL;
     }
-    irrev.last_move_sideways = 0;
+    irrev.half_move_count = 0;
+    irrev.castling_rights = FULL_CASTLING_RIGHTS;
+    irrev.ep_square = NULL_SQUARE;
     irrev.side_to_move = WHITE;
     game_ply = 0;
 }
@@ -85,15 +87,16 @@ U8 Board::operator[](const int square) const
 U64 Board::bitboard(const int type) const
 {
 #ifdef DEBUG
-    assert(type >= 0 && type <= BLACK_DEATHSTAR);
+    assert(type >= 0 && type <= BLACK_QUEEN);
 #endif
     return bitboards[type];
 }
 
+// [fm] TODO
 void Board::do_move(Move_t move)
 {
     U8 piece = board_array[move_from(move)];
-    // cout << "do_move:" << Output::move_fancy(move, *this) << endl;
+    // cout << "do_move:" << Output::move(move, *this) << endl;
     // cout << "do_move: move_flag=" << hex << move << endl;
     // cout << "do_move: last_move_sideways=" <<(int)irrev.last_move_sideways << endl;
 
@@ -104,13 +107,14 @@ void Board::do_move(Move_t move)
     remove_piece(move_from(move));
     add_piece(piece, move_to(move));
 
-    // update last_move_sideways.
-    // First reset the flag, then check if the current move is sideways to set the flag
-    irrev.last_move_sideways &= static_cast<U8>(~(1 << irrev.side_to_move));
+    // // update flags
+    // // First reset the flag, then check if the current move is sideways to set the flag
 
-    if ((move_flags(move) & MOVED_SIDEWAYS) != 0)
-        irrev.last_move_sideways |= static_cast<U8>(1 << irrev.side_to_move);
-    // cout << "do_move: last_move_sideways=" << (int)irrev.last_move_sideways << endl;
+    // irrev.last_move_sideways &= static_cast<U8>(~(1 << irrev.side_to_move));
+
+    // if ((move_flags(move) & MOVED_SIDEWAYS) != 0)
+    //     irrev.last_move_sideways |= static_cast<U8>(1 << irrev.side_to_move);
+    // // cout << "do_move: last_move_sideways=" << (int)irrev.last_move_sideways << endl;
 
     // update side_to_move
     irrev.side_to_move ^= 1;
@@ -123,7 +127,7 @@ void Board::do_move(Move_t move)
 void Board::undo_move(Move_t move)
 {
     U8 piece = board_array[move_to(move)];
-    // cout << "undo_move:" << Output::move_fancy(move, *this) << endl;
+    // cout << "undo_move:" << Output::move(move, *this) << endl;
     // cout << "undo_move: move_flag=" << hex << move << endl;
     // cout << "undo_move: last_move_sideways=" <<(int)irrev.last_move_sideways << endl;
 
@@ -136,9 +140,9 @@ void Board::undo_move(Move_t move)
     {
         add_piece(move_captured(move), move_to(move));
     }
-    // update last_move_sideways
-    irrev.last_move_sideways = move_flags(move) & LAST_MOVE_SIDEWAYS_MASK;
-    // cout << "undo_move: last_move_sideways=" <<(int)irrev.last_move_sideways << endl;
+    // update flags
+    // irrev.last_move_sideways = move_flags(move) & LAST_MOVE_SIDEWAYS_MASK;
+    // // cout << "undo_move: last_move_sideways=" <<(int)irrev.last_move_sideways << endl;
 
     game_ply--;
     search_ply--;
@@ -161,14 +165,12 @@ int Board::evaluate()
     M = Mobility (the number of legal moves)
     */
     int result = 0;
-    result = 100 * (pop_count(bitboards[WHITE_DEATHSTAR]) - pop_count(bitboards[BLACK_DEATHSTAR]))
-        + 5 * (pop_count(bitboards[WHITE_TIEFIGHTER]) - pop_count(bitboards[BLACK_TIEFIGHTER]))
-        + 3
-            * (pop_count(bitboards[WHITE_XWING] & DARK_SQUARES)
-               - pop_count(bitboards[BLACK_XWING] & DARK_SQUARES))
-        + 1
-            * (pop_count(bitboards[WHITE_XWING] & LIGHT_SQUARES)
-               - pop_count(bitboards[BLACK_XWING] & LIGHT_SQUARES));
+    result = 200 * (pop_count(bitboards[WHITE_KING]) - pop_count(bitboards[BLACK_KING]))
+        + 9 * (pop_count(bitboards[WHITE_QUEEN]) - pop_count(bitboards[BLACK_QUEEN]))
+        + 5 * (pop_count(bitboards[WHITE_ROOK]) - pop_count(bitboards[BLACK_ROOK]))
+        + 3 * (pop_count(bitboards[WHITE_BISHOP]) - pop_count(bitboards[BLACK_BISHOP]))
+        + 3 * (pop_count(bitboards[WHITE_KNIGHT]) - pop_count(bitboards[BLACK_KNIGHT]))
+        + 1 * (pop_count(bitboards[WHITE_PAWN]) - pop_count(bitboards[BLACK_PAWN]));
 
     // cout << "evaluate=" << result << endl;
     return result;
@@ -179,9 +181,7 @@ int Board::is_game_over()
 {
     // Game over if:
     // - no legal moves
-    // - deathstar captured
-    if (bitboards[DEATHSTAR | irrev.side_to_move] == 0)
-        return 1;
+    // TODO
     MoveList list;
     MoveGenerator::add_all_moves(list, *this, side_to_move());
     if (list.length() == 0)

@@ -10,17 +10,17 @@
 TEST_CASE("parser_can_parse_fen", "[parser]")
 {
     cout << "- Can parse FEN test 1" << endl;
-    string fen = "++++++++/1TT1TT1+/2~*~2+/XX3XX+/7+/xx3xx+/2+@+2+/1tt1tt1+";
+    string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     // clang-format off
     U8 expected_board_A[64] = {
-        EMPTY, WHITE_TIEFIGHTER, WHITE_TIEFIGHTER, EMPTY, WHITE_TIEFIGHTER, WHITE_TIEFIGHTER, EMPTY, WHITE_WALL,
-        EMPTY, EMPTY, WHITE_WALL, WHITE_DEATHSTAR, WHITE_WALL, EMPTY, EMPTY, WHITE_WALL,
-        WHITE_XWING, WHITE_XWING, EMPTY, EMPTY, EMPTY, WHITE_XWING, WHITE_XWING, WHITE_WALL,
-        EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, WHITE_WALL,
-        BLACK_XWING, BLACK_XWING, EMPTY, EMPTY, EMPTY, BLACK_XWING, BLACK_XWING, WHITE_WALL,
-        EMPTY, EMPTY, BLACK_WALL, BLACK_DEATHSTAR, BLACK_WALL, EMPTY, EMPTY, WHITE_WALL,
-        EMPTY, BLACK_TIEFIGHTER, BLACK_TIEFIGHTER, EMPTY, BLACK_TIEFIGHTER, BLACK_TIEFIGHTER, EMPTY, WHITE_WALL,
-        WHITE_WALL, WHITE_WALL, WHITE_WALL, WHITE_WALL, WHITE_WALL, WHITE_WALL, WHITE_WALL, WHITE_WALL};
+        WHITE_ROOK, WHITE_KNIGHT, WHITE_BISHOP, WHITE_QUEEN, WHITE_KING, WHITE_BISHOP, WHITE_KNIGHT, WHITE_ROOK,
+        WHITE_PAWN, WHITE_PAWN,   WHITE_PAWN,   WHITE_PAWN,  WHITE_PAWN, WHITE_PAWN,   WHITE_PAWN,   WHITE_PAWN,
+        EMPTY,      EMPTY,        EMPTY,        EMPTY,       EMPTY,      EMPTY,        EMPTY,        EMPTY,
+        EMPTY,      EMPTY,        EMPTY,        EMPTY,       EMPTY,      EMPTY,        EMPTY,        EMPTY,
+        EMPTY,      EMPTY,        EMPTY,        EMPTY,       EMPTY,      EMPTY,        EMPTY,        EMPTY,
+        EMPTY,      EMPTY,        EMPTY,        EMPTY,       EMPTY,      EMPTY,        EMPTY,        EMPTY,
+        BLACK_PAWN, BLACK_PAWN,   BLACK_PAWN,   BLACK_PAWN,  BLACK_PAWN, BLACK_PAWN,   BLACK_PAWN,   BLACK_PAWN,
+        BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BLACK_BISHOP, BLACK_KNIGHT, BLACK_ROOK};
     // clang-format on
 
     Board board = Parser::parse_fen(fen);
@@ -29,22 +29,24 @@ TEST_CASE("parser_can_parse_fen", "[parser]")
     {
         REQUIRE(board[i] == expected_board_A[i]);
     }
-    REQUIRE(board.last_move_sideways() == 0);
+    REQUIRE(board.half_move_count() == 0);
+    REQUIRE(board.castling_rights() == FULL_CASTLING_RIGHTS);
+    REQUIRE(board.ep_square() == NULL_SQUARE);
     REQUIRE(board.side_to_move() == WHITE);
     // cout << Output::board(board) << endl;
 
     cout << "- Can parse FEN test 2" << endl;
-    fen = "++++++++/1TT1TT1+/2~*~2+/XX3XX+/7+/xx3xx+/2+@+2+/1tt1tt1+ b BW";
+    fen = "rnbqkbnr/pppppppp/8/8/P7/8/RPPPPPPP/1NBQKBNR b Qkq a3 5 2";
     // clang-format off
     U8 expected_board_B[64] = {
-        EMPTY, WHITE_TIEFIGHTER, WHITE_TIEFIGHTER, EMPTY, WHITE_TIEFIGHTER, WHITE_TIEFIGHTER, EMPTY, WHITE_WALL,
-        EMPTY, EMPTY, WHITE_WALL, WHITE_DEATHSTAR, WHITE_WALL, EMPTY, EMPTY, WHITE_WALL,
-        WHITE_XWING, WHITE_XWING, EMPTY, EMPTY, EMPTY, WHITE_XWING, WHITE_XWING, WHITE_WALL,
-        EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, WHITE_WALL,
-        BLACK_XWING, BLACK_XWING, EMPTY, EMPTY, EMPTY, BLACK_XWING, BLACK_XWING, WHITE_WALL,
-        EMPTY, EMPTY, BLACK_WALL, BLACK_DEATHSTAR, BLACK_WALL, EMPTY, EMPTY, WHITE_WALL,
-        EMPTY, BLACK_TIEFIGHTER, BLACK_TIEFIGHTER, EMPTY, BLACK_TIEFIGHTER, BLACK_TIEFIGHTER, EMPTY, WHITE_WALL,
-        WHITE_WALL, WHITE_WALL, WHITE_WALL, WHITE_WALL, WHITE_WALL, WHITE_WALL, WHITE_WALL, WHITE_WALL};
+        EMPTY,      WHITE_KNIGHT, WHITE_BISHOP, WHITE_QUEEN, WHITE_KING, WHITE_BISHOP, WHITE_KNIGHT, WHITE_ROOK,
+        WHITE_ROOK, WHITE_PAWN,   WHITE_PAWN,   WHITE_PAWN,  WHITE_PAWN, WHITE_PAWN,   WHITE_PAWN,   WHITE_PAWN,
+        EMPTY,      EMPTY,        EMPTY,        EMPTY,       EMPTY,      EMPTY,        EMPTY,        EMPTY,
+        WHITE_PAWN, EMPTY,        EMPTY,        EMPTY,       EMPTY,      EMPTY,        EMPTY,        EMPTY,
+        EMPTY,      EMPTY,        EMPTY,        EMPTY,       EMPTY,      EMPTY,        EMPTY,        EMPTY,
+        EMPTY,      EMPTY,        EMPTY,        EMPTY,       EMPTY,      EMPTY,        EMPTY,        EMPTY,
+        BLACK_PAWN, BLACK_PAWN,   BLACK_PAWN,   BLACK_PAWN,  BLACK_PAWN, BLACK_PAWN,   BLACK_PAWN,   BLACK_PAWN,
+        BLACK_ROOK, BLACK_KNIGHT, BLACK_BISHOP, BLACK_QUEEN, BLACK_KING, BLACK_BISHOP, BLACK_KNIGHT, BLACK_ROOK};
     // clang-format on
 
     board = Parser::parse_fen(fen);
@@ -53,7 +55,9 @@ TEST_CASE("parser_can_parse_fen", "[parser]")
     {
         REQUIRE(board[i] == expected_board_B[i]);
     }
+    REQUIRE(board.half_move_count() == 5);
+    REQUIRE(board.castling_rights() == (WHITE_QUEEN_SIDE | BLACK_KING_SIDE | BLACK_QUEEN_SIDE));
+    REQUIRE(board.ep_square() == A3);
     REQUIRE(board.side_to_move() == BLACK);
-    REQUIRE(board.last_move_sideways() == (WHITE_MOVED_SIDEWAYS | BLACK_MOVED_SIDEWAYS));
     // cout << Output::board(board) << endl;
 }
