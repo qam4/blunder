@@ -21,7 +21,7 @@ int Board::quiesce(int alpha, int beta)
     int who2move = (side_to_move() == WHITE) ? 1 : -1;
     int stand_pat = who2move * evaluate();
 
-    if (search_ply > MAX_PLY - 1)
+    if (search_ply > MAX_SEARCH_PLY - 1)
     {
         return stand_pat;
     }

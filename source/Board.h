@@ -43,6 +43,8 @@ private:
 
     int follow_pv;
 
+    struct IrreversibleData move_stack[MAX_SEARCH_PLY];
+
 public:
     Board();
     bool is_blank();

@@ -12,8 +12,8 @@
 
 
 // PV table
-extern Move_t pv_table[MAX_PLY * MAX_PLY];
-extern int pv_length[MAX_PLY];
+extern Move_t pv_table[MAX_SEARCH_PLY * MAX_SEARCH_PLY];
+extern int pv_length[MAX_SEARCH_PLY];
 
 void reset_pv_table();
 

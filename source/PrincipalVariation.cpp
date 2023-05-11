@@ -9,16 +9,16 @@
 #include "MoveList.h"
 #include "Output.h"
 
-Move_t pv_table[MAX_PLY * MAX_PLY];
-int pv_length[MAX_PLY];
+Move_t pv_table[MAX_SEARCH_PLY * MAX_SEARCH_PLY];
+int pv_length[MAX_SEARCH_PLY];
 
 void reset_pv_table()
 {
-    for (int i = 0; i < MAX_PLY * MAX_PLY; i++)
+    for (int i = 0; i < MAX_SEARCH_PLY * MAX_SEARCH_PLY; i++)
     {
         pv_table[i] = 0;
     }
-    for (int i = 0; i < MAX_PLY; i++)
+    for (int i = 0; i < MAX_SEARCH_PLY; i++)
     {
         pv_length[i] = 0;
     }
@@ -52,10 +52,10 @@ void Board::print_pv()
 // store PV move
 void Board::store_pv_move(Move_t move)
 {
-    pv_table[search_ply * MAX_PLY + search_ply] = move;
+    pv_table[search_ply * MAX_SEARCH_PLY + search_ply] = move;
     for (int next_ply = search_ply + 1; next_ply < pv_length[search_ply + 1]; next_ply++)
     {
-        pv_table[search_ply * MAX_PLY + next_ply] = pv_table[(search_ply + 1) * MAX_PLY + next_ply];
+        pv_table[search_ply * MAX_SEARCH_PLY + next_ply] = pv_table[(search_ply + 1) * MAX_SEARCH_PLY + next_ply];
     }
     pv_length[search_ply] = pv_length[search_ply + 1];
 }

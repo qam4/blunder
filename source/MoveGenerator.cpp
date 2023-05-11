@@ -383,15 +383,15 @@ void MoveGenerator::add_pawn_attacks(class MoveList &list, const class Board &bo
         add_moves_with_diff(diff, attacks & (~promotions_mask[side]), list, board, NO_FLAGS, 0);
 
         // ADD EP ATTACKS
-        // if (board.irrev.ep_square != NULL_SQUARE)
-        // {
-        //     ep_attacks = targets & (1ULL << board.irrev.ep_square);
-        //     add_moves_with_diff(diff, ep_attacks, list, board, EP_CAPTURE, PAWN|(!side));
-        // }
+        if (board.irrev.ep_square != NULL_SQUARE)
+        {
+            ep_attacks = targets & (1ULL << board.irrev.ep_square);
+            add_moves_with_diff(diff, ep_attacks, list, board, EP_CAPTURE, PAWN|(!side));
+        }
 
-        // // ADD PROMOTION ATTACKS
-        // promotions = attacks & promotions_mask[side];
-        // add_promotions_with_diff(diff, promotions, list, board, side);
+        // ADD PROMOTION ATTACKS
+        promotions = attacks & promotions_mask[side];
+        add_promotions_with_diff(diff, promotions, list, board, side);
     }
 }
 

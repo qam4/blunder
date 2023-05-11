@@ -11,7 +11,7 @@
 const int UNKNOWN_SCORE = 5000;
 const int MAX_SCORE = 2000;
 const int MATE_SCORE = 1000;
-const int MAX_PLY = 64;
+const int MAX_SEARCH_PLY = 64;
 
 const int MAX_SEARCH_TIME = 1000000; // max search time in usec
 
@@ -42,7 +42,7 @@ const U8 WHITE_KING   = 12;
 const U8 BLACK_KING   = 13;
 const int NUM_PIECES = 14;
 
-const string PIECE_CHARS = "_EPpNnRrBbQqKk";
+const string PIECE_CHARS = "_EPpNnBbRrQqKk";
 
 // CASTLING RIGHTS
 

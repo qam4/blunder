@@ -8,7 +8,6 @@
 #include "MoveGenerator.h"
 #include "MoveList.h"
 #include "PrincipalVariation.h"
-// #include "Zobrist.h"
 
 // Count number of bits set to 1 in 64 bit word
 int pop_count(U64 x)
@@ -92,9 +91,9 @@ U64 Board::bitboard(const int type) const
     return bitboards[type];
 }
 
-// [fm] TODO: gonna need a stack for irrev
-// handle special moves, caste, promo, ep
-// with promotion, there should be no pawn on row 1 or 8
+// [fm] TODO:
+// stack for irrev
+// handle special moves: caste, promo, ep
 void Board::do_move(Move_t move)
 {
     U8 from = move_from(move);
@@ -103,21 +102,37 @@ void Board::do_move(Move_t move)
     // cout << "do_move:" << Output::move(move, *this) << endl;
     // cout << "do_move: move_flag=" << hex << move << endl;
 
+    // Save irreversible state
+    move_stack[search_ply] = irrev;
+
     irrev.ep_square = NULL_SQUARE;
     if (is_pawn_double_push(move))
     {
         irrev.ep_square = (to + from) >> 1;
     }
-    else if (is_ep_capture(move))
-    {
-            // TODO
-    }
-    else if (is_capture(move))
-    {
-        remove_piece(to);
-    }
+
     remove_piece(from);
-    add_piece(piece, to);
+
+    if (is_capture(move))
+    {
+        U8 captured_sq = to;
+        if (is_ep_capture(move))
+        {
+            // along_row_with_col
+            // returns a square at the same row as "from", and the same col as "to"
+            captured_sq = (from & 56) | (to & 7);
+        }
+        remove_piece(captured_sq);
+    }
+
+    if (is_promotion(move))
+    {
+        add_piece(move_promote_to(move), to);
+    }
+    else
+    {
+        add_piece(piece, to);
+    }
 
     // update flags
     irrev.half_move_count++;
@@ -142,15 +157,30 @@ void Board::undo_move(Move_t move)
     irrev.side_to_move ^= 1;
 
     remove_piece(to);
-    add_piece(piece, from);
-    if (is_capture(move))
+
+    if (is_promotion(move))
     {
-        add_piece(move_captured(move), to);
+        add_piece(PAWN|irrev.side_to_move, from);
+    }
+    else
+    {
+        add_piece(piece, from);
     }
 
-    // update flags
-    irrev.half_move_count--;
-    irrev.ep_square = NULL_SQUARE;
+    if (is_capture(move))
+    {
+        U8 captured_sq = to;
+        if (is_ep_capture(move))
+        {
+            // along_row_with_col
+            // returns a square at the same row as "from", and the same col as "to"
+            captured_sq = (from & 56) | (to & 7);
+        }
+        add_piece(move_captured(move), captured_sq);
+    }
+
+    // update irreversible state
+    irrev = move_stack[search_ply - 1];
 
     game_ply--;
     search_ply--;
