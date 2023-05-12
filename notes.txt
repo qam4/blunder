@@ -6,6 +6,8 @@ https://github.com/peterellisjones/Checkmate
 
 - Move generation
 https://peterellisjones.com/posts/generating-legal-chess-moves-efficiently/
+https://peterellisjones.tumblr.com/post/39938456375/chess-engine-part-i-choosing-internal-data
+https://peterellisjones.tumblr.com/post/41238723473/chess-engine-part-ii-move-encoding-and-move
 https://code.google.com/archive/p/javalin-chess/wikis/README.wiki
 https://chess.stackexchange.com/questions/37309/move-generation-for-sliding-pieces-and-hyperbola-quintessence
 https://www.chessprogramming.org/Hyperbola_Quintessence
