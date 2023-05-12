@@ -114,11 +114,13 @@ TEST_CASE("move_generator_can_generate_bishop_moves", "[move generator]")
     list.reset();
 }
 
-TEST_CASE("move_generator_can_generate_pawn_pushes", "[move generator]"){
+TEST_CASE("move_generator_can_generate_pawn_pushes", "[move generator]")
+{
     cout << "- Can generate pawn pushes" << endl;
     Board board;
     // put 8 pieces in whites starting position
-    for(U8 sq = A2; sq <= H2; sq++){
+    for (U8 sq = A2; sq <= H2; sq++)
+    {
         board.add_piece(WHITE_PAWN, sq);
     }
     REQUIRE(board.bitboard(WHITE_PAWN) == 0xFF00ULL);
@@ -130,8 +132,9 @@ TEST_CASE("move_generator_can_generate_pawn_pushes", "[move generator]"){
     REQUIRE(list.length() == 16);
     REQUIRE(!list.contains_duplicates());
     REQUIRE(list.contains_valid_moves(board));
-    for(U8 sq = A2; sq <= H2; sq++){
-        REQUIRE(list.contains(build_move(sq, sq+8)));
+    for (U8 sq = A2; sq <= H2; sq++)
+    {
+        REQUIRE(list.contains(build_move(sq, sq + 8)));
     }
     // put 3 pieces in random places
     board = Board();
@@ -159,7 +162,8 @@ TEST_CASE("move_generator_can_generate_pawn_pushes", "[move generator]"){
     REQUIRE(list.contains(build_move(A6, A5)));
 }
 
-TEST_CASE("move_generator_can_generate_pawn_double_pushes", "[move generator]"){
+TEST_CASE("move_generator_can_generate_pawn_double_pushes", "[move generator]")
+{
     cout << "- Can generate pawn double pushes" << endl;
     Board board;
     // this should move forward two
@@ -193,7 +197,8 @@ TEST_CASE("move_generator_can_generate_pawn_double_pushes", "[move generator]"){
     REQUIRE(list.contains(build_pawn_double_push(E7, E5)));
 }
 
-TEST_CASE("move_generator_can_generate_pawn_attacks", "[move generator]"){
+TEST_CASE("move_generator_can_generate_pawn_attacks", "[move generator]")
+{
     cout << "- Can generate pawn attacks" << endl;
     Board board;
     board.add_piece(WHITE_PAWN, A4);
@@ -221,7 +226,8 @@ TEST_CASE("move_generator_can_generate_pawn_attacks", "[move generator]"){
     REQUIRE(list.contains(build_capture(B5, A4, WHITE_PAWN)));
 }
 
-TEST_CASE("move_generator_can_generate_pawn_promotions", "[move generator]"){
+TEST_CASE("move_generator_can_generate_pawn_promotions", "[move generator]")
+{
     cout << "- Can generate pawn promotions" << endl;
     Board board;
     board.add_piece(WHITE_PAWN, C7);
@@ -247,7 +253,8 @@ TEST_CASE("move_generator_can_generate_pawn_promotions", "[move generator]"){
     REQUIRE(list.contains(build_promotion(C2, C1, BLACK_KNIGHT)));
 }
 
-TEST_CASE("move_generator_can_generate_pawn_capture_promotions", "[move generator]"){
+TEST_CASE("move_generator_can_generate_pawn_capture_promotions", "[move generator]")
+{
     cout << "- Can generate pawn capture promotions" << endl;
     Board board;
     board.add_piece(WHITE_PAWN, C7);
@@ -276,7 +283,8 @@ TEST_CASE("move_generator_can_generate_pawn_capture_promotions", "[move generato
     REQUIRE(list.contains(build_capture_promotion(C2, D1, WHITE_ROOK, BLACK_BISHOP)));
 }
 
-TEST_CASE("move_generator_can_generate_pawn_en_passant_attacks", "[move generator]"){
+TEST_CASE("move_generator_can_generate_pawn_en_passant_attacks", "[move generator]")
+{
     cout << "- Can generate pawn en-passant attacks" << endl;
     Board board;
     board.add_piece(BLACK_PAWN, C5);
@@ -301,8 +309,8 @@ TEST_CASE("move_generator_can_generate_pawn_en_passant_attacks", "[move generato
     // REQUIRE(list.contains(build_ep_capture(A4, B3, WHITE_PAWN)));
 }
 
-
-TEST_CASE("move_generator_can_generate_knight_moves", "[move generator]"){
+TEST_CASE("move_generator_can_generate_knight_moves", "[move generator]")
+{
     cout << "- Can generate knight moves" << endl;
     Board board;
     board.add_piece(WHITE_KNIGHT, D4);
@@ -345,7 +353,8 @@ TEST_CASE("move_generator_can_generate_knight_moves", "[move generator]"){
     REQUIRE(list.length() == 2);
 }
 
-TEST_CASE("move_generator_can_generate_king_moves", "[move generator]"){
+TEST_CASE("move_generator_can_generate_king_moves", "[move generator]")
+{
     cout << "- Can generate king moves" << endl;
     Board board;
     board.add_piece(WHITE_KING, D4);

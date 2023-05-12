@@ -92,7 +92,6 @@ U64 Board::bitboard(const int type) const
 }
 
 // [fm] TODO:
-// stack for irrev
 // handle special moves: caste, promo, ep
 void Board::do_move(Move_t move)
 {
@@ -153,14 +152,17 @@ void Board::undo_move(Move_t move)
     // cout << "undo_move:" << Output::move(move, *this) << endl;
     // cout << "undo_move: move_flag=" << hex << move << endl;
 
-    // update side_to_move
-    irrev.side_to_move ^= 1;
+    game_ply--;
+    search_ply--;
+
+    // update irreversible state
+    irrev = move_stack[search_ply];
 
     remove_piece(to);
 
     if (is_promotion(move))
     {
-        add_piece(PAWN|irrev.side_to_move, from);
+        add_piece(PAWN | irrev.side_to_move, from);
     }
     else
     {
@@ -178,12 +180,6 @@ void Board::undo_move(Move_t move)
         }
         add_piece(move_captured(move), captured_sq);
     }
-
-    // update irreversible state
-    irrev = move_stack[search_ply - 1];
-
-    game_ply--;
-    search_ply--;
 }
 
 int Board::evaluate()

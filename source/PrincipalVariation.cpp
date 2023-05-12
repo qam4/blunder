@@ -55,7 +55,8 @@ void Board::store_pv_move(Move_t move)
     pv_table[search_ply * MAX_SEARCH_PLY + search_ply] = move;
     for (int next_ply = search_ply + 1; next_ply < pv_length[search_ply + 1]; next_ply++)
     {
-        pv_table[search_ply * MAX_SEARCH_PLY + next_ply] = pv_table[(search_ply + 1) * MAX_SEARCH_PLY + next_ply];
+        pv_table[search_ply * MAX_SEARCH_PLY + next_ply] =
+            pv_table[(search_ply + 1) * MAX_SEARCH_PLY + next_ply];
     }
     pv_length[search_ply] = pv_length[search_ply + 1];
 }

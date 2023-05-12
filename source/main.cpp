@@ -20,6 +20,18 @@ using namespace std;
 
 static void print_help(void);
 
+vector<string> split(const string& s, const char delimiter)
+{
+   vector<string> tokens;
+   string token;
+   istringstream tokenStream(s);
+   while (getline(tokenStream, token, delimiter))
+   {
+      tokens.push_back(token);
+   }
+   return tokens;
+}
+
 int main()
 {
     bool computer_plays[2] = { false };
@@ -66,15 +78,16 @@ int main()
         cout << "> ";
         getline(cin, line);
 
-        if (line == "quit")
+        vector<string> tokens = split(line, ' ');
+        if (tokens[0] == "quit")
         {
             break;
         }
-        else if (line == "help")
+        else if (tokens[0] == "help")
         {
             print_help();
         }
-        else if (line.rfind("move ", 0) == 0)
+        else if (tokens[0] == "move")
         {
             Move_t move = Parser::move(line.substr(5), board);
             if (is_valid_move(move, board))
@@ -82,14 +95,14 @@ int main()
                 board.do_move(move);
             }
         }
-        else if (line.rfind("play ", 0) == 0)
+        else if (tokens[0] == "play")
         {
-            if (line.rfind("white", 5) == 5)
+            if (tokens[1] == "white")
             {
                 computer_plays[WHITE] = true;
                 cout << "Computer plays white" << endl;
             }
-            else if (line.rfind("black", 5) == 5)
+            else if (tokens[1] == "black")
             {
                 computer_plays[BLACK] = true;
                 cout << "Computer plays black" << endl;
@@ -99,13 +112,13 @@ int main()
                 cout << "<color> should be black or white" << endl;
             }
         }
-        else if (line.rfind("colors ", 0) == 0)
+        else if (tokens[0] == "colors")
         {
-            if (line.rfind("on", 7) == 7)
+            if (tokens[1] == "on")
             {
                 Output::set_colors_enabled(true);
             }
-            else if (line.rfind("off", 7) == 7)
+            else if (tokens[1] == "off")
             {
                 Output::set_colors_enabled(false);
             }

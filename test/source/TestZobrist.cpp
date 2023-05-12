@@ -40,5 +40,4 @@ TEST_CASE("zobrist", "[zobrist]")
     REQUIRE(key != zobrist.get_zobrist_key(board));
     board.set_ep_square(NULL_SQUARE);
     REQUIRE(key == zobrist.get_zobrist_key(board));
-
 }
