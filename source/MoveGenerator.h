@@ -57,7 +57,6 @@ U8 inline bit_scan_forward(U64 bb)
    return index64[((bb & neg_bb) * debruijn64) >> 58];
 }
 
-
 U64 inline circular_left_shift(U64 target, int shift)
 {
 #ifndef NDEBUG
@@ -71,6 +70,7 @@ class MoveGenerator
 {
 
 public:
+    static U64 get_checkers(const class Board &board, const U8 side);
     static void add_rook_moves(class MoveList &list, const class Board &board, const U8 side);
     static void add_bishop_moves(class MoveList &list, const class Board &board, const U8 side);
     static void add_pawn_pushes(class MoveList &list, const class Board &board, const U8 side);

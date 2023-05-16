@@ -398,3 +398,81 @@ TEST_CASE("move_generator_can_generate_king_moves", "[move generator]")
     REQUIRE(!list.contains_duplicates());
     REQUIRE(list.contains_valid_moves(board));
 }
+
+TEST_CASE("move_generator_can_get_checkers", "[move generator]")
+{
+    cout << "- Can get checkers 1" << endl;
+    string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1BNR w";
+    Board board = Parser::parse_fen(fen);
+    board.add_piece(WHITE_KING, C6);
+    // cout << Output::board(board);
+    U64 checkers = MoveGenerator::get_checkers(board, WHITE);
+    string expected =
+        "  ABCDEFGH  \n"
+        "8|-X------|8\n"
+        "7|-X-X----|7\n"
+        "6|--------|6\n"
+        "5|--------|5\n"
+        "4|--------|4\n"
+        "3|--------|3\n"
+        "2|--------|2\n"
+        "1|--------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(checkers) == expected);
+
+    board = Parser::parse_fen(fen);
+    board.add_piece(BLACK_KING, C3);
+    checkers = MoveGenerator::get_checkers(board, BLACK);
+    expected =
+        "  ABCDEFGH  \n"
+        "8|--------|8\n"
+        "7|--------|7\n"
+        "6|--------|6\n"
+        "5|--------|5\n"
+        "4|--------|4\n"
+        "3|--------|3\n"
+        "2|-X-X----|2\n"
+        "1|-X------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(checkers) == expected);
+
+    board = Parser::parse_fen(fen);
+    board.add_piece(WHITE_KING, C5);
+    board.add_piece(BLACK_ROOK, A5);
+    board.add_piece(BLACK_ROOK, C3);
+    board.add_piece(BLACK_ROOK, C6);
+    board.add_piece(BLACK_QUEEN, G5);
+    checkers = MoveGenerator::get_checkers(board, WHITE);
+    expected =
+        "  ABCDEFGH  \n"
+        "8|--------|8\n"
+        "7|--------|7\n"
+        "6|--X-----|6\n"
+        "5|X-----X-|5\n"
+        "4|--------|4\n"
+        "3|--X-----|3\n"
+        "2|--------|2\n"
+        "1|--------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(checkers) == expected);
+
+    board = Parser::parse_fen(fen);
+    board.add_piece(BLACK_KING, C5);
+    board.add_piece(WHITE_BISHOP, B6);
+    board.add_piece(WHITE_BISHOP, D6);
+    board.add_piece(WHITE_BISHOP, A3);
+    board.add_piece(WHITE_QUEEN, E3);
+    checkers = MoveGenerator::get_checkers(board, BLACK);
+    expected =
+        "  ABCDEFGH  \n"
+        "8|--------|8\n"
+        "7|--------|7\n"
+        "6|-X-X----|6\n"
+        "5|--------|5\n"
+        "4|--------|4\n"
+        "3|X---X---|3\n"
+        "2|--------|2\n"
+        "1|--------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(checkers) == expected);
+}

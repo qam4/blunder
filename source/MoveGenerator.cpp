@@ -351,7 +351,7 @@ void MoveGenerator::add_pawn_pushes(class MoveList& list, const class Board& boa
     U64 pushes, double_pushes, promotions, pawns, free_squares;
 
     int diff = diffs[side];
-    pawns = board.bitboards[side | PAWN];
+    pawns = board.bitboards[PAWN | side];
     free_squares = ~(board.bitboards[WHITE] | board.bitboards[BLACK]);
 
     // ADD SINGLE PUSHES
@@ -375,7 +375,7 @@ void MoveGenerator::add_pawn_attacks(class MoveList& list, const class Board& bo
     const U64 file_mask[2] = { ~FILE_H, ~FILE_A };
     U64 attacks, ep_attacks, promotions, targets, pawns, enemy;
 
-    pawns = board.bitboards[side | PAWN];
+    pawns = board.bitboards[PAWN | side];
     enemy = board.bitboards[!side];
 
     // CALCULATE ATTACKS FOR LEFT, RIGHT
@@ -541,4 +541,45 @@ void MoveGenerator::generate_move_lookup_tables()
         cout << endl << '\t';
     }
     cout << "};" << endl;
+}
+
+U64 MoveGenerator::get_checkers(const class Board& board, const U8 side)
+{
+    const int diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
+    const U64 file_mask[2] = { ~FILE_H, ~FILE_A };
+    U8 attacker_side = !side;
+
+    U64 king = board.bitboards[KING | side];
+    U64 occupied = board.bitboards[WHITE] | board.bitboards[BLACK];
+    U8 king_sq = bit_scan_forward(king);
+
+    U64 checkers = 0ULL;
+
+    // Knights
+    U64 knights = board.bitboards[KNIGHT | attacker_side];
+    checkers |= KNIGHT_LOOKUP_TABLE[king_sq] & knights;
+
+    // Pawns
+    U64 pawns = board.bitboards[PAWN | attacker_side];
+    for (int dir = 0; dir < 2; dir++)
+    {
+        int diff = diffs[dir][side];
+        U64 targets = circular_left_shift(king, diff) & file_mask[dir];
+        checkers |= targets & pawns;
+    }
+
+    // Sliders
+    U64 queens = board.bitboards[QUEEN | attacker_side];
+    U64 rooks = board.bitboards[ROOK | attacker_side];
+    U64 bishops = board.bitboards[BISHOP | attacker_side];
+
+    U64 diag_attackers = queens | bishops;
+    U64 non_diag_attackers = queens | rooks;
+
+    checkers |=
+        (fileAttacks(occupied, king_sq) | rankAttacks(occupied, king_sq)) & non_diag_attackers;
+    checkers |=
+        (diagAttacks(occupied, king_sq) | antiDiagAttacks(occupied, king_sq)) & diag_attackers;
+
+    return checkers;
 }
