@@ -12,13 +12,20 @@ int Board::minimax(int depth, bool maximizing_player)
 
     if (is_game_over())
     {
-        if (maximizing_player == true)
+        if (MoveGenerator::in_check(*this, side_to_move()))
         {
-            return -MATE_SCORE + search_ply;
+            if (maximizing_player == true)
+            {
+                return -MATE_SCORE + search_ply;
+            }
+            else
+            {
+                return MATE_SCORE - search_ply;
+            }
         }
         else
         {
-            return MATE_SCORE - search_ply;
+            return DRAW_SCORE;
         }
     }
 

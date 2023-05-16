@@ -27,8 +27,14 @@ string Output::board(const class Board board)
         ss << '|' << row + 1 << endl;
     }
     ss << "  ABCDEFGH  " << endl;
-    ss << ((board.side_to_move() == WHITE) ? "WHITE" : "BLACK") << " turn" << endl;
-    ss << "Ply: " << board.get_game_ply() << endl;
+    ss << "side to move: " << ((board.side_to_move() == WHITE) ? "WHITE" : "BLACK") << endl;
+    ss << "castling rights: " << Output::castling_rights(board.castling_rights()) << endl;
+    ss << "en-passant: "
+       << ((board.ep_square() == NULL_SQUARE) ? "-" : Output::square(board.ep_square())) << endl;
+    ss << "halfmove clock: " << int(board.half_move_count()) << endl;
+    ss << "fullmove clock: " << int(board.full_move_count()) << endl;
+    ss << "ply: " << board.get_game_ply() << endl;
+    ss << "FEN: " << Output::board_to_fen(board) << endl;
     return ss.str();
 }
 
@@ -95,11 +101,11 @@ string Output::move(Move_t move, const class Board& board)
         return ss.str();
     }
     U8 from = move_from(move);
-    ss << Output::piece(board[from] & (~1));
+    ss << Output::piece(board[from] & (0xFEU));
     ss << Output::square(from);
     if (is_capture(move))
     {
-        ss << 'x' << Output::piece(move_captured(move) & (~1));
+        ss << 'x' << Output::piece(move_captured(move) & (0xFEU));
     }
     ss << Output::square(move_to(move));
     if (is_ep_capture(move))
@@ -108,7 +114,7 @@ string Output::move(Move_t move, const class Board& board)
     }
     if (is_promotion(move))
     {
-        ss << "(" << Output::piece(move_promote_to(move) & (~1)) << ")";
+        ss << "(" << Output::piece(move_promote_to(move) & (0xFEU)) << ")";
     }
     return ss.str();
 }
@@ -131,4 +137,103 @@ string Output::movelist(const class MoveList& list, const class Board& board)
     }
     ss << endl;
     return ss.str();
+}
+
+string Output::castling_rights(U8 castling_rights)
+{
+    stringstream ss;
+    if (castling_rights & WHITE_KING_SIDE)
+    {
+        ss << 'K';
+    }
+    if (castling_rights & WHITE_QUEEN_SIDE)
+    {
+        ss << 'Q';
+    }
+    if (castling_rights & BLACK_KING_SIDE)
+    {
+        ss << 'k';
+    }
+    if (castling_rights & BLACK_QUEEN_SIDE)
+    {
+        ss << 'q';
+    }
+
+    return ss.str();
+}
+
+string Output::board_to_fen(const class Board board)
+{
+    stringstream fen;
+
+    for (int row = 0; row < 8; row++)
+    {
+        int empties = 0;
+        for (int col = 0; col < 8; col++)
+        {
+            U8 piece = board[(7 - row) * 8 + col];
+            if (piece == EMPTY)
+            {
+                empties += 1;
+            }
+            else
+            {
+                if (empties > 0)
+                {
+                    fen << empties;
+                    empties = 0;
+                }
+                fen << PIECE_CHARS[piece];
+            }
+        }
+        if (empties > 0)
+        {
+            fen << empties;
+        }
+        if (row != 7)
+        {
+            fen << '/';
+        }
+    }
+
+    fen << ' ';
+    fen << ((board.side_to_move() == BLACK) ? 'b' : 'w');
+    fen << ' ';
+    U8 castling_rights = board.castling_rights();
+    if (castling_rights == 0)
+    {
+        fen << '-';
+    }
+    if (castling_rights & WHITE_KING_SIDE)
+    {
+        fen << 'K';
+    }
+    if (castling_rights & WHITE_QUEEN_SIDE)
+    {
+        fen << 'Q';
+    }
+    if (castling_rights & BLACK_KING_SIDE)
+    {
+        fen << 'k';
+    }
+    if (castling_rights & BLACK_QUEEN_SIDE)
+    {
+        fen << 'q';
+    }
+    fen << ' ';
+    U8 ep_square = board.ep_square();
+    if (ep_square == NULL_SQUARE)
+    {
+        fen << '-';
+    }
+    else
+    {
+        fen << Output::square(ep_square);
+    }
+    fen << ' ';
+    fen << int(board.half_move_count());
+    fen << ' ';
+    fen << int(board.full_move_count());
+
+    return fen.str();
 }

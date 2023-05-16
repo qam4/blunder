@@ -95,8 +95,8 @@ TEST_CASE("move_generator_can_generate_bishop_moves", "[move generator]")
     board.add_piece(WHITE_BISHOP, B3);
     board.set_side_to_move(BLACK);
     MoveGenerator::add_bishop_moves(list, board, BLACK);
-    cout << Output::board(board);
-    cout << Output::movelist(list, board);
+    // cout << Output::board(board);
+    // cout << Output::movelist(list, board);
     REQUIRE(list.length() == 11);
     REQUIRE(list.contains_valid_moves(board));
     REQUIRE(!list.contains_duplicates());
@@ -134,7 +134,7 @@ TEST_CASE("move_generator_can_generate_pawn_pushes", "[move generator]")
     REQUIRE(list.contains_valid_moves(board));
     for (U8 sq = A2; sq <= H2; sq++)
     {
-        REQUIRE(list.contains(build_move(sq, sq + 8)));
+        REQUIRE(list.contains(build_move(sq, static_cast<U8>(sq + 8))));
     }
     // put 3 pieces in random places
     board = Board();
@@ -292,8 +292,8 @@ TEST_CASE("move_generator_can_generate_pawn_en_passant_attacks", "[move generato
     board.set_ep_square(C6);
     MoveList list;
     MoveGenerator::add_pawn_attacks(list, board, WHITE);
-    cout << Output::board(board);
-    cout << Output::movelist(list, board);
+    // cout << Output::board(board);
+    // cout << Output::movelist(list, board);
     REQUIRE(list.length() == 1);
     REQUIRE(list.contains_valid_moves(board));
     REQUIRE(list.contains(build_ep_capture(D5, C6, BLACK_PAWN)));
@@ -397,4 +397,472 @@ TEST_CASE("move_generator_can_generate_king_moves", "[move generator]")
     REQUIRE(list.length() == 3);
     REQUIRE(!list.contains_duplicates());
     REQUIRE(list.contains_valid_moves(board));
+}
+
+TEST_CASE("move_generator_can_get_checkers", "[move generator]")
+{
+    cout << "- Can get checkers" << endl;
+    string fen;
+    Board board;
+    U64 checkers;
+    string expected;
+
+    fen = "rnbq1bnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1BNR w";
+    board = Parser::parse_fen(fen);
+    board.add_piece(WHITE_KING, C6);
+    // cout << Output::board(board);
+    checkers = MoveGenerator::get_checkers(board, WHITE);
+    expected =
+        "  ABCDEFGH  \n"
+        "8|-X------|8\n"
+        "7|-X-X----|7\n"
+        "6|--------|6\n"
+        "5|--------|5\n"
+        "4|--------|4\n"
+        "3|--------|3\n"
+        "2|--------|2\n"
+        "1|--------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(checkers) == expected);
+
+    board = Parser::parse_fen(fen);
+    board.add_piece(BLACK_KING, C3);
+    checkers = MoveGenerator::get_checkers(board, BLACK);
+    expected =
+        "  ABCDEFGH  \n"
+        "8|--------|8\n"
+        "7|--------|7\n"
+        "6|--------|6\n"
+        "5|--------|5\n"
+        "4|--------|4\n"
+        "3|--------|3\n"
+        "2|-X-X----|2\n"
+        "1|-X------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(checkers) == expected);
+
+    board = Parser::parse_fen(fen);
+    board.add_piece(WHITE_KING, C5);
+    board.add_piece(BLACK_ROOK, A5);
+    board.add_piece(BLACK_ROOK, C3);
+    board.add_piece(BLACK_ROOK, C6);
+    board.add_piece(BLACK_QUEEN, G5);
+    checkers = MoveGenerator::get_checkers(board, WHITE);
+    expected =
+        "  ABCDEFGH  \n"
+        "8|--------|8\n"
+        "7|--------|7\n"
+        "6|--X-----|6\n"
+        "5|X-----X-|5\n"
+        "4|--------|4\n"
+        "3|--X-----|3\n"
+        "2|--------|2\n"
+        "1|--------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(checkers) == expected);
+
+    board = Parser::parse_fen(fen);
+    board.add_piece(BLACK_KING, C5);
+    board.add_piece(WHITE_BISHOP, B6);
+    board.add_piece(WHITE_BISHOP, D6);
+    board.add_piece(WHITE_BISHOP, A3);
+    board.add_piece(WHITE_QUEEN, E3);
+    checkers = MoveGenerator::get_checkers(board, BLACK);
+    expected =
+        "  ABCDEFGH  \n"
+        "8|--------|8\n"
+        "7|--------|7\n"
+        "6|-X-X----|6\n"
+        "5|--------|5\n"
+        "4|--------|4\n"
+        "3|X---X---|3\n"
+        "2|--------|2\n"
+        "1|--------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(checkers) == expected);
+
+    fen = "r1bqkb1r/pppppppp/2n5/8/4P3/2N2N2/PPPPBnPP/R1BQR2K b kq - 9 1";
+    board = Parser::parse_fen(fen);
+    checkers = MoveGenerator::get_checkers(board, WHITE);
+    expected =
+        "  ABCDEFGH  \n"
+        "8|--------|8\n"
+        "7|--------|7\n"
+        "6|--------|6\n"
+        "5|--------|5\n"
+        "4|--------|4\n"
+        "3|--------|3\n"
+        "2|-----X--|2\n"
+        "1|--------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(checkers) == expected);
+}
+
+TEST_CASE("move_generator_can_get_checkers_and_pinned", "[move generator]")
+{
+    cout << "- Can get checkers and pinned" << endl;
+    string fen = "rnbq1bnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1BNR w";
+    Board board = Parser::parse_fen(fen);
+    board.add_piece(WHITE_KING, C6);
+    // cout << Output::board(board);
+    MoveGenPreprocessing mgp = MoveGenerator::get_checkers_and_pinned(board, WHITE);
+    string expected =
+        "  ABCDEFGH  \n"
+        "8|-X------|8\n"
+        "7|-X-X----|7\n"
+        "6|--------|6\n"
+        "5|--------|5\n"
+        "4|--------|4\n"
+        "3|--------|3\n"
+        "2|--------|2\n"
+        "1|--------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(mgp.checkers) == expected);
+
+    board = Parser::parse_fen(fen);
+    board.add_piece(BLACK_KING, C3);
+    mgp = MoveGenerator::get_checkers_and_pinned(board, BLACK);
+    expected =
+        "  ABCDEFGH  \n"
+        "8|--------|8\n"
+        "7|--------|7\n"
+        "6|--------|6\n"
+        "5|--------|5\n"
+        "4|--------|4\n"
+        "3|--------|3\n"
+        "2|-X-X----|2\n"
+        "1|-X------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(mgp.checkers) == expected);
+
+    board = Parser::parse_fen(fen);
+    board.add_piece(BLACK_KING, C5);
+    board.add_piece(WHITE_BISHOP, B6);
+    board.add_piece(WHITE_BISHOP, D6);
+    board.add_piece(WHITE_BISHOP, A3);
+    board.add_piece(WHITE_QUEEN, E3);
+    mgp = MoveGenerator::get_checkers_and_pinned(board, BLACK);
+    expected =
+        "  ABCDEFGH  \n"
+        "8|--------|8\n"
+        "7|--------|7\n"
+        "6|-X-X----|6\n"
+        "5|--------|5\n"
+        "4|--------|4\n"
+        "3|X---X---|3\n"
+        "2|--------|2\n"
+        "1|--------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(mgp.checkers) == expected);
+
+    board = Parser::parse_fen(fen);
+    board.add_piece(WHITE_KING, C5);
+    board.add_piece(BLACK_ROOK, A5);
+    board.add_piece(BLACK_ROOK, C3);
+    board.add_piece(BLACK_ROOK, C6);
+    board.add_piece(BLACK_QUEEN, G5);
+    mgp = MoveGenerator::get_checkers_and_pinned(board, WHITE);
+    expected =
+        "  ABCDEFGH  \n"
+        "8|--------|8\n"
+        "7|--------|7\n"
+        "6|--X-----|6\n"
+        "5|X-----X-|5\n"
+        "4|--------|4\n"
+        "3|--X-----|3\n"
+        "2|--------|2\n"
+        "1|--------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(mgp.checkers) == expected);
+
+    board = Parser::parse_fen(fen);
+    board.add_piece(WHITE_KING, C5);
+    board.add_piece(WHITE_PAWN, E5);
+    board.add_piece(BLACK_ROOK, C6);
+    board.add_piece(BLACK_BISHOP, A3);
+    board.add_piece(BLACK_QUEEN, G5);
+    mgp = MoveGenerator::get_checkers_and_pinned(board, WHITE);
+    expected =
+        "  ABCDEFGH  \n"
+        "8|--------|8\n"
+        "7|--------|7\n"
+        "6|--X-----|6\n"
+        "5|--------|5\n"
+        "4|--------|4\n"
+        "3|X-------|3\n"
+        "2|--------|2\n"
+        "1|--------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(mgp.checkers) == expected);
+    expected =
+        "  ABCDEFGH  \n"
+        "8|--------|8\n"
+        "7|--------|7\n"
+        "6|--------|6\n"
+        "5|----X---|5\n"
+        "4|--------|4\n"
+        "3|--------|3\n"
+        "2|--------|2\n"
+        "1|--------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(mgp.pinned) == expected);
+    expected =
+        "  ABCDEFGH  \n"
+        "8|--------|8\n"
+        "7|--------|7\n"
+        "6|--------|6\n"
+        "5|------X-|5\n"
+        "4|--------|4\n"
+        "3|--------|3\n"
+        "2|--------|2\n"
+        "1|--------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(mgp.pinners) == expected);
+}
+
+TEST_CASE("move_generator_can_add_all_moves", "[move generator]")
+{
+    cout << "- Can add all moves" << endl;
+    Board board;
+    MoveList list;
+    string fen;
+
+    // check starting position
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_all_moves(list, board, WHITE);
+    REQUIRE(list.length() == 20);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+    list.reset();
+
+    // check pinned slider
+    fen = "r1b1k2r/p1p2ppp/2p4q/4N1Q1/3NP3/3P4/PPP2nPP/R1K4R w - - 0 1";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_all_moves(list, board, WHITE);
+    REQUIRE(list.length() == 35);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+    list.reset();
+
+    // check En-passant check evasions
+    // Capturing checker pawn
+    fen = "8/8/8/2k5/3Pp3/8/8/4K3 b KQkq d3 0 1";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_all_moves(list, board, BLACK);
+    REQUIRE(list.length() == 9);
+    REQUIRE(list.contains(build_move(C5, B6)));
+    REQUIRE(list.contains(build_move(C5, C6)));
+    REQUIRE(list.contains(build_move(C5, D6)));
+    REQUIRE(list.contains(build_move(C5, D5)));
+    REQUIRE(list.contains(build_move(C5, C4)));
+    REQUIRE(list.contains(build_move(C5, B4)));
+    REQUIRE(list.contains(build_move(C5, B5)));
+    REQUIRE(list.contains(build_capture(C5, D4, WHITE_PAWN)));
+    REQUIRE(list.contains(build_ep_capture(E4, D3, WHITE_PAWN)));
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+    list.reset();
+
+    // Moving to block slider
+    fen = "8/8/8/1k6/3Pp3/8/8/4KQ2 b KQkq d3 0 1";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_all_moves(list, board, BLACK);
+    REQUIRE(list.length() == 6);
+    REQUIRE(list.contains(build_move(B5, B6)));
+    REQUIRE(list.contains(build_move(B5, C6)));
+    REQUIRE(list.contains(build_move(B5, B4)));
+    REQUIRE(list.contains(build_move(B5, A4)));
+    REQUIRE(list.contains(build_move(B5, A5)));
+    REQUIRE(list.contains(build_ep_capture(E4, D3, WHITE_PAWN)));
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+    list.reset();
+
+    // En-passant discovered check
+    fen = "8/8/8/8/k2Pp2Q/8/8/3K4 b   d3 0 1";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_all_moves(list, board, BLACK);
+    REQUIRE(list.length() == 6);
+    REQUIRE(list.contains(build_move(A4, A5)));
+    REQUIRE(list.contains(build_move(A4, B5)));
+    REQUIRE(list.contains(build_move(A4, B4)));
+    REQUIRE(list.contains(build_move(A4, B3)));
+    REQUIRE(list.contains(build_move(A4, A3)));
+    REQUIRE(list.contains(build_move(E4, E3)));
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+    list.reset();
+}
+
+TEST_CASE("move_generator_can_add_pawn_pin_ray_moves", "[move generator]")
+{
+    cout << "- Can add pawn pin raw moves" << endl;
+    Board board;
+    MoveList list;
+    string fen;
+
+    // test pawn capture along pin ray
+    fen = "rnb2k1r/pp1Pbppp/2p5/q7/1PB5/8/PP2N1PP/RNB1K2R w KQ - 3 9";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_pawn_pin_ray_moves(
+        list, board, 1ULL << A5, ~BB_EMPTY, 1ULL << B4, E1, WHITE);
+    REQUIRE(list.length() == 1);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+    REQUIRE(list.contains(build_capture(B4, A5, BLACK_QUEEN)));
+    list.reset();
+
+    // test pawn move along pin ray
+    fen = "rnb2k1r/pp1Pbppp/2p5/4q3/8/8/PP2P1PP/RNB1KNBR w KQ - 3 9";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_pawn_pin_ray_moves(
+        list, board, 1ULL << E5, ~BB_EMPTY, 1ULL << E2, E1, WHITE);
+    REQUIRE(list.length() == 2);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+    REQUIRE(list.contains(build_move(E2, E3)));
+    REQUIRE(list.contains(build_pawn_double_push(E2, E4)));
+    list.reset();
+
+    // test pawn capture along pin ray when multiple pinners
+    fen = "r1b2k2/pp1Pbppp/2p5/q1n1r3/1PB5/4R3/P4PPP/RNB1K3 w Q - 3 9";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_pawn_pin_ray_moves(
+        list, board, 1ULL << A5 | 1ULL << E5, ~BB_EMPTY, 1ULL << B4 | 1ULL << E3, E1, WHITE);
+    REQUIRE(list.length() == 1);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+    REQUIRE(list.contains(build_capture(B4, A5, BLACK_QUEEN)));
+    list.reset();
+}
+
+TEST_CASE("move_generator_no_castles", "[move generator]")
+{
+    cout << "- No castles" << endl;
+
+    Board board;
+    MoveList list;
+    string fen;
+    U64 attacks;
+
+    fen = "rnbqkbnr/8/8/8/8/8/8/R3K2R w -";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, WHITE, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, WHITE);
+    REQUIRE(list.length() == 0);
+    list.reset();
+
+    fen = "r3k2r/8/8/8/8/8/8/R3K2R b QK";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, BLACK, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, BLACK);
+    REQUIRE(list.length() == 0);
+    list.reset();
+}
+
+TEST_CASE("move_generator_can_castle", "[move generator]")
+{
+    cout << "- Can castle" << endl;
+
+    Board board;
+    MoveList list;
+    string fen;
+    U64 attacks;
+
+    fen = "rnbqkbnr/8/8/8/8/8/8/R3K2R w K";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, WHITE, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, WHITE);
+    REQUIRE(list.length() == 1);
+    REQUIRE(list.contains(build_castle(KING_CASTLE)));
+    list.reset();
+
+    fen = "r3kbnr/8/8/8/8/8/8/R3K2R b KQq";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, BLACK, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, BLACK);
+    REQUIRE(list.length() == 1);
+    REQUIRE(list.contains(build_castle(QUEEN_CASTLE)));
+    list.reset();
+}
+
+TEST_CASE("move_generator_cant_castle_when_blocked", "[move generator]")
+{
+    cout << "- Cannot castle when blocked" << endl;
+
+    Board board;
+    MoveList list;
+    string fen;
+    U64 attacks;
+
+    fen = "rnbqkbnr/8/8/8/8/8/8/Rn2K2R w Qkq";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, WHITE, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, WHITE);
+    REQUIRE(list.length() == 0);
+    list.reset();
+
+    fen = "rnbqkb1r/8/8/8/8/8/8/Rn2K2R b QKkq";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, BLACK, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, BLACK);
+    REQUIRE(list.length() == 0);
+    list.reset();
+}
+
+TEST_CASE("move_generator_cant_castle_when_king_passes_through_attack_1", "[move generator]")
+{
+    cout << "- Cannot castle when king passes through attack 1" << endl;
+
+    Board board;
+    MoveList list;
+    string fen;
+    U64 attacks;
+
+    fen = "rnbqkbnr/pppppppp/3r4/8/8/8/8/R3K2R w Qkq";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, WHITE, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, WHITE);
+    REQUIRE(list.length() == 0);
+    list.reset();
+}
+
+TEST_CASE("move_generator_cant_castle_when_king_passes_through_attack_2", "[move generator]")
+{
+    cout << "- Cannot castle when king passes through attack 2" << endl;
+
+    Board board;
+    MoveList list;
+    string fen;
+    U64 attacks;
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/1n6/R3K2R w Qkq";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, WHITE, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, WHITE);
+    cout << Output::board(board);
+    cout << Output::movelist(list, board) << endl;
+    REQUIRE(list.length() == 0);
+    list.reset();
+}
+
+TEST_CASE("move_generator_cant_castle_when_rook_passes_through_attack", "[move generator]")
+{
+    cout << "- Cannot castle when rook passes through attack" << endl;
+
+    Board board;
+    MoveList list;
+    string fen;
+    U64 attacks;
+
+    fen = "rnbqkbnr/pppppppp/1r6/8/8/8/8/R3K2R w Qkq";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, WHITE, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, WHITE);
+    cout << Output::board(board);
+    cout << Output::movelist(list, board) << endl;
+    REQUIRE(list.length() == 1);
+    REQUIRE(list.contains(build_castle(QUEEN_CASTLE)));
+    list.reset();
 }

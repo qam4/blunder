@@ -14,6 +14,7 @@
 int pop_count(U64 x);
 bool inline is_valid_piece(U8 piece) { return (piece >= WHITE_PAWN) && (piece <= BLACK_KING); }
 bool inline is_valid_square(int square) { return (square >= 0) && (square <= 64); }
+bool inline is_piece_slider(U8 piece) { return (piece >= WHITE_BISHOP) && (piece <= BLACK_QUEEN); }
 
 class Board
 {
@@ -26,6 +27,7 @@ private:
 
     struct IrreversibleData
     {
+        U8 full_move_count;
         U8 half_move_count;
         U8 castling_rights;
         U8 ep_square;
@@ -68,6 +70,7 @@ public:
     U8 operator[](const int square) const; // return piece on that square
     U64 bitboard(const int type) const;
     U8 half_move_count() const { return irrev.half_move_count; };
+    U8 full_move_count() const { return irrev.full_move_count; };
     U8 castling_rights() const { return irrev.castling_rights; };
     U8 ep_square()       const { return irrev.ep_square; };
     U8 side_to_move()    const { return irrev.side_to_move; };
@@ -75,6 +78,7 @@ public:
     void set_castling_rights(U8 rights) { irrev.castling_rights = rights; };
     void set_ep_square(U8 square) { irrev.ep_square = square; };
     void set_half_move_count(U8 count) { irrev.half_move_count = count; };
+    void set_full_move_count(U8 count) { irrev.full_move_count = count; };
     int get_searched_moves() const { return searched_moves; };
     int get_game_ply() const { return game_ply; };
 

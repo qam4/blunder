@@ -28,11 +28,11 @@ bool MoveList::contains_duplicates()
     return false;
 }
 
-bool MoveList::contains_valid_moves(const class Board& board)
+bool MoveList::contains_valid_moves(const class Board& board, bool check_legal)
 {
     for (int i = 0; i < size; i++)
     {
-        if (!is_valid_move(data[i], board))
+        if (!is_valid_move(data[i], board, check_legal))
             return false;
     }
     return true;

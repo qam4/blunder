@@ -25,6 +25,7 @@ public:
 #ifndef NDEBUG
     assert(size < MAX_MOVELIST_LENGTH);
 #endif
+    // cout << "move=" << hex << move << dec << endl;
     data[size++] = move;
   }
   Move_t inline pop()
@@ -46,7 +47,7 @@ public:
   int inline length() const { return size; };
   bool contains(Move_t move);
   bool contains_duplicates();
-  bool contains_valid_moves(const class Board &board);
+  bool contains_valid_moves(const class Board &board, bool check_legal = false);
   void sort_moves(int current_index);
 };
 

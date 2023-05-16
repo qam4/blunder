@@ -27,13 +27,6 @@ int Board::alphabeta(int alpha, int beta, int depth)
         return value;
     }
 
-    if (is_game_over())
-    {
-        value = -MATE_SCORE + search_ply;
-        record_hash(depth, value, HASH_EXACT, best_move);
-        return value;
-    }
-
     // Leaf node
     if (depth == 0)
     {
@@ -70,6 +63,21 @@ int Board::alphabeta(int alpha, int beta, int depth)
             store_pv_move(move);
         }
     }
+
+    if (n == 0)
+    {
+        if (MoveGenerator::in_check(*this, side_to_move()))
+        {
+            value = -MATE_SCORE + search_ply;
+        }
+        else
+        {
+            value = DRAW_SCORE;
+        }
+        record_hash(depth, value, HASH_EXACT, best_move);
+        return value;
+    }
+
     record_hash(depth, alpha, hash_flag, best_move);
     return alpha;
 }

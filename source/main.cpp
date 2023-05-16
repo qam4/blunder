@@ -34,6 +34,10 @@ vector<string> split(const string& s, const char delimiter)
 
 int main()
 {
+#if 0
+    MoveGenerator::generate_move_lookup_tables();
+#endif
+
     bool computer_plays[2] = { false };
 
     string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -44,7 +48,11 @@ int main()
         cout << Output::board(board);
         if (board.is_game_over())
         {
-            if (board.side_to_move() == WHITE)
+            if (MoveGenerator::in_check(board, board.side_to_move()))
+            {
+                cout << "Draw" << endl;
+            }
+            else if (board.side_to_move() == WHITE)
             {
                 cout << "Black player won" << endl;
             }
@@ -90,7 +98,7 @@ int main()
         else if (tokens[0] == "move")
         {
             Move_t move = Parser::move(line.substr(5), board);
-            if (is_valid_move(move, board))
+            if (is_valid_move(move, board, true))
             {
                 board.do_move(move);
             }

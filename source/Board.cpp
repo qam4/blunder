@@ -66,13 +66,15 @@ void Board::reset()
     }
     for (int i = 0; i < 14; i++)
     {
-        bitboards[i] = 0ULL;
+        bitboards[i] = BB_EMPTY;
     }
     irrev.half_move_count = 0;
+    irrev.full_move_count = 1;
     irrev.castling_rights = FULL_CASTLING_RIGHTS;
     irrev.ep_square = NULL_SQUARE;
     irrev.side_to_move = WHITE;
     game_ply = 0;
+    search_ply = 0;
 }
 
 U8 Board::operator[](const int square) const
@@ -92,12 +94,15 @@ U64 Board::bitboard(const int type) const
 }
 
 // [fm] TODO:
-// handle special moves: caste, promo, ep
+// fifty-move rule: https://www.chessprogramming.org/Fifty-move_Rule
+// threefold repetition rule: https://en.wikipedia.org/wiki/Threefold_repetition
 void Board::do_move(Move_t move)
 {
     U8 from = move_from(move);
     U8 to = move_to(move);
     U8 piece = board_array[from];
+    bool move_resets_half_move_clock = false;
+
     // cout << "do_move:" << Output::move(move, *this) << endl;
     // cout << "do_move: move_flag=" << hex << move << endl;
 
@@ -107,34 +112,119 @@ void Board::do_move(Move_t move)
     irrev.ep_square = NULL_SQUARE;
     if (is_pawn_double_push(move))
     {
-        irrev.ep_square = (to + from) >> 1;
+        irrev.ep_square = static_cast<U8>((to + from) >> 1);
     }
 
-    remove_piece(from);
-
-    if (is_capture(move))
+    if (is_castle(move))
     {
-        U8 captured_sq = to;
-        if (is_ep_capture(move))
+        if (move & build_castle(QUEEN_CASTLE))
         {
-            // along_row_with_col
-            // returns a square at the same row as "from", and the same col as "to"
-            captured_sq = (from & 56) | (to & 7);
+            if (irrev.side_to_move == WHITE)
+            {
+                // White queen-side castle
+                remove_piece(A1);
+                remove_piece(E1);
+                add_piece(WHITE_KING, C1);
+                add_piece(WHITE_ROOK, D1);
+                irrev.castling_rights &= static_cast<U8>(~(WHITE_QUEEN_SIDE | WHITE_KING_SIDE));
+            }
+            else
+            {
+                // Black queen-side castle
+                remove_piece(A8);
+                remove_piece(E8);
+                add_piece(BLACK_KING, C8);
+                add_piece(BLACK_ROOK, D8);
+                irrev.castling_rights &= static_cast<U8>(~(BLACK_QUEEN_SIDE | BLACK_KING_SIDE));
+            }
         }
-        remove_piece(captured_sq);
-    }
-
-    if (is_promotion(move))
-    {
-        add_piece(move_promote_to(move), to);
+        else
+        {
+            if (irrev.side_to_move == WHITE)
+            {
+                // White king-side castle
+                remove_piece(H1);
+                remove_piece(E1);
+                add_piece(WHITE_KING, G1);
+                add_piece(WHITE_ROOK, F1);
+                irrev.castling_rights &= static_cast<U8>(~(WHITE_QUEEN_SIDE | WHITE_KING_SIDE));
+            }
+            else
+            {
+                // Black king-side castle
+                remove_piece(H8);
+                remove_piece(E8);
+                add_piece(BLACK_KING, G8);
+                add_piece(BLACK_ROOK, F8);
+                irrev.castling_rights &= static_cast<U8>(~(BLACK_QUEEN_SIDE | BLACK_KING_SIDE));
+            }
+        }
     }
     else
     {
-        add_piece(piece, to);
+        if ((piece & (~1)) == PAWN)
+        {
+            move_resets_half_move_clock = true;
+        }
+
+        remove_piece(from);
+
+        if (is_capture(move))
+        {
+            // half move clock reset after all pawn moves and captures
+            move_resets_half_move_clock = true;
+
+            U8 captured_sq = to;
+            if (is_ep_capture(move))
+            {
+                // along_row_with_col
+                // returns a square at the same row as "from", and the same col as "to"
+                captured_sq = (from & 56) | (to & 7);
+            }
+            remove_piece(captured_sq);
+        }
+
+        if (is_promotion(move))
+        {
+            add_piece(move_promote_to(move), to);
+        }
+        else
+        {
+            add_piece(piece, to);
+        }
+    }
+
+    // Update castling rights
+    if ((board_array[A1] != WHITE_ROOK) || (board_array[E1] != WHITE_KING))
+    {
+        irrev.castling_rights &= static_cast<U8>(~(WHITE_QUEEN_SIDE));
+    }
+    if ((board_array[H1] != WHITE_ROOK) || (board_array[E1] != WHITE_KING))
+    {
+        irrev.castling_rights &= static_cast<U8>(~(WHITE_KING_SIDE));
+    }
+    if ((board_array[A8] != BLACK_ROOK) || (board_array[E8] != BLACK_KING))
+    {
+        irrev.castling_rights &= static_cast<U8>(~(BLACK_QUEEN_SIDE));
+    }
+    if ((board_array[H8] != BLACK_ROOK) || (board_array[E8] != BLACK_KING))
+    {
+        irrev.castling_rights &= static_cast<U8>(~(BLACK_KING_SIDE));
     }
 
     // update flags
-    irrev.half_move_count++;
+    if (move_resets_half_move_clock)
+    {
+        irrev.half_move_count = 0;
+    }
+    else
+    {
+        irrev.half_move_count++;
+    }
+    if (irrev.side_to_move == BLACK)
+    {
+        irrev.full_move_count++;
+    }
 
     // update side_to_move
     irrev.side_to_move ^= 1;
@@ -158,34 +248,180 @@ void Board::undo_move(Move_t move)
     // update irreversible state
     irrev = move_stack[search_ply];
 
-    remove_piece(to);
-
-    if (is_promotion(move))
+    if (is_castle(move))
     {
-        add_piece(PAWN | irrev.side_to_move, from);
+        if (move & build_castle(QUEEN_CASTLE))
+        {
+            if (irrev.side_to_move == WHITE)
+            {
+#ifndef NDEBUG
+                assert(board_array[C1] == WHITE_KING);
+                assert(board_array[D1] == WHITE_ROOK);
+                assert(board_array[E1] == EMPTY);
+                assert(board_array[A1] == EMPTY);
+#endif
+                remove_piece(C1);
+                remove_piece(D1);
+                add_piece(WHITE_KING, E1);
+                add_piece(WHITE_ROOK, A1);
+            }
+            else
+            {
+#ifndef NDEBUG
+                assert(board_array[C8] == BLACK_KING);
+                assert(board_array[D8] == BLACK_ROOK);
+                assert(board_array[E8] == EMPTY);
+                assert(board_array[A8] == EMPTY);
+#endif
+                remove_piece(C8);
+                remove_piece(D8);
+                add_piece(BLACK_KING, E8);
+                add_piece(BLACK_ROOK, A8);
+            }
+        }
+        else
+        {
+            if (irrev.side_to_move == WHITE)
+            {
+#ifndef NDEBUG
+                assert(board_array[G1] == WHITE_KING);
+                assert(board_array[F1] == WHITE_ROOK);
+                assert(board_array[E1] == EMPTY);
+                assert(board_array[H1] == EMPTY);
+#endif
+                remove_piece(G1);
+                remove_piece(F1);
+                add_piece(WHITE_KING, E1);
+                add_piece(WHITE_ROOK, H1);
+            }
+            else
+            {
+#ifndef NDEBUG
+                assert(board_array[G8] == BLACK_KING);
+                assert(board_array[F8] == BLACK_ROOK);
+                assert(board_array[E8] == EMPTY);
+                assert(board_array[H8] == EMPTY);
+#endif
+                remove_piece(G8);
+                remove_piece(F8);
+                add_piece(BLACK_KING, E8);
+                add_piece(BLACK_ROOK, H8);
+            }
+        }
     }
     else
     {
-        add_piece(piece, from);
-    }
+        remove_piece(to);
 
-    if (is_capture(move))
-    {
-        U8 captured_sq = to;
-        if (is_ep_capture(move))
+        if (is_promotion(move))
         {
-            // along_row_with_col
-            // returns a square at the same row as "from", and the same col as "to"
-            captured_sq = (from & 56) | (to & 7);
+            add_piece(PAWN | irrev.side_to_move, from);
         }
-        add_piece(move_captured(move), captured_sq);
+        else
+        {
+            add_piece(piece, from);
+        }
+
+        if (is_capture(move))
+        {
+            U8 captured_sq = to;
+            if (is_ep_capture(move))
+            {
+                // along_row_with_col
+                // returns a square at the same row as "from", and the same col as "to"
+                captured_sq = (from & 56) | (to & 7);
+            }
+            add_piece(move_captured(move), captured_sq);
+        }
     }
 }
+
+// clang-format off
+const int PIECE_SQUARE[NUM_PIECES / 2][64] = {
+    {
+        0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0,
+        0,  0,  0,  0,  0,  0,  0,  0  // a1-h1
+    },
+    // pawn
+    {
+        0,  0,  0,  0,  0,  0,  0,  0,
+        50, 50, 50, 50, 50, 50, 50, 50,
+        10, 10, 20, 30, 30, 20, 10, 10,
+        5,  5, 10, 25, 25, 10,  5,  5,
+        0,  0,  0, 20, 20,  0,  0,  0,
+        5, -5,-10,  0,  0,-10, -5,  5,
+        5, 10, 10,-20,-20, 10, 10,  5,
+        0,  0,  0,  0,  0,  0,  0,  0
+    },
+    // knight
+    {
+        -50,-40,-30,-30,-30,-30,-40,-50,
+        -40,-20,  0,  0,  0,  0,-20,-40,
+        -30,  0, 10, 15, 15, 10,  0,-30,
+        -30,  5, 15, 20, 20, 15,  5,-30,
+        -30,  0, 15, 20, 20, 15,  0,-30,
+        -30,  5, 10, 15, 15, 10,  5,-30,
+        -40,-20,  0,  5,  5,  0,-20,-40,
+        -50,-40,-30,-30,-30,-30,-40,-50
+    },
+    // bishop
+    {
+        -20,-10,-10,-10,-10,-10,-10,-20,
+        -10,  0,  0,  0,  0,  0,  0,-10,
+        -10,  0,  5, 10, 10,  5,  0,-10,
+        -10,  5,  5, 10, 10,  5,  5,-10,
+        -10,  0, 10, 10, 10, 10,  0,-10,
+        -10, 10, 10, 10, 10, 10, 10,-10,
+        -10,  5,  0,  0,  0,  0,  5,-10,
+        -20,-10,-10,-10,-10,-10,-10,-20
+    },
+    // rook
+    {
+         0,  0,  0,  0,  0,  0,  0,  0,
+         5, 10, 10, 10, 10, 10, 10,  5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+        -5,  0,  0,  0,  0,  0,  0, -5,
+         0,  0,  0,  5,  5,  0,  0,  0
+    },
+    // queen
+    {
+        -20,-10,-10, -5, -5,-10,-10,-20,
+        -10,  0,  0,  0,  0,  0,  0,-10,
+        -10,  0,  5,  5,  5,  5,  0,-10,
+         -5,  0,  5,  5,  5,  5,  0, -5,
+          0,  0,  5,  5,  5,  5,  0, -5,
+        -10,  5,  5,  5,  5,  5,  0,-10,
+        -10,  0,  5,  0,  0,  0,  0,-10,
+        -20,-10,-10, -5, -5,-10,-10,-20
+    },
+    // king
+    {
+        -50,-40,-30,-20,-20,-30,-40,-50,
+        -30,-20,-10,  0,  0,-10,-20,-30,
+        -30,-10, 20, 30, 30, 20,-10,-30,
+        -30,-10, 30, 40, 40, 30,-10,-30,
+        -30,-10, 30, 40, 40, 30,-10,-30,
+        -30,-10, 20, 30, 30, 20,-10,-30,
+        -30,-30,  0,  0,  0,  0,-30,-30,
+        -50,-30,-30,-30,-30,-30,-30,-50
+    }
+};
+// clang-format on
 
 int Board::evaluate()
 {
     /*
     https://www.chessprogramming.org/Evaluation
+    https://www.chessprogramming.org/Simplified_Evaluation_Function
     f(p) = 200(K-K')
            + 9(Q-Q')
            + 5(R-R')
@@ -199,12 +435,25 @@ int Board::evaluate()
     M = Mobility (the number of legal moves)
     */
     int result = 0;
-    result = 200 * (pop_count(bitboards[WHITE_KING]) - pop_count(bitboards[BLACK_KING]))
-        + 9 * (pop_count(bitboards[WHITE_QUEEN]) - pop_count(bitboards[BLACK_QUEEN]))
-        + 5 * (pop_count(bitboards[WHITE_ROOK]) - pop_count(bitboards[BLACK_ROOK]))
-        + 3 * (pop_count(bitboards[WHITE_BISHOP]) - pop_count(bitboards[BLACK_BISHOP]))
-        + 3 * (pop_count(bitboards[WHITE_KNIGHT]) - pop_count(bitboards[BLACK_KNIGHT]))
-        + 1 * (pop_count(bitboards[WHITE_PAWN]) - pop_count(bitboards[BLACK_PAWN]));
+    result = 20000 * (pop_count(bitboards[WHITE_KING]) - pop_count(bitboards[BLACK_KING]))
+        + 900 * (pop_count(bitboards[WHITE_QUEEN]) - pop_count(bitboards[BLACK_QUEEN]))
+        + 500 * (pop_count(bitboards[WHITE_ROOK]) - pop_count(bitboards[BLACK_ROOK]))
+        + 330 * (pop_count(bitboards[WHITE_BISHOP]) - pop_count(bitboards[BLACK_BISHOP]))
+        + 320 * (pop_count(bitboards[WHITE_KNIGHT]) - pop_count(bitboards[BLACK_KNIGHT]))
+        + 100 * (pop_count(bitboards[WHITE_PAWN]) - pop_count(bitboards[BLACK_PAWN]));
+
+    for (int square = 0; square < 64; square++)
+    {
+        U8 piece = board_array[square];
+        if (piece & BLACK)
+        {
+            result -= PIECE_SQUARE[piece >> 1][square];
+        }
+        else
+        {
+            result += PIECE_SQUARE[piece >> 1][square ^ 56];  // vertical flipping
+        }
+    }
 
     // cout << "evaluate=" << result << endl;
     return result;
@@ -215,7 +464,6 @@ int Board::is_game_over()
 {
     // Game over if:
     // - no legal moves
-    // TODO
     MoveList list;
     MoveGenerator::add_all_moves(list, *this, side_to_move());
     if (list.length() == 0)
@@ -239,11 +487,12 @@ Move_t Board::search(int depth)
         max_search_ply = 0;
         searched_moves = 0;
 
-        alphabeta(-MAX_SCORE, MAX_SCORE, current_depth);
+        int value = alphabeta(-MAX_SCORE, MAX_SCORE, current_depth);
         search_best_move = pv_table[0];
         cout << "depth=" << current_depth;
         cout << ", search ply=" << max_search_ply;
         cout << ", searched moves=" << searched_moves;
+        cout << ", score=" << value;
         cout << ", pv=";
         print_pv();
         cout << endl;

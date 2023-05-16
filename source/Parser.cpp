@@ -5,104 +5,130 @@
 
 #include "Parser.h"
 
+static vector<string> split(const string& s, const char delimiter)
+{
+    vector<string> tokens;
+    string token;
+    istringstream tokenStream(s);
+    while (getline(tokenStream, token, delimiter))
+    {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+
 class Board Parser::parse_fen(string fen)
 {
     Board board = Board();
 
-    size_t len = fen.length();
+    vector<string> tokens = split(fen, ' ');
+    size_t num_tokens = tokens.size();
+    size_t len;
+    size_t pos;  // position in string
+    string token;
 
-    size_t pos = 0;  // position in string
-    //[not used]int square = A1;
-
-    // 8 rows of pieces
-    for (int row = 7; row >= 0; row--)
+    if (num_tokens > 0)
     {
-        while (fen[pos] == '/')
-            pos++;
-        for (int col = 0; col < 8; col++)
+        token = tokens[0];
+        pos = 0;
+        // 8 rows of pieces
+        for (int row = 7; row >= 0; row--)
         {
-            char c = fen[pos++];
-            // cout << "[" << row<< "," << col << "]=" << c << endl;
-            //  if number skip ahead that many columns
-            if (c >= '1' && c <= '8')
+            while (token[pos] == '/')
+                pos++;
+            for (int col = 0; col < 8; col++)
             {
-                col += c - '1';
-            }
-            else
-            {  // find piece
-                U8 piece = parse_piece(c);
-                if (piece)
-                    board.add_piece(piece, (row * 8) + col);
+                char c = token[pos++];
+                // cout << "[" << row<< "," << col << "]=" << c << endl;
+                //  if number skip ahead that many columns
+                if (c >= '1' && c <= '8')
+                {
+                    col += c - '1';
+                }
+                else
+                {  // find piece
+                    U8 piece = parse_piece(c);
+                    if (piece)
+                        board.add_piece(piece, (row * 8) + col);
+                }
             }
         }
     }
-    while (fen[pos] != ' ')
-        if (pos++ >= len)
-            return board;
-    while (fen[pos] == ' ')
-        if (pos++ >= len)
-            return board;
 
-    // side to move
-    U8 side_to_move = Parser::side(fen[pos++]);
-    board.set_side_to_move(side_to_move);
-
-    while (fen[pos] == ' ')
-        if (pos++ >= len)
-            return board;
-
-    // castling rights
-    U8 rights = 0;
-    while (fen[pos] != ' ')
+    if (num_tokens > 1)
     {
-        rights |= Parser::castling_right(fen[pos++]);
-    }
-    board.set_castling_rights(rights);
-
-    while (fen[pos] == ' ')
-        if (pos++ >= len)
-            return board;
-
-    // ep square
-    if (fen[pos] == '-')
-    {
-        pos++;
-    }
-    else
-    {
-        char square[2] = { fen[pos], fen[pos + 1] };
-        board.set_ep_square(Parser::square(square));
-        while (fen[pos] != ' ')
-            if (pos++ >= len)
-                return board;
+        // side to move
+        token = tokens[1];
+        pos = 0;
+        U8 side_to_move = Parser::side(token[pos++]);
+        board.set_side_to_move(side_to_move);
     }
 
-    while (fen[pos] == ' ')
-        if (pos++ >= len)
-            return board;
-
-    // half-move-count
-    int half_move_count = 0;
-    while (fen[pos] >= '0' && fen[pos] <= '9')
+    if (num_tokens > 2)
     {
-        half_move_count = half_move_count * 10 + (fen[pos] - '0');
-        if (pos++ >= len)
-            return board;
+        // castling rights
+        token = tokens[2];
+        pos = 0;
+        len = token.length();
+        U8 rights = 0;
+        if (token[pos] == '-')
+        {
+            // do nothing
+        }
+        else
+        {
+            while (pos < len)
+            {
+                rights = rights | Parser::castling_right(token[pos++]);
+            }
+        }
+        board.set_castling_rights(rights);
     }
 
-    board.set_half_move_count(static_cast<U8>(half_move_count));
-
-    while (fen[pos] == ' ')
-        if (pos++ >= len)
-            return board;
-
-    // full-move-count
-    int full_move_count = 0;
-    while (fen[pos] != ' ')
+    if (num_tokens > 3)
     {
-        full_move_count = full_move_count * 10 + (fen[pos] - '0');
-        if (pos++ >= len)
-            return board;
+        // ep square
+        token = tokens[3];
+        pos = 0;
+        if (token[pos] == '-')
+        {
+            board.set_ep_square(NULL_SQUARE);
+        }
+        else
+        {
+            char square[2] = { token[pos], token[pos + 1] };
+            board.set_ep_square(Parser::square(square));
+        }
+    }
+
+    if (num_tokens > 4)
+    {
+        // half-move-count
+        token = tokens[4];
+        pos = 0;
+        len = token.length();
+        int half_move_count = 0;
+        while (token[pos] >= '0' && token[pos] <= '9' && pos < len)
+        {
+            half_move_count = half_move_count * 10 + (token[pos] - '0');
+            pos++;
+        }
+        board.set_half_move_count(static_cast<U8>(half_move_count));
+    }
+
+    if (num_tokens > 5)
+    {
+        // full-move-count
+        token = tokens[5];
+        pos = 0;
+        len = token.length();
+        int full_move_count = 0;
+        while (token[pos] >= '0' && token[pos] <= '9' && pos < len)
+        {
+            full_move_count = full_move_count * 10 + (token[pos] - '0');
+            pos++;
+        }
+        board.set_full_move_count(static_cast<U8>(full_move_count));
     }
 
     return board;
@@ -138,7 +164,7 @@ U8 Parser::castling_right(char c)
         case 'q':
             return BLACK_QUEEN_SIDE;
     }
-    return 0;
+    return 0U;
 }
 
 U8 Parser::square(char sq[])
@@ -180,6 +206,6 @@ U32 Parser::move(string str, Board& board)
     //     flags |= MOVED_SIDEWAYS;
     // }
     move |= build_move_all(from, to, flags, capture);
-    // cout << "move=" << hex<<move << endl;
+    // cout << "move=" << hex <<move << dec << endl;
     return move;
 }
