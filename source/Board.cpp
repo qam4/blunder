@@ -66,7 +66,7 @@ void Board::reset()
     }
     for (int i = 0; i < 14; i++)
     {
-        bitboards[i] = 0ULL;
+        bitboards[i] = BB_EMPTY;
     }
     irrev.half_move_count = 0;
     irrev.castling_rights = FULL_CASTLING_RIGHTS;

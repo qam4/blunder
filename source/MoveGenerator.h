@@ -66,11 +66,19 @@ U64 inline circular_left_shift(U64 target, int shift)
     return (target << shift) | (target >> (64 - shift));
 }
 
+struct MoveGenPreprocessing
+{
+    U64 checkers; // Opponent pieces giving check
+    U64 pinned;   // Friendly pieces that are pinned
+    U64 pinners;  // Opponent pieces pinning friendly pieces
+};
+
 class MoveGenerator
 {
 
 public:
     static U64 get_checkers(const class Board &board, const U8 side);
+    static MoveGenPreprocessing get_checkers_and_pinned(const class Board &board, const U8 side);
     static void add_rook_moves(class MoveList &list, const class Board &board, const U8 side);
     static void add_bishop_moves(class MoveList &list, const class Board &board, const U8 side);
     static void add_pawn_pushes(class MoveList &list, const class Board &board, const U8 side);
@@ -92,20 +100,22 @@ private:
     static void add_moves_with_diff(int diff, U64 targets, class MoveList &list, const class Board &board, const U8 flags, const U8 extra_capture);
     static void add_promotions_with_diff(int diff, U64 targets, class MoveList &list, const class Board &board, const U8 flags);
     static U64 byteswap(U64 x);
-    static U64 flipVertical(U64 x);
-    static U64 mirrorHorizontal(U64 x);
-    static U64 rankMask(int sq);
-    static U64 fileMask(int sq);
-    static U64 diagMask(int sq);
-    static U64 antiDiagMask(int sq);
-    static U64 rankMaskEx(int sq);
-    static U64 fileMaskEx(int sq);
-    static U64 diagMaskEx(int sq);
-    static U64 antiDiagMaskEx(int sq);
-    static U64 diagAttacks(U64 occ, int sq);
-    static U64 antiDiagAttacks(U64 occ, int sq);
-    static U64 fileAttacks(U64 occ, int sq);
-    static U64 rankAttacks(U64 occ, int sq);
+    static U64 in_between(U8 sq1, U8 sq2);
+    static U64 squares_between(U8 sq1, U8 sq2);
+    static U64 flip_vertical(U64 x);
+    static U64 mirror_horizontal(U64 x);
+    static U64 rank_mask(int sq);
+    static U64 file_mask(int sq);
+    static U64 diag_mask(int sq);
+    static U64 anti_diag_mask(int sq);
+    static U64 rank_mask_ex(int sq);
+    static U64 file_mask_ex(int sq);
+    static U64 diag_mask_ex(int sq);
+    static U64 anti_diag_mask_ex(int sq);
+    static U64 diag_attacks(U64 occ, int sq);
+    static U64 anti_diag_attacks(U64 occ, int sq);
+    static U64 file_attacks(U64 occ, int sq);
+    static U64 rank_attacks(U64 occ, int sq);
 };
 
 #endif /* MOVEGENERATOR_H */

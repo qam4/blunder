@@ -13,7 +13,7 @@ const int MAX_SCORE = 2000;
 const int MATE_SCORE = 1000;
 const int MAX_SEARCH_PLY = 64;
 
-const int MAX_SEARCH_TIME = 1000000; // max search time in usec
+const int MAX_SEARCH_TIME = 1000000;  // max search time in usec
 
 // PIECES
 const U8 EMPTY = 0;
@@ -34,21 +34,21 @@ const U8 WHITE_KNIGHT = 4;
 const U8 BLACK_KNIGHT = 5;
 const U8 WHITE_BISHOP = 6;
 const U8 BLACK_BISHOP = 7;
-const U8 WHITE_ROOK   = 8;
-const U8 BLACK_ROOK   = 9;
-const U8 WHITE_QUEEN  = 10;
-const U8 BLACK_QUEEN  = 11;
-const U8 WHITE_KING   = 12;
-const U8 BLACK_KING   = 13;
+const U8 WHITE_ROOK = 8;
+const U8 BLACK_ROOK = 9;
+const U8 WHITE_QUEEN = 10;
+const U8 BLACK_QUEEN = 11;
+const U8 WHITE_KING = 12;
+const U8 BLACK_KING = 13;
 const int NUM_PIECES = 14;
 
 const string PIECE_CHARS = "_EPpNnBbRrQqKk";
 
 // CASTLING RIGHTS
 
-const U8 WHITE_KING_SIDE  = 1;
+const U8 WHITE_KING_SIDE = 1;
 const U8 WHITE_QUEEN_SIDE = 2;
-const U8 BLACK_KING_SIDE  = 4;
+const U8 BLACK_KING_SIDE = 4;
 const U8 BLACK_QUEEN_SIDE = 8;
 const U8 FULL_CASTLING_RIGHTS = 1 | 2 | 4 | 8;
 
@@ -130,6 +130,9 @@ const int H8 = 63;
 
 const int NULL_SQUARE = 64;
 const int NUM_SQUARES = 64;
+
+// Empty bitboard
+const U64 BB_EMPTY = 0ULL;
 
 // BITBOARD FILES
 

@@ -34,6 +34,10 @@ vector<string> split(const string& s, const char delimiter)
 
 int main()
 {
+#if 0
+    MoveGenerator::generate_move_lookup_tables();
+#endif
+
     bool computer_plays[2] = { false };
 
     string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
