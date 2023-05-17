@@ -14,6 +14,7 @@
 int pop_count(U64 x);
 bool inline is_valid_piece(U8 piece) { return (piece >= WHITE_PAWN) && (piece <= BLACK_KING); }
 bool inline is_valid_square(int square) { return (square >= 0) && (square <= 64); }
+bool inline is_piece_slider(U8 piece) { return (piece >= WHITE_BISHOP) && (piece <= BLACK_QUEEN); }
 
 class Board
 {

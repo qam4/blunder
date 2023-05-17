@@ -79,6 +79,7 @@ class MoveGenerator
 public:
     static U64 get_checkers(const class Board &board, const U8 side);
     static MoveGenPreprocessing get_checkers_and_pinned(const class Board &board, const U8 side);
+    U64 get_king_danger_squares(const class Board& board, const U8 side, U64 king);
     static void add_rook_moves(class MoveList &list, const class Board &board, const U8 side);
     static void add_bishop_moves(class MoveList &list, const class Board &board, const U8 side);
     static void add_pawn_pushes(class MoveList &list, const class Board &board, const U8 side);
@@ -86,6 +87,9 @@ public:
     static void add_knight_moves(class MoveList &list, const class Board &board, const U8 side);
     static void add_queen_moves(class MoveList &list, const class Board &board, const U8 side);
     static void add_king_moves(class MoveList &list, const class Board &board, const U8 side);
+    static void add_slider_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, U64 pinned_mask, U8 king_sq, const U8 side);
+    static void add_knight_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, U64 from_mask, const U8 side);
+    static void add_king_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, const U8 side);
     static void add_all_moves(class MoveList &list, const class Board &board, const U8 side);
     static void score_moves(class MoveList &list, const class Board &board);
 
@@ -99,6 +103,11 @@ private:
     static void add_moves(U8 from, U64 targets, class MoveList &list, const class Board &board, const U8 flags);
     static void add_moves_with_diff(int diff, U64 targets, class MoveList &list, const class Board &board, const U8 flags, const U8 extra_capture);
     static void add_promotions_with_diff(int diff, U64 targets, class MoveList &list, const class Board &board, const U8 flags);
+    static U64 rook_targets(U64 from, U64 occupied);
+    static U64 bishop_targets(U64 from, U64 occupied);
+    static U64 knight_targets(U64 from);
+    static U64 king_targets(U64 from);
+    static U64 pawn_targets(U64 from, U8 side);
     static U64 byteswap(U64 x);
     static U64 in_between(U8 sq1, U8 sq2);
     static U64 squares_between(U8 sq1, U8 sq2);
