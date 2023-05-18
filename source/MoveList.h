@@ -25,6 +25,7 @@ public:
 #ifndef NDEBUG
     assert(size < MAX_MOVELIST_LENGTH);
 #endif
+    // cout << "move=" << hex << move << dec << endl;
     data[size++] = move;
   }
   Move_t inline pop()

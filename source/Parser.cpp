@@ -180,6 +180,6 @@ U32 Parser::move(string str, Board& board)
     //     flags |= MOVED_SIDEWAYS;
     // }
     move |= build_move_all(from, to, flags, capture);
-    // cout << "move=" << hex<<move << endl;
+    // cout << "move=" << hex <<move << dec << endl;
     return move;
 }

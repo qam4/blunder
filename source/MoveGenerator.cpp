@@ -57,7 +57,7 @@ void MoveGenerator::add_promotions_with_diff(
 }
 
 // https://www.chessprogramming.org/Square_Attacked_By#In_Between
-U64 MoveGenerator::in_between(U8 sq1, U8 sq2)
+U64 MoveGenerator::squares_between_calc(U8 sq1, U8 sq2)
 {
     const U64 m1 = C64(-1);
     const U64 a2a7 = C64(0x0001010101010100);
@@ -76,10 +76,52 @@ U64 MoveGenerator::in_between(U8 sq1, U8 sq2)
     return line & btwn;                        /* return the bits on that line in-between */
 }
 
+U64 MoveGenerator::lines_along_calc(U8 sq1, U8 sq2)
+{
+    if (sq1 == sq2)
+    {
+        return 0ULL;
+    }
+    int file = (sq2 & 7) - (sq1 & 7);
+    int row = (sq2 >> 3) - (sq1 >> 3);
+
+    // Same rank: if their rank distance is zero
+    // https://www.chessprogramming.org/Ranks#Two_Squares_on_a_Rank
+    if (row == 0)
+    {
+        return rank_mask(sq1);
+    }
+    // Same file: if their file distance is zero
+    // https://www.chessprogramming.org/Files#TwoSquares
+    if (file == 0)
+    {
+        return file_mask(sq1);
+    }
+    // Same diagonal: if their file distance equals the rank distance
+    // https://www.chessprogramming.org/Diagonals#TwoSquares
+    if (row == file)
+    {
+        return diag_mask(sq1);
+    }
+    // Same anti-diagonal: if sum of file and rank distance is zero
+    // https://www.chessprogramming.org/Anti-Diagonals#TwoSquares
+    if (row + file == 0)
+    {
+        return anti_diag_mask(sq1);
+    }
+    return 0ULL;
+}
+
 // Using lookup table
 U64 MoveGenerator::squares_between(U8 sq1, U8 sq2)
 {
     return SQUARES_BETWEEN[sq1][sq2];
+}
+
+// Using lookup table
+U64 MoveGenerator::lines_along(U8 sq1, U8 sq2)
+{
+    return LINES_ALONG[sq1][sq2];
 }
 
 /**
@@ -275,6 +317,7 @@ void MoveGenerator::add_rook_moves(class MoveList& list, const class Board& boar
     cout << Output::bitboard(occupied);
     cout << "friendly=0x" << hex << occupied<< endl;
     cout << Output::bitboard(friendly);
+    cout << dec;
 #endif
 
     while (rooks)
@@ -417,16 +460,100 @@ void MoveGenerator::add_king_moves(class MoveList& list, const class Board& boar
     }
 }
 
-void MoveGenerator::add_slider_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, U64 pinned_mask, U8 king_sq, const U8 side)
+void MoveGenerator::add_pawn_legal_pushes(
+    class MoveList& list, const class Board& board, U64 to_mask, U64 from_mask, const U8 side)
+{
+    const int diffs[2] = { 8, 64 - 8 };
+    const U64 promotions_mask[2] = { ROW_8, ROW_1 };
+    const U64 start_row_plus_one_mask[2] = { ROW_3, ROW_6 };
+    U64 pushes, single_pushes, double_pushes, promotions, pawns, free_squares;
+
+    int diff = diffs[side];
+    pawns = board.bitboards[PAWN | side] & from_mask;
+    free_squares = ~(board.bitboards[WHITE] | board.bitboards[BLACK]);
+
+    // ADD SINGLE PUSHES
+    pushes = circular_left_shift(pawns, diff) & free_squares;
+    single_pushes = pushes & (~promotions_mask[side]);
+    add_moves_with_diff(diff, single_pushes & to_mask, list, board, NO_FLAGS, 0);
+
+    // ADD PROMOTIONS
+    promotions = pushes & promotions_mask[side];
+    add_promotions_with_diff(diff, promotions & to_mask, list, board, side);
+
+    // ADD DOUBLE PUSHES
+    double_pushes =
+        circular_left_shift(pushes & start_row_plus_one_mask[side], diff) & free_squares;
+    add_moves_with_diff(diff + diff, double_pushes & to_mask, list, board, PAWN_DOUBLE_PUSH, 0);
+}
+
+void MoveGenerator::add_pawn_legal_attacks(class MoveList& list,
+                                           const class Board& board,
+                                           U64 capture_mask,
+                                           U64 push_mask,
+                                           U64 from_mask,
+                                           const U8 side)
+{
+    const int diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
+    const U64 promotions_mask[2] = { ROW_8, ROW_1 };
+    const U64 file_mask[2] = { ~FILE_H, ~FILE_A };
+    U64 attacks, ep_attacks, promotions, targets, pawns, enemy;
+
+    pawns = board.bitboards[PAWN | side] & from_mask;
+    enemy = board.bitboards[!side];
+
+    // CALCULATE ATTACKS FOR LEFT, RIGHT
+    for (int dir = 0; dir < 2; dir++)
+    {
+        int diff = diffs[dir][side];
+        targets = circular_left_shift(pawns, diff) & file_mask[dir];
+
+        // ADD ATTACKS
+        attacks = enemy & targets & capture_mask;
+        add_moves_with_diff(diff, attacks & (~promotions_mask[side]), list, board, NO_FLAGS, 0);
+
+        // ADD EP ATTACKS
+        // TODO: ensure that there is no discovered check
+        if (board.irrev.ep_square != NULL_SQUARE)
+        {
+            ep_attacks = targets & (1ULL << board.irrev.ep_square);
+            add_moves_with_diff(diff, ep_attacks, list, board, EP_CAPTURE, PAWN | (!side));
+        }
+
+        // ADD PROMOTION ATTACKS
+        promotions = attacks & promotions_mask[side];
+        add_promotions_with_diff(diff, promotions, list, board, side);
+    }
+}
+
+void MoveGenerator::add_pawn_legal_moves(class MoveList& list,
+                                         const class Board& board,
+                                         U64 capture_mask,
+                                         U64 push_mask,
+                                         U64 from_mask,
+                                         const U8 side)
+{
+    add_pawn_legal_pushes(list, board, push_mask, from_mask, side);
+    add_pawn_legal_attacks(list, board, capture_mask, push_mask, from_mask, side);
+}
+
+void MoveGenerator::add_slider_legal_moves(class MoveList& list,
+                                           const class Board& board,
+                                           U64 capture_mask,
+                                           U64 push_mask,
+                                           U64 pinned_mask,
+                                           U8 king_sq,
+                                           const U8 side)
 {
     U64 occupied = board.bitboards[WHITE] | board.bitboards[BLACK];
-    U64 queens = board.bitboards[QUEEN | attacker_side];
-    U64 rooks = board.bitboards[ROOK | attacker_side];
-    U64 bishops = board.bitboards[BISHOP | attacker_side];
+    U64 queens = board.bitboards[QUEEN | side];
+    U64 rooks = board.bitboards[ROOK | side];
+    U64 bishops = board.bitboards[BISHOP | side];
     U64 diag_attackers = queens | bishops;
     U64 non_diag_attackers = queens | rooks;
 
-    U64 attackers = non_diag_attackers & !pinned_mask;
+    // non-pinned attackers can move freely
+    U64 attackers = non_diag_attackers & (~pinned_mask);
     while (attackers)
     {
         U8 from = bit_scan_forward(attackers);
@@ -434,8 +561,11 @@ void MoveGenerator::add_slider_legal_moves(class MoveList& list, const class Boa
         U64 targets = file_attacks(occupied, from) + rank_attacks(occupied, from);
         add_moves(from, targets & capture_mask, list, board, NO_FLAGS);
         add_moves(from, targets & push_mask, list, board, NO_FLAGS);
+        attackers &= attackers - 1;
     }
 
+    // When a piece is pinned, it can only move towards or away from the pinner,
+    // it can’t leave the line between the attacking piece and the king
     attackers = non_diag_attackers & pinned_mask;
     while (attackers)
     {
@@ -445,48 +575,54 @@ void MoveGenerator::add_slider_legal_moves(class MoveList& list, const class Boa
         U64 targets = (file_attacks(occupied, from) + rank_attacks(occupied, from)) & ray_mask;
         add_moves(from, targets & capture_mask, list, board, NO_FLAGS);
         add_moves(from, targets & push_mask, list, board, NO_FLAGS);
+        attackers &= attackers - 1;
     }
 
+    attackers = diag_attackers & (~pinned_mask);
+    while (attackers)
+    {
+        U8 from = bit_scan_forward(attackers);
+        // Add file and rank attacks
+        U64 targets = diag_attacks(occupied, from) + anti_diag_attacks(occupied, from);
+        add_moves(from, targets & capture_mask, list, board, NO_FLAGS);
+        add_moves(from, targets & push_mask, list, board, NO_FLAGS);
+        attackers &= attackers - 1;
+    }
 
-    // for (from, _) in (non_diag_attackers & pinned_mask).iter() {
-    //     debug_assert!(position.at(from) == ROOK.pc(stm) || position.at(from) == QUEEN.pc(stm));
-    //     let ray_mask = lines_along(from, king_sq);
-    //     let targets = rook_attacks_from_sq(from, occupied) & ray_mask;
-    //     list.add_captures(from, targets & capture_mask);
-    //     list.add_non_captures(from, targets & push_mask);
-    // }
-
-    // for (from, _) in (diag_attackers & !pinned_mask).iter() {
-    //     debug_assert!(position.at(from) == BISHOP.pc(stm) || position.at(from) == QUEEN.pc(stm));
-    //     let targets = bishop_attacks_from_sq(from, occupied);
-    //     list.add_captures(from, targets & capture_mask);
-    //     list.add_non_captures(from, targets & push_mask);
-    // }
-
-    // for (from, _) in (diag_attackers & pinned_mask).iter() {
-    //     debug_assert!(position.at(from) == BISHOP.pc(stm) || position.at(from) == QUEEN.pc(stm));
-    //     let ray_mask = lines_along(from, king_sq);
-    //     let targets = bishop_attacks_from_sq(from, occupied) & ray_mask;
-    //     list.add_captures(from, targets & capture_mask);
-    //     list.add_non_captures(from, targets & push_mask);
-    // }
+    attackers = diag_attackers & pinned_mask;
+    while (attackers)
+    {
+        U8 from = bit_scan_forward(attackers);
+        // Add file and rank attacks
+        U64 ray_mask = lines_along(from, king_sq);
+        U64 targets = (diag_attacks(occupied, from) + anti_diag_attacks(occupied, from)) & ray_mask;
+        add_moves(from, targets & capture_mask, list, board, NO_FLAGS);
+        add_moves(from, targets & push_mask, list, board, NO_FLAGS);
+        attackers &= attackers - 1;
+    }
 }
 
-void MoveGenerator::add_knight_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, U64 from_mask, const U8 side)
+void MoveGenerator::add_knight_legal_moves(class MoveList& list,
+                                           const class Board& board,
+                                           U64 capture_mask,
+                                           U64 push_mask,
+                                           U64 from_mask,
+                                           const U8 side)
 {
     U64 knights = board.bitboards[KNIGHT | side] & from_mask;
     while (knights)
     {
         U8 from = bit_scan_forward(knights);
-        U64 capture_targets = KNIGHT_LOOKUP_TABLE[from] & capture_targets;
-        U64 push_targets = KNIGHT_LOOKUP_TABLE[from] & push_targets;
+        U64 capture_targets = KNIGHT_LOOKUP_TABLE[from] & capture_mask;
+        U64 push_targets = KNIGHT_LOOKUP_TABLE[from] & push_mask;
         add_moves(from, capture_targets, list, board, NO_FLAGS);
         add_moves(from, push_targets, list, board, NO_FLAGS);
         knights &= knights - 1;
     }
 }
 
-void MoveGenerator::add_king_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, const U8 side)
+void MoveGenerator::add_king_legal_moves(
+    class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, const U8 side)
 {
     U64 kings = board.bitboards[KING | side];
     while (kings)
@@ -555,7 +691,6 @@ U64 MoveGenerator::king_targets(U64 from)
 U64 MoveGenerator::pawn_targets(U64 from, U8 side)
 {
     const int diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
-    const U64 promotions_mask[2] = { ROW_8, ROW_1 };
     const U64 file_mask[2] = { ~FILE_H, ~FILE_A };
     U64 targets = BB_EMPTY;
 
@@ -567,16 +702,25 @@ U64 MoveGenerator::pawn_targets(U64 from, U8 side)
     return targets;
 }
 
+bool MoveGenerator::in_check(const class Board& board, const U8 side)
+{
+    U64 kings = board.bitboards[KING | side];
+#ifndef NDEBUG
+    assert(pop_count(kings) == 1);
+#endif
+
+    MoveGenPreprocessing mgp = get_checkers_and_pinned(board, side);
+    U64 checkers = mgp.checkers;
+    int king_attacks_count = pop_count(checkers);
+    return (king_attacks_count > 0);
+}
+
 void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board, const U8 side)
 {
-    // add_pawn_pushes(list, board, side);
-    // add_pawn_attacks(list, board, side);
-    // add_knight_moves(list, board, side);
-    // add_bishop_moves(list, board, side);
-    // add_rook_moves(list, board, side);
-    // add_queen_moves(list, board, side);
-    // add_king_moves(list, board, side);
     U64 kings = board.bitboards[KING | side];
+#ifndef NDEBUG
+    assert(pop_count(kings) == 1);
+#endif
 
     // We always need legal king moves
     U64 attacked_squares = get_king_danger_squares(board, side, kings);
@@ -589,16 +733,21 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
     U64 pinners = mgp.pinners;
     int king_attacks_count = pop_count(checkers);
 
+    // cout << "checkers=0x" << hex << checkers << endl;
+    // cout << "pinned=0x" << hex << pinned << endl;
+    // cout << "pinners=0x" << hex << pinners << endl;
+    // cout << dec;
+
     // capture_mask and push_mask represent squares our pieces are allowed to move to or capture,
     // respectively. The difference between the two is only important for pawn EP captures
     // Since push_mask is used to block a pin, we ignore push_mask when calculating king moves
     U64 enemy = board.bitboards[!side];
-    let empty_squares = BB_EMPTY;
+    U64 empty_squares = ~(board.bitboards[WHITE] | board.bitboards[BLACK]);
 
     U64 capture_mask = enemy;
-    U64 king_capture_mask = enemy & !attacked_squares;
+    U64 king_capture_mask = enemy & (~attacked_squares);
     U64 push_mask = empty_squares;
-    U64 king_push_mask = empty_squares & !attacked_squares;
+    U64 king_push_mask = empty_squares & (~attacked_squares);
 
     if (king_attacks_count > 1)
     {
@@ -611,17 +760,23 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
         // if ony one attacker, we can try attacking the attacker with
         // our other pieces.
         capture_mask = checkers;
+#ifndef NDEBUG
+        assert(pop_count(checkers) == 1);
+#endif
         U8 checker_sq = bit_scan_forward(checkers);
         U8 checker = board[checker_sq];
 
-        if (is_piece_slider(checker)) {
+        if (is_piece_slider(checker))
+        {
             // If the piece giving check is a slider, we can additionally attempt
             // to block the sliding piece;
             push_mask = squares_between(king_sq, checker_sq);
-        } else {
+        }
+        else
+        {
             // If we are in check by a jumping piece (aka a knight) then
             // there are no valid non-captures to avoid check
-            push_mask = EMPTY;
+            push_mask = BB_EMPTY;
         }
     }
 
@@ -629,10 +784,10 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
     add_slider_legal_moves(list, board, capture_mask, push_mask, pinned, king_sq, side);
 
     // generate moves for non-pinned knights (pinned knights can't move)
-    add_knight_legal_moves(list, board, capture_mask, push_mask, !pinned, list);
+    add_knight_legal_moves(list, board, capture_mask, push_mask, ~pinned, side);
 
-    // // generate moves for unpinned pawns
-    // pawn_moves(position, capture_mask, push_mask, !pinned, list);
+    // generate moves for unpinned pawns
+    add_pawn_legal_moves(list, board, capture_mask, push_mask, ~pinned, side);
 
     // // generate moves for pinned pawns
     // // pinned pawn captures can only include pinners
@@ -656,7 +811,6 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
     add_king_legal_moves(list, board, king_capture_mask, king_push_mask, side);
 
     // return (king_attacks_count > 0)
-
 
 #ifndef NDEBUG
     assert(list.contains_valid_moves(board));
@@ -773,8 +927,25 @@ void MoveGenerator::generate_move_lookup_tables()
         {
             if (to % 4 == 0)
                 cout << endl << INDENT << INDENT;
-            U64 between = in_between(from, to);
+            U64 between = squares_between_calc(from, to);
             printf("0x%016llXULL, ", between);
+        }
+        cout << endl << INDENT << INDENT;
+        cout << "},";
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl;
+    cout << "GENERATING LOOKUP TABLES FOR LINES ALONG" << endl;
+    cout << "const U64 LINES_ALONG[64][64] = {" << endl << INDENT;
+    for (U8 from = 0; from < 64; from++)
+    {
+        cout << "{ ";
+        for (U8 to = 0; to < 64; to++)
+        {
+            if (to % 4 == 0)
+                cout << endl << INDENT << INDENT;
+            U64 lines = lines_along_calc(from, to);
+            printf("0x%016llXULL, ", lines);
         }
         cout << endl << INDENT << INDENT;
         cout << "},";
@@ -903,7 +1074,7 @@ MoveGenPreprocessing MoveGenerator::get_checkers_and_pinned(const class Board& b
 U64 MoveGenerator::get_king_danger_squares(const class Board& board, const U8 side, U64 king)
 {
     U8 attacker_side = !side;
-    U64 occupied_without_king = (board.bitboards[WHITE] | board.bitboards[BLACK]) & !king;
+    U64 occupied_without_king = (board.bitboards[WHITE] | board.bitboards[BLACK]) & (~king);
 
     U64 attacked_squares = BB_EMPTY;
 
@@ -913,8 +1084,8 @@ U64 MoveGenerator::get_king_danger_squares(const class Board& board, const U8 si
 
     U64 diag_attackers = queens | bishops;
     U64 non_diag_attackers = queens | rooks;
-    attacked_squares |= bishop_attacks(diag_attackers, occupied_without_king);
-    attacked_squares |= rook_attacks(non_diag_attackers, occupied_without_king);
+    attacked_squares |= bishop_targets(diag_attackers, occupied_without_king);
+    attacked_squares |= rook_targets(non_diag_attackers, occupied_without_king);
 
     U64 knights = board.bitboards[KNIGHT | attacker_side];
     attacked_squares |= knight_targets(knights);
@@ -925,8 +1096,8 @@ U64 MoveGenerator::get_king_danger_squares(const class Board& board, const U8 si
 #endif
     attacked_squares |= king_targets(kings);
 
-    pawns = board.bitboards[PAWN | attacker_side];
+    U64 pawns = board.bitboards[PAWN | attacker_side];
     attacked_squares |= pawn_targets(pawns, attacker_side);
 
-    attacked_squares
+    return attacked_squares;
 }

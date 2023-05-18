@@ -162,7 +162,7 @@ string is_valid_move_err(Move_t move, const class Board& board)
     if ((mover & (~1)) == KNIGHT)
     {
         if ((rows ^ files) != 3)
-            return "knight must move 2 rows and 1file (or vice versa)";
+            return "knight must move 2 rows and 1 file (or vice versa)";
     }
     // if pawn make sure rows moved and files moved make sense
     if ((mover & (~1)) == PAWN)

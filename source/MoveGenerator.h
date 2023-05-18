@@ -79,7 +79,7 @@ class MoveGenerator
 public:
     static U64 get_checkers(const class Board &board, const U8 side);
     static MoveGenPreprocessing get_checkers_and_pinned(const class Board &board, const U8 side);
-    U64 get_king_danger_squares(const class Board& board, const U8 side, U64 king);
+    static U64 get_king_danger_squares(const class Board& board, const U8 side, U64 king);
     static void add_rook_moves(class MoveList &list, const class Board &board, const U8 side);
     static void add_bishop_moves(class MoveList &list, const class Board &board, const U8 side);
     static void add_pawn_pushes(class MoveList &list, const class Board &board, const U8 side);
@@ -87,10 +87,14 @@ public:
     static void add_knight_moves(class MoveList &list, const class Board &board, const U8 side);
     static void add_queen_moves(class MoveList &list, const class Board &board, const U8 side);
     static void add_king_moves(class MoveList &list, const class Board &board, const U8 side);
+    static void add_pawn_legal_pushes(class MoveList& list, const class Board& board, U64 to_mask, U64 from_mask, const U8 side);
+    static void add_pawn_legal_attacks(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, U64 from_mask, const U8 side);
+    static void add_pawn_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, U64 from_mask, const U8 side);
     static void add_slider_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, U64 pinned_mask, U8 king_sq, const U8 side);
     static void add_knight_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, U64 from_mask, const U8 side);
     static void add_king_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, const U8 side);
     static void add_all_moves(class MoveList &list, const class Board &board, const U8 side);
+    static bool in_check(const class Board &board, const U8 side);
     static void score_moves(class MoveList &list, const class Board &board);
 
     static void generate_move_lookup_tables();
@@ -109,8 +113,10 @@ private:
     static U64 king_targets(U64 from);
     static U64 pawn_targets(U64 from, U8 side);
     static U64 byteswap(U64 x);
-    static U64 in_between(U8 sq1, U8 sq2);
+    static U64 squares_between_calc(U8 sq1, U8 sq2);
     static U64 squares_between(U8 sq1, U8 sq2);
+    static U64 lines_along_calc(U8 sq1, U8 sq2);
+    static U64 lines_along(U8 sq1, U8 sq2);
     static U64 flip_vertical(U64 x);
     static U64 mirror_horizontal(U64 x);
     static U64 rank_mask(int sq);
