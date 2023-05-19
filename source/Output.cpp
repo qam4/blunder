@@ -132,3 +132,74 @@ string Output::movelist(const class MoveList& list, const class Board& board)
     ss << endl;
     return ss.str();
 }
+
+string Output::board_to_fen(const class Board board)
+{
+    stringstream fen;
+
+    for (int row = 0; row < 8; row++)
+    {
+        int empties = 0;
+        for (int col = 0; col < 8; col++)
+        {
+            U8 piece = board[(7 - row) * 8 + col];
+            if (piece == EMPTY)
+            {
+                empties += 1;
+            }
+            else
+            {
+                if (empties > 0)
+                {
+                    fen << empties;
+                    empties = 0;
+                }
+                fen << PIECE_CHARS[piece];
+            }
+        }
+        if (empties > 0) {
+            fen << empties;
+        }
+        if (row != 7)
+        {
+            fen << '/';
+        }
+    }
+
+    fen << ' ';
+    fen << ((board.side_to_move() == BLACK) ? 'b' : 'w');
+    fen << ' ';
+    U8 castling_rights = board.castling_rights();
+    if (castling_rights & WHITE_KING_SIDE)
+    {
+        fen << 'K';
+    }
+    if (castling_rights & WHITE_QUEEN_SIDE)
+    {
+        fen << 'Q';
+    }
+    if (castling_rights & BLACK_KING_SIDE)
+    {
+        fen << 'k';
+    }
+    if (castling_rights & BLACK_QUEEN_SIDE)
+    {
+        fen << 'q';
+    }
+    fen << ' ';
+    U8 ep_square = board.ep_square();
+    if (ep_square == NULL_SQUARE)
+    {
+        fen << '-';
+    }
+    else
+    {
+        fen << Output::square(ep_square);
+    }
+    fen << ' ';
+    fen << board.half_move_count();
+    fen << ' ';
+    fen << 0; // board.full_move_count();
+
+    return fen.str();
+}
