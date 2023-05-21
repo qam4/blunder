@@ -13,7 +13,7 @@ const int MAX_SCORE = 2000;
 const int MATE_SCORE = 1000;
 const int MAX_SEARCH_PLY = 64;
 
-const int MAX_SEARCH_TIME = 1000000;  // max search time in usec
+const int MAX_SEARCH_TIME = 2000000;  // max search time in usec
 
 // PIECES
 const U8 EMPTY = 0;

@@ -157,7 +157,8 @@ string Output::board_to_fen(const class Board board)
                 fen << PIECE_CHARS[piece];
             }
         }
-        if (empties > 0) {
+        if (empties > 0)
+        {
             fen << empties;
         }
         if (row != 7)
@@ -197,9 +198,9 @@ string Output::board_to_fen(const class Board board)
         fen << Output::square(ep_square);
     }
     fen << ' ';
-    fen << board.half_move_count();
+    fen << int(board.half_move_count());
     fen << ' ';
-    fen << 0; // board.full_move_count();
+    fen << '1';  // board.full_move_count();
 
     return fen.str();
 }

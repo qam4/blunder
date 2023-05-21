@@ -570,7 +570,7 @@ void MoveGenerator::add_slider_legal_moves(class MoveList& list,
     while (attackers)
     {
         U8 from = bit_scan_forward(attackers);
-        // Add file and rank attacks
+        // Add file and rank attacks along the line between the king and slider
         U64 ray_mask = lines_along(from, king_sq);
         U64 targets = (file_attacks(occupied, from) + rank_attacks(occupied, from)) & ray_mask;
         add_moves(from, targets & capture_mask, list, board, NO_FLAGS);
@@ -582,7 +582,7 @@ void MoveGenerator::add_slider_legal_moves(class MoveList& list,
     while (attackers)
     {
         U8 from = bit_scan_forward(attackers);
-        // Add file and rank attacks
+        // Add diag and anti-diag attacks
         U64 targets = diag_attacks(occupied, from) + anti_diag_attacks(occupied, from);
         add_moves(from, targets & capture_mask, list, board, NO_FLAGS);
         add_moves(from, targets & push_mask, list, board, NO_FLAGS);
@@ -593,7 +593,7 @@ void MoveGenerator::add_slider_legal_moves(class MoveList& list,
     while (attackers)
     {
         U8 from = bit_scan_forward(attackers);
-        // Add file and rank attacks
+        // Add diag and anti-diag attacks along the line between the king and slider
         U64 ray_mask = lines_along(from, king_sq);
         U64 targets = (diag_attacks(occupied, from) + anti_diag_attacks(occupied, from)) & ray_mask;
         add_moves(from, targets & capture_mask, list, board, NO_FLAGS);
@@ -704,13 +704,7 @@ U64 MoveGenerator::pawn_targets(U64 from, U8 side)
 
 bool MoveGenerator::in_check(const class Board& board, const U8 side)
 {
-    U64 kings = board.bitboards[KING | side];
-#ifndef NDEBUG
-    assert(pop_count(kings) == 1);
-#endif
-
-    MoveGenPreprocessing mgp = get_checkers_and_pinned(board, side);
-    U64 checkers = mgp.checkers;
+    U64 checkers = get_checkers(board, side);
     int king_attacks_count = pop_count(checkers);
     return (king_attacks_count > 0);
 }
@@ -733,10 +727,9 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
     U64 pinners = mgp.pinners;
     int king_attacks_count = pop_count(checkers);
 
-    // cout << "checkers=0x" << hex << checkers << endl;
-    // cout << "pinned=0x" << hex << pinned << endl;
-    // cout << "pinners=0x" << hex << pinners << endl;
-    // cout << dec;
+    // cout << "checkers\n" << Output::bitboard(checkers) << endl;
+    // cout << "pinned\n" << Output::bitboard(pinned) << endl;
+    // cout << "pinners\n" << Output::bitboard(pinners) << endl;
 
     // capture_mask and push_mask represent squares our pieces are allowed to move to or capture,
     // respectively. The difference between the two is only important for pawn EP captures
@@ -757,7 +750,7 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
     }
     else if (king_attacks_count == 1)
     {
-        // if ony one attacker, we can try attacking the attacker with
+        // if only one attacker, we can try attacking the attacker with
         // our other pieces.
         capture_mask = checkers;
 #ifndef NDEBUG
@@ -769,7 +762,7 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
         if (is_piece_slider(checker))
         {
             // If the piece giving check is a slider, we can additionally attempt
-            // to block the sliding piece;
+            // to block the sliding piece
             push_mask = squares_between(king_sq, checker_sq);
         }
         else
@@ -813,7 +806,7 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
     // return (king_attacks_count > 0)
 
 #ifndef NDEBUG
-    assert(list.contains_valid_moves(board));
+    assert(list.contains_valid_moves(board, true));
 #endif
 }
 
@@ -960,11 +953,18 @@ U64 MoveGenerator::get_checkers(const class Board& board, const U8 side)
     const U64 file_mask[2] = { ~FILE_H, ~FILE_A };
     U8 attacker_side = !side;
 
-    U64 king = board.bitboards[KING | side];
-    U64 occupied = board.bitboards[WHITE] | board.bitboards[BLACK];
-    U8 king_sq = bit_scan_forward(king);
-
+    U64 kings = board.bitboards[KING | side];
     U64 checkers = BB_EMPTY;
+
+    if (pop_count(kings) != 1)
+    {
+        return checkers;
+    }
+#ifndef NDEBUG
+    assert(pop_count(kings) == 1);
+#endif
+    U64 occupied = board.bitboards[WHITE] | board.bitboards[BLACK];
+    U8 king_sq = bit_scan_forward(kings);
 
     // Knights
     U64 knights = board.bitboards[KNIGHT | attacker_side];
@@ -975,7 +975,7 @@ U64 MoveGenerator::get_checkers(const class Board& board, const U8 side)
     for (int dir = 0; dir < 2; dir++)
     {
         int diff = diffs[dir][side];
-        U64 targets = circular_left_shift(king, diff) & file_mask[dir];
+        U64 targets = circular_left_shift(kings, diff) & file_mask[dir];
         checkers |= targets & pawns;
     }
 
@@ -1002,10 +1002,13 @@ MoveGenPreprocessing MoveGenerator::get_checkers_and_pinned(const class Board& b
     MoveGenPreprocessing mgp;
     U8 attacker_side = !side;
 
-    U64 king = board.bitboards[KING | side];
+    U64 kings = board.bitboards[KING | side];
+#ifndef NDEBUG
+    assert(pop_count(kings) == 1);
+#endif
     U64 occupied = board.bitboards[WHITE] | board.bitboards[BLACK];
     U64 friendly = board.bitboards[side];
-    U8 king_sq = bit_scan_forward(king);
+    U8 king_sq = bit_scan_forward(kings);
 
     U64 checkers = BB_EMPTY;
     U64 pinners = BB_EMPTY;
@@ -1021,7 +1024,7 @@ MoveGenPreprocessing MoveGenerator::get_checkers_and_pinned(const class Board& b
     for (int dir = 0; dir < 2; dir++)
     {
         int diff = diffs[dir][side];
-        U64 targets = circular_left_shift(king, diff) & file_mask[dir];
+        U64 targets = circular_left_shift(kings, diff) & file_mask[dir];
         checkers |= targets & pawns;
     }
 

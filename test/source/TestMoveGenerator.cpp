@@ -95,8 +95,8 @@ TEST_CASE("move_generator_can_generate_bishop_moves", "[move generator]")
     board.add_piece(WHITE_BISHOP, B3);
     board.set_side_to_move(BLACK);
     MoveGenerator::add_bishop_moves(list, board, BLACK);
-    cout << Output::board(board);
-    cout << Output::movelist(list, board);
+    // cout << Output::board(board);
+    // cout << Output::movelist(list, board);
     REQUIRE(list.length() == 11);
     REQUIRE(list.contains_valid_moves(board));
     REQUIRE(!list.contains_duplicates());
@@ -134,7 +134,7 @@ TEST_CASE("move_generator_can_generate_pawn_pushes", "[move generator]")
     REQUIRE(list.contains_valid_moves(board));
     for (U8 sq = A2; sq <= H2; sq++)
     {
-        REQUIRE(list.contains(build_move(sq, sq + 8)));
+        REQUIRE(list.contains(build_move(sq, static_cast<U8>(sq + 8))));
     }
     // put 3 pieces in random places
     board = Board();
@@ -292,8 +292,8 @@ TEST_CASE("move_generator_can_generate_pawn_en_passant_attacks", "[move generato
     board.set_ep_square(C6);
     MoveList list;
     MoveGenerator::add_pawn_attacks(list, board, WHITE);
-    cout << Output::board(board);
-    cout << Output::movelist(list, board);
+    // cout << Output::board(board);
+    // cout << Output::movelist(list, board);
     REQUIRE(list.length() == 1);
     REQUIRE(list.contains_valid_moves(board));
     REQUIRE(list.contains(build_ep_capture(D5, C6, BLACK_PAWN)));
@@ -402,7 +402,7 @@ TEST_CASE("move_generator_can_generate_king_moves", "[move generator]")
 TEST_CASE("move_generator_can_get_checkers", "[move generator]")
 {
     cout << "- Can get checkers" << endl;
-    string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1BNR w";
+    string fen = "rnbq1bnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1BNR w";
     Board board = Parser::parse_fen(fen);
     board.add_piece(WHITE_KING, C6);
     // cout << Output::board(board);
@@ -480,7 +480,7 @@ TEST_CASE("move_generator_can_get_checkers", "[move generator]")
 TEST_CASE("move_generator_can_get_checkers_and_pinned", "[move generator]")
 {
     cout << "- Can get checkers and pinned" << endl;
-    string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1BNR w";
+    string fen = "rnbq1bnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1BNR w";
     Board board = Parser::parse_fen(fen);
     board.add_piece(WHITE_KING, C6);
     // cout << Output::board(board);
@@ -597,4 +597,25 @@ TEST_CASE("move_generator_can_get_checkers_and_pinned", "[move generator]")
         "1|--------|1\n"
         "  ABCDEFGH  \n";
     REQUIRE(Output::bitboard(mgp.pinners) == expected);
+}
+
+TEST_CASE("move_generator_can_add_all_moves", "[move generator]")
+{
+    cout << "- Can add all moves" << endl;
+    string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    Board board = Parser::parse_fen(fen);
+    MoveList list;
+    MoveGenerator::add_all_moves(list, board, WHITE);
+    REQUIRE(list.length() == 20);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+    list.reset();
+
+    fen = "r1b1k2r/p1p2ppp/2p4q/4N1Q1/3NP3/3P4/PPP2nPP/R1K4R w KQkq - 30 1";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_all_moves(list, board, WHITE);
+    REQUIRE(list.length() == 35);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+    list.reset();
 }

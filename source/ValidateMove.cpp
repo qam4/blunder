@@ -4,23 +4,25 @@
  */
 #include "ValidateMove.h"
 
+#include "MoveGenerator.h"
 #include "Output.h"
 
-string static is_valid_move_err(Move_t move, const class Board& board);
+string static is_valid_move_err(Move_t move, const class Board& board, bool check_legal);
 
-bool is_valid_move(Move_t move, const class Board& board)
+bool is_valid_move(Move_t move, const class Board& board, bool check_legal)
 {
-    string error = is_valid_move_err(move, board);
+    string error = is_valid_move_err(move, board, check_legal);
     if (error == "")
     {
         return true;
     }
     cerr << "INVALID MOVE " << Output::move(move, board) << ": " << error << endl;
     cerr << Output::board(board);
+    cerr << "fen=" << Output::board_to_fen(board) << endl;
     return false;
 }
 
-string is_valid_move_err(Move_t move, const class Board& board)
+string is_valid_move_err(Move_t move, const class Board& board, bool check_legal)
 {
     U8 side = board.side_to_move();
     U8 from = move_from(move);
@@ -182,5 +184,20 @@ string is_valid_move_err(Move_t move, const class Board& board)
         if (files > 1)
             return "king can't move more than 1 file";
     }
+
+    if (!check_legal)
+    {
+        return "";
+    }
+
+    Board board_copy = board;
+    board_copy.do_move(move);
+    bool is_in_check = MoveGenerator::in_check(board_copy, side);
+    board_copy.undo_move(move);
+    if (is_in_check)
+    {
+        return "king is in check";
+    }
+
     return "";
 }

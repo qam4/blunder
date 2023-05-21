@@ -73,6 +73,7 @@ void Board::reset()
     irrev.ep_square = NULL_SQUARE;
     irrev.side_to_move = WHITE;
     game_ply = 0;
+    search_ply = 0;
 }
 
 U8 Board::operator[](const int square) const
@@ -135,16 +136,6 @@ void Board::do_move(Move_t move)
 
     // update flags
     irrev.half_move_count++;
-
-#ifndef NDEBUG
-    // Check that we are not in check
-    if (MoveGenerator::in_check(*this, side_to_move()))
-    {
-        cout << "Illegal move: " << Output::move(move, *this) << endl;
-        cout << Output::board(*this) << endl;
-        assert(false);
-    }
-#endif
 
     // update side_to_move
     irrev.side_to_move ^= 1;
@@ -307,7 +298,7 @@ int Board::evaluate()
         }
         else
         {
-            result += PIECE_SQUARE[piece >> 1][square ^ 56]; // vertical flipping
+            result += PIECE_SQUARE[piece >> 1][square ^ 56];  // vertical flipping
         }
     }
 
@@ -344,11 +335,12 @@ Move_t Board::search(int depth)
         max_search_ply = 0;
         searched_moves = 0;
 
-        alphabeta(-MAX_SCORE, MAX_SCORE, current_depth);
+        int value = alphabeta(-MAX_SCORE, MAX_SCORE, current_depth);
         search_best_move = pv_table[0];
         cout << "depth=" << current_depth;
         cout << ", search ply=" << max_search_ply;
         cout << ", searched moves=" << searched_moves;
+        cout << ", score=" << value;
         cout << ", pv=";
         print_pv();
         cout << endl;

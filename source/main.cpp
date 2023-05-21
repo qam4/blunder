@@ -94,7 +94,7 @@ int main()
         else if (tokens[0] == "move")
         {
             Move_t move = Parser::move(line.substr(5), board);
-            if (is_valid_move(move, board))
+            if (is_valid_move(move, board, true))
             {
                 board.do_move(move);
             }
