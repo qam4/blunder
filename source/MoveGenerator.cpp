@@ -66,8 +66,8 @@ U64 MoveGenerator::squares_between_calc(U8 sq1, U8 sq2)
     U64 btwn, line, rank, file;
 
     btwn = (m1 << sq1) ^ (m1 << sq2);
-    file = (sq2 & 7) - (sq1 & 7);
-    rank = ((sq2 | 7) - sq1) >> 3;
+    file = (sq2 & C64(7)) - (sq1 & C64(7));
+    rank = ((sq2 | C64(7)) - sq1) >> 3;
     line = ((file & 7) - 1) & a2a7;            /* a2a7 if same file */
     line += 2 * (((rank & 7) - 1) >> 58);      /* b1g1 if same rank */
     line += (((rank - file) & 15) - 1) & b2g7; /* b2g7 if same diagonal */
@@ -514,6 +514,7 @@ void MoveGenerator::add_pawn_legal_attacks(class MoveList& list,
 
         // ADD EP ATTACKS
         // TODO: ensure that there is no discovered check
+        (void) push_mask;
         if (board.irrev.ep_square != NULL_SQUARE)
         {
             ep_attacks = targets & (1ULL << board.irrev.ep_square);
@@ -782,6 +783,7 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
     // generate moves for unpinned pawns
     add_pawn_legal_moves(list, board, capture_mask, push_mask, ~pinned, side);
 
+    (void) pinners;
     // // generate moves for pinned pawns
     // // pinned pawn captures can only include pinners
     // pawn_pin_ray_moves(

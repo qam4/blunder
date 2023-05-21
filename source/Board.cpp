@@ -108,7 +108,7 @@ void Board::do_move(Move_t move)
     irrev.ep_square = NULL_SQUARE;
     if (is_pawn_double_push(move))
     {
-        irrev.ep_square = (to + from) >> 1;
+        irrev.ep_square = static_cast<U8>((to + from) >> 1);
     }
 
     remove_piece(from);

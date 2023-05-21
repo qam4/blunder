@@ -55,7 +55,7 @@ class Board Parser::parse_fen(string fen)
     U8 rights = 0;
     while (fen[pos] != ' ')
     {
-        rights |= Parser::castling_right(fen[pos++]);
+        rights = rights | Parser::castling_right(fen[pos++]);
     }
     board.set_castling_rights(rights);
 
@@ -138,7 +138,7 @@ U8 Parser::castling_right(char c)
         case 'q':
             return BLACK_QUEEN_SIDE;
     }
-    return 0;
+    return 0U;
 }
 
 U8 Parser::square(char sq[])

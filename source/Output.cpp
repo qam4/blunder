@@ -95,11 +95,11 @@ string Output::move(Move_t move, const class Board& board)
         return ss.str();
     }
     U8 from = move_from(move);
-    ss << Output::piece(board[from] & (~1));
+    ss << Output::piece(board[from] & (0xFEU));
     ss << Output::square(from);
     if (is_capture(move))
     {
-        ss << 'x' << Output::piece(move_captured(move) & (~1));
+        ss << 'x' << Output::piece(move_captured(move) & (0xFEU));
     }
     ss << Output::square(move_to(move));
     if (is_ep_capture(move))
@@ -108,7 +108,7 @@ string Output::move(Move_t move, const class Board& board)
     }
     if (is_promotion(move))
     {
-        ss << "(" << Output::piece(move_promote_to(move) & (~1)) << ")";
+        ss << "(" << Output::piece(move_promote_to(move) & (0xFEU)) << ")";
     }
     return ss.str();
 }
