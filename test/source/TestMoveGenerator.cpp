@@ -653,4 +653,19 @@ TEST_CASE("move_generator_can_add_all_moves", "[move generator]")
     REQUIRE(list.contains_valid_moves(board));
     REQUIRE(!list.contains_duplicates());
     list.reset();
+
+    // En-passant discovered check
+    fen = "8/8/8/8/k2Pp2Q/8/8/3K4 b KQkq d3 0 1";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_all_moves(list, board, BLACK);
+    REQUIRE(list.length() == 6);
+    REQUIRE(list.contains(build_move(A4, A5)));
+    REQUIRE(list.contains(build_move(A4, B5)));
+    REQUIRE(list.contains(build_move(A4, B4)));
+    REQUIRE(list.contains(build_move(A4, B3)));
+    REQUIRE(list.contains(build_move(A4, A3)));
+    REQUIRE(list.contains(build_move(E4, E3)));
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+    list.reset();
 }
