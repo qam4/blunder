@@ -425,7 +425,7 @@ void MoveGenerator::add_pawn_attacks(class MoveList& list, const class Board& bo
 {
     const int diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
     const U64 promotions_mask[2] = { ROW_8, ROW_1 };
-    const U64 file_mask[2] = { ~FILE_H, ~FILE_A };
+    const U64 pawn_file_mask[2] = { ~FILE_H, ~FILE_A };
     U64 attacks, ep_attacks, promotions, targets, pawns, enemy;
 
     pawns = board.bitboards[PAWN | side];
@@ -435,7 +435,7 @@ void MoveGenerator::add_pawn_attacks(class MoveList& list, const class Board& bo
     for (int dir = 0; dir < 2; dir++)
     {
         int diff = diffs[dir][side];
-        targets = circular_left_shift(pawns, diff) & file_mask[dir];
+        targets = circular_left_shift(pawns, diff) & pawn_file_mask[dir];
 
         // ADD ATTACKS
         attacks = enemy & targets;
@@ -486,14 +486,13 @@ void MoveGenerator::add_pawn_legal_pushes(
     const int diffs[2] = { 8, 64 - 8 };
     const U64 promotions_mask[2] = { ROW_8, ROW_1 };
     const U64 start_row_plus_one_mask[2] = { ROW_3, ROW_6 };
-    U64 pushes, single_pushes, double_pushes, promotions, pawns, free_squares;
+    U64 pushes, single_pushes, double_pushes, promotions, pawns;
 
     int diff = diffs[side];
     pawns = board.bitboards[PAWN | side] & from_mask;
-    free_squares = ~(board.bitboards[WHITE] | board.bitboards[BLACK]);
 
     // ADD SINGLE PUSHES
-    pushes = circular_left_shift(pawns, diff) & free_squares;
+    pushes = circular_left_shift(pawns, diff);
     single_pushes = pushes & (~promotions_mask[side]);
     add_moves_with_diff(diff, single_pushes & to_mask, list, board, NO_FLAGS, 0);
 
@@ -502,8 +501,7 @@ void MoveGenerator::add_pawn_legal_pushes(
     add_promotions_with_diff(diff, promotions & to_mask, list, board, side);
 
     // ADD DOUBLE PUSHES
-    double_pushes =
-        circular_left_shift(pushes & start_row_plus_one_mask[side], diff) & free_squares;
+    double_pushes = circular_left_shift(pushes & start_row_plus_one_mask[side], diff);
     add_moves_with_diff(diff + diff, double_pushes & to_mask, list, board, PAWN_DOUBLE_PUSH, 0);
 }
 
@@ -516,7 +514,7 @@ void MoveGenerator::add_pawn_legal_attacks(class MoveList& list,
 {
     const int diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
     const U64 promotions_mask[2] = { ROW_8, ROW_1 };
-    const U64 file_mask[2] = { ~FILE_H, ~FILE_A };
+    const U64 pawn_file_mask[2] = { ~FILE_H, ~FILE_A };
     U64 attacks, ep_attacks, promotions, targets, pawns;
 
     pawns = board.bitboards[PAWN | side] & from_mask;
@@ -525,7 +523,7 @@ void MoveGenerator::add_pawn_legal_attacks(class MoveList& list,
     for (int dir = 0; dir < 2; dir++)
     {
         int diff = diffs[dir][side];
-        targets = circular_left_shift(pawns, diff) & file_mask[dir];
+        targets = circular_left_shift(pawns, diff) & pawn_file_mask[dir];
 
         // ADD ATTACKS
         attacks = targets & capture_mask;
@@ -538,6 +536,7 @@ void MoveGenerator::add_pawn_legal_attacks(class MoveList& list,
             while (ep_attacks)
             {
                 U8 to = bit_scan_forward(ep_attacks);
+                U64 to_bb = 1ULL << to;
                 U8 from = static_cast<U8>(to - diff) % 64;
                 // along_row_with_col
                 // returns a square at the same row as "from", and the same col as "to"
@@ -545,7 +544,7 @@ void MoveGenerator::add_pawn_legal_attacks(class MoveList& list,
                 U64 capture_sq_bb = 1ULL << captured_sq;
 
                 // can only make ep capture if moving to push_mask, or capturing on capture mask
-                if ((ep_attacks & push_mask) | (capture_sq_bb & capture_mask))
+                if ((to_bb & push_mask) | (capture_sq_bb & capture_mask))
                 {
                     // ensure that there is no discovered check
                     U64 from_bb = 1ULL << from;
@@ -574,6 +573,93 @@ void MoveGenerator::add_pawn_legal_moves(class MoveList& list,
 {
     add_pawn_legal_pushes(list, board, push_mask, from_mask, side);
     add_pawn_legal_attacks(list, board, capture_mask, push_mask, from_mask, side);
+}
+
+void MoveGenerator::add_pawn_pin_ray_moves(class MoveList& list,
+                                           const class Board& board,
+                                           U64 capture_mask,
+                                           U64 push_mask,
+                                           U64 pinned_mask,
+                                           U8 king_sq,
+                                           const U8 side)
+{
+    // Generates pawn moves along pin rays
+    const int pushes_diffs[2] = { 8, 64 - 8 };
+    const int attacks_diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
+    const U64 pawn_file_mask[2] = { ~FILE_H, ~FILE_A };
+    const U64 promotions_mask[2] = { ROW_8, ROW_1 };
+    const U64 start_row_plus_one_mask[2] = { ROW_3, ROW_6 };
+    U64 pawns = board.bitboards[PAWN | side];
+    U64 movers = pawns & pinned_mask;
+
+    // exit early if no pinned pawns
+    if (movers == BB_EMPTY)
+    {
+        return;
+    }
+
+    int diff = pushes_diffs[side];
+    U64 can_push = movers & file_mask(king_sq);
+    U64 king_diags = diag_mask_ex(king_sq) | anti_diag_mask_ex(king_sq);  // bishop_rays()
+    U64 can_capture = movers & king_diags;
+
+    // For pinned pawns, only possible moves are those along the king file
+    // ADD SINGLE PUSHES
+    U64 pushes = circular_left_shift(can_push, diff);
+    U64 single_pushes = pushes & (~promotions_mask[side]);
+    add_moves_with_diff(diff, single_pushes & push_mask, list, board, NO_FLAGS, 0);
+
+    // ADD PROMOTIONS (fred: not sure it's possible though)
+    U64 promotions = pushes & promotions_mask[side];
+    add_promotions_with_diff(diff, promotions & push_mask, list, board, side);
+
+    // ADD DOUBLE PUSHES
+    U64 double_pushes = circular_left_shift(pushes & start_row_plus_one_mask[side], diff);
+    add_moves_with_diff(diff + diff, double_pushes & push_mask, list, board, PAWN_DOUBLE_PUSH, 0);
+
+    // CALCULATE ATTACKS FOR LEFT, RIGHT
+    for (int dir = 0; dir < 2; dir++)
+    {
+        diff = attacks_diffs[dir][side];
+        U64 targets = circular_left_shift(can_capture, diff) & pawn_file_mask[dir];
+
+        // ADD ATTACKS
+        U64 attacks = targets & capture_mask & king_diags;
+        add_moves_with_diff(diff, attacks & (~promotions_mask[side]), list, board, NO_FLAGS, 0);
+
+        // ADD EP ATTACKS
+        if (board.irrev.ep_square != NULL_SQUARE)
+        {
+            U64 ep_attacks = targets & (1ULL << board.irrev.ep_square) & king_diags;
+            while (ep_attacks)
+            {
+                U8 to = bit_scan_forward(ep_attacks);
+                U64 to_bb = 1ULL << to;
+                U8 from = static_cast<U8>(to - diff) % 64;
+                // along_row_with_col
+                // returns a square at the same row as "from", and the same col as "to"
+                U8 captured_sq = (from & 56) | (to & 7);
+                U64 capture_sq_bb = 1ULL << captured_sq;
+
+                // can only make ep capture if moving along king_diags, or capturing on capture mask
+                if ((to_bb & king_diags) | (capture_sq_bb & capture_mask))
+                {
+                    // ensure that there is no discovered check
+                    U64 from_bb = 1ULL << from;
+                    if (!ep_move_discovers_check(board, from_bb, capture_sq_bb, side))
+                    {
+                        add_moves_with_diff(
+                            diff, ep_attacks, list, board, EP_CAPTURE, PAWN | (!side));
+                    }
+                }
+                ep_attacks &= ep_attacks - 1;
+            }
+        }
+
+        // ADD PROMOTION ATTACKS
+        promotions = attacks & promotions_mask[side];
+        add_promotions_with_diff(diff, promotions, list, board, side);
+    }
 }
 
 void MoveGenerator::add_slider_legal_moves(class MoveList& list,
@@ -730,13 +816,13 @@ U64 MoveGenerator::king_targets(U64 from)
 U64 MoveGenerator::pawn_targets(U64 from, U8 side)
 {
     const int diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
-    const U64 file_mask[2] = { ~FILE_H, ~FILE_A };
+    const U64 pawn_file_mask[2] = { ~FILE_H, ~FILE_A };
     U64 targets = BB_EMPTY;
 
     for (int dir = 0; dir < 2; dir++)
     {
         int diff = diffs[dir][side];
-        targets |= circular_left_shift(from, diff) & file_mask[dir];
+        targets |= circular_left_shift(from, diff) & pawn_file_mask[dir];
     }
     return targets;
 }
@@ -821,18 +907,9 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
     // generate moves for unpinned pawns
     add_pawn_legal_moves(list, board, capture_mask, push_mask, ~pinned, side);
 
-    (void)pinners;
-    // // generate moves for pinned pawns
-    // // pinned pawn captures can only include pinners
-    // pawn_pin_ray_moves(
-    //     position,
-    //     capture_mask & pinners,
-    //     push_mask,
-    //     king_sq,
-    //     pinned,
-    //     stm,
-    //     list,
-    // );
+    // generate moves for pinned pawns
+    // pinned pawn captures can only include pinners
+    add_pawn_pin_ray_moves(list, board, capture_mask & pinners, push_mask, pinned, king_sq, side);
 
     // if (king_attacks_count == 0) {
     //     // Not in check so can generate castles
@@ -990,7 +1067,7 @@ void MoveGenerator::generate_move_lookup_tables()
 U64 MoveGenerator::get_checkers(const class Board& board, const U8 side)
 {
     const int diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
-    const U64 file_mask[2] = { ~FILE_H, ~FILE_A };
+    const U64 pawn_file_mask[2] = { ~FILE_H, ~FILE_A };
     U8 attacker_side = !side;
 
     U64 kings = board.bitboards[KING | side];
@@ -1015,7 +1092,7 @@ U64 MoveGenerator::get_checkers(const class Board& board, const U8 side)
     for (int dir = 0; dir < 2; dir++)
     {
         int diff = diffs[dir][side];
-        U64 targets = circular_left_shift(kings, diff) & file_mask[dir];
+        U64 targets = circular_left_shift(kings, diff) & pawn_file_mask[dir];
         checkers |= targets & pawns;
     }
 
@@ -1038,7 +1115,7 @@ U64 MoveGenerator::get_checkers(const class Board& board, const U8 side)
 MoveGenPreprocessing MoveGenerator::get_checkers_and_pinned(const class Board& board, const U8 side)
 {
     const int diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
-    const U64 file_mask[2] = { ~FILE_H, ~FILE_A };
+    const U64 pawn_file_mask[2] = { ~FILE_H, ~FILE_A };
     MoveGenPreprocessing mgp;
     U8 attacker_side = !side;
 
@@ -1064,7 +1141,7 @@ MoveGenPreprocessing MoveGenerator::get_checkers_and_pinned(const class Board& b
     for (int dir = 0; dir < 2; dir++)
     {
         int diff = diffs[dir][side];
-        U64 targets = circular_left_shift(kings, diff) & file_mask[dir];
+        U64 targets = circular_left_shift(kings, diff) & pawn_file_mask[dir];
         checkers |= targets & pawns;
     }
 

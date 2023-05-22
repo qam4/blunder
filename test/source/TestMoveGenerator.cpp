@@ -673,3 +673,45 @@ TEST_CASE("move_generator_can_add_all_moves", "[move generator]")
     REQUIRE(!list.contains_duplicates());
     list.reset();
 }
+
+TEST_CASE("move_generator_can_add_pawn_pin_ray_moves", "[move generator]")
+{
+    cout << "- Can add pawn pin raw moves" << endl;
+    Board board;
+    MoveList list;
+    string fen;
+
+    // test pawn capture along pin ray
+    fen = "rnb2k1r/pp1Pbppp/2p5/q7/1PB5/8/PP2N1PP/RNB1K2R w KQ - 3 9";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_pawn_pin_ray_moves(
+        list, board, 1ULL << A5, ~BB_EMPTY, 1ULL << B4, E1, WHITE);
+    REQUIRE(list.length() == 1);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+    REQUIRE(list.contains(build_capture(B4, A5, BLACK_QUEEN)));
+    list.reset();
+
+    // test pawn move along pin ray
+    fen = "rnb2k1r/pp1Pbppp/2p5/4q3/8/8/PP2P1PP/RNB1KNBR w KQ - 3 9";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_pawn_pin_ray_moves(
+        list, board, 1ULL << E5, ~BB_EMPTY, 1ULL << E2, E1, WHITE);
+    REQUIRE(list.length() == 2);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+    REQUIRE(list.contains(build_move(E2, E3)));
+    REQUIRE(list.contains(build_pawn_double_push(E2, E4)));
+    list.reset();
+
+    // test pawn capture along pin ray when multiple pinners
+    fen = "r1b2k2/pp1Pbppp/2p5/q1n1r3/1PB5/4R3/P4PPP/RNB1K3 w Q - 3 9";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_pawn_pin_ray_moves(
+        list, board, 1ULL << A5 | 1ULL << E5, ~BB_EMPTY, 1ULL << B4 | 1ULL << E3, E1, WHITE);
+    REQUIRE(list.length() == 1);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+    REQUIRE(list.contains(build_capture(B4, A5, BLACK_QUEEN)));
+    list.reset();
+}
