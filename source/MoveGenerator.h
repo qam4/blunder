@@ -107,6 +107,7 @@ private:
     static void add_moves(U8 from, U64 targets, class MoveList &list, const class Board &board, const U8 flags);
     static void add_moves_with_diff(int diff, U64 targets, class MoveList &list, const class Board &board, const U8 flags, const U8 extra_capture);
     static void add_promotions_with_diff(int diff, U64 targets, class MoveList &list, const class Board &board, const U8 flags);
+    static bool ep_move_discovers_check(const class Board &board, U64 from_bb, U64 to_bb, const U8 side);
     static U64 rook_targets(U64 from, U64 occupied);
     static U64 bishop_targets(U64 from, U64 occupied);
     static U64 knight_targets(U64 from);

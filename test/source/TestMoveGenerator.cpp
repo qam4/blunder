@@ -611,10 +611,45 @@ TEST_CASE("move_generator_can_add_all_moves", "[move generator]")
     REQUIRE(!list.contains_duplicates());
     list.reset();
 
-    fen = "r1b1k2r/p1p2ppp/2p4q/4N1Q1/3NP3/3P4/PPP2nPP/R1K4R w KQkq - 30 1";
+    // check pinned slider
+    fen = "r1b1k2r/p1p2ppp/2p4q/4N1Q1/3NP3/3P4/PPP2nPP/R1K4R w KQkq - 0 1";
     board = Parser::parse_fen(fen);
     MoveGenerator::add_all_moves(list, board, WHITE);
     REQUIRE(list.length() == 35);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+    list.reset();
+
+    // check En-passant check evasions
+    // Capturing checker pawn
+    fen = "8/8/8/2k5/3Pp3/8/8/4K3 b KQkq d3 0 1";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_all_moves(list, board, BLACK);
+    REQUIRE(list.length() == 9);
+    REQUIRE(list.contains(build_move(C5, B6)));
+    REQUIRE(list.contains(build_move(C5, C6)));
+    REQUIRE(list.contains(build_move(C5, D6)));
+    REQUIRE(list.contains(build_move(C5, D5)));
+    REQUIRE(list.contains(build_move(C5, C4)));
+    REQUIRE(list.contains(build_move(C5, B4)));
+    REQUIRE(list.contains(build_move(C5, B5)));
+    REQUIRE(list.contains(build_capture(C5, D4, WHITE_PAWN)));
+    REQUIRE(list.contains(build_ep_capture(E4, D3, WHITE_PAWN)));
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+    list.reset();
+
+    // Moving to block slider
+    fen = "8/8/8/1k6/3Pp3/8/8/4KQ2 b KQkq d3 0 1";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_all_moves(list, board, BLACK);
+    REQUIRE(list.length() == 6);
+    REQUIRE(list.contains(build_move(B5, B6)));
+    REQUIRE(list.contains(build_move(B5, C6)));
+    REQUIRE(list.contains(build_move(B5, B4)));
+    REQUIRE(list.contains(build_move(B5, A4)));
+    REQUIRE(list.contains(build_move(B5, A5)));
+    REQUIRE(list.contains(build_ep_capture(E4, D3, WHITE_PAWN)));
     REQUIRE(list.contains_valid_moves(board));
     REQUIRE(!list.contains_duplicates());
     list.reset();

@@ -72,7 +72,7 @@ int Board::alphabeta(int alpha, int beta, int depth)
         }
         else
         {
-            value = 0; // draw
+            value = 0;  // draw
         }
         record_hash(depth, value, HASH_EXACT, best_move);
         return value;

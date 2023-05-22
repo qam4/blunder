@@ -304,6 +304,26 @@ U64 MoveGenerator::rank_attacks(U64 occ, int sq)
     return forward;
 }
 
+bool MoveGenerator::ep_move_discovers_check(const class Board& board,
+                                            U64 from_bb,
+                                            U64 to_bb,
+                                            const U8 side)
+{
+    U64 occupied = (board.bitboards[WHITE] | board.bitboards[BLACK]) ^ from_bb ^ to_bb;
+    U8 attacker_side = !side;
+    U64 queens = board.bitboards[QUEEN | attacker_side];
+    U64 rooks = board.bitboards[ROOK | attacker_side];
+    U64 non_diag_attackers = queens | rooks;
+
+    U64 kings = board.bitboards[KING | side];
+#ifndef NDEBUG
+    assert(pop_count(kings) == 1);
+#endif
+    U8 king_sq = bit_scan_forward(kings);
+
+    return ((rank_attacks(occupied, king_sq) & non_diag_attackers) != BB_EMPTY);
+}
+
 void MoveGenerator::add_rook_moves(class MoveList& list, const class Board& board, const U8 side)
 {
     U64 rooks = board.bitboards[ROOK | side];
@@ -497,10 +517,9 @@ void MoveGenerator::add_pawn_legal_attacks(class MoveList& list,
     const int diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
     const U64 promotions_mask[2] = { ROW_8, ROW_1 };
     const U64 file_mask[2] = { ~FILE_H, ~FILE_A };
-    U64 attacks, ep_attacks, promotions, targets, pawns, enemy;
+    U64 attacks, ep_attacks, promotions, targets, pawns;
 
     pawns = board.bitboards[PAWN | side] & from_mask;
-    enemy = board.bitboards[!side];
 
     // CALCULATE ATTACKS FOR LEFT, RIGHT
     for (int dir = 0; dir < 2; dir++)
@@ -509,16 +528,35 @@ void MoveGenerator::add_pawn_legal_attacks(class MoveList& list,
         targets = circular_left_shift(pawns, diff) & file_mask[dir];
 
         // ADD ATTACKS
-        attacks = enemy & targets & capture_mask;
+        attacks = targets & capture_mask;
         add_moves_with_diff(diff, attacks & (~promotions_mask[side]), list, board, NO_FLAGS, 0);
 
         // ADD EP ATTACKS
-        // TODO: ensure that there is no discovered check
-        (void) push_mask;
         if (board.irrev.ep_square != NULL_SQUARE)
         {
             ep_attacks = targets & (1ULL << board.irrev.ep_square);
-            add_moves_with_diff(diff, ep_attacks, list, board, EP_CAPTURE, PAWN | (!side));
+            while (ep_attacks)
+            {
+                U8 to = bit_scan_forward(ep_attacks);
+                U8 from = static_cast<U8>(to - diff) % 64;
+                // along_row_with_col
+                // returns a square at the same row as "from", and the same col as "to"
+                U8 captured_sq = (from & 56) | (to & 7);
+                U64 capture_sq_bb = 1ULL << captured_sq;
+
+                // can only make ep capture if moving to push_mask, or capturing on capture mask
+                if ((ep_attacks & push_mask) | (capture_sq_bb & capture_mask))
+                {
+                    // ensure that there is no discovered check
+                    U64 from_bb = 1ULL << from;
+                    if (!ep_move_discovers_check(board, from_bb, ep_attacks, side))
+                    {
+                        add_moves_with_diff(
+                            diff, ep_attacks, list, board, EP_CAPTURE, PAWN | (!side));
+                    }
+                }
+                ep_attacks &= ep_attacks - 1;
+            }
         }
 
         // ADD PROMOTION ATTACKS
@@ -783,7 +821,7 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
     // generate moves for unpinned pawns
     add_pawn_legal_moves(list, board, capture_mask, push_mask, ~pinned, side);
 
-    (void) pinners;
+    (void)pinners;
     // // generate moves for pinned pawns
     // // pinned pawn captures can only include pinners
     // pawn_pin_ray_moves(
