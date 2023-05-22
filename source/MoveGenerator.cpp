@@ -549,7 +549,7 @@ void MoveGenerator::add_pawn_legal_attacks(class MoveList& list,
                 {
                     // ensure that there is no discovered check
                     U64 from_bb = 1ULL << from;
-                    if (!ep_move_discovers_check(board, from_bb, ep_attacks, side))
+                    if (!ep_move_discovers_check(board, from_bb, capture_sq_bb, side))
                     {
                         add_moves_with_diff(
                             diff, ep_attacks, list, board, EP_CAPTURE, PAWN | (!side));
@@ -1087,7 +1087,6 @@ MoveGenPreprocessing MoveGenerator::get_checkers_and_pinned(const class Board& b
     {
         U8 from = bit_scan_forward(potential_king_attackers);
         U64 potentially_pinned = squares_between(from, king_sq) & occupied;
-        U64 potentially_pinned_friendly = potentially_pinned & friendly;
 
         // If there are no pieces between the attacker and the king
         // then the attacker is giving check
@@ -1097,9 +1096,9 @@ MoveGenPreprocessing MoveGenerator::get_checkers_and_pinned(const class Board& b
         }
         // If there is a friendly piece between the attacker and the king
         // then it is pinned
-        else if (pop_count(potentially_pinned_friendly) == 1)
+        else if ((pop_count(potentially_pinned) == 1) && (potentially_pinned & friendly))
         {
-            pinned |= potentially_pinned_friendly;
+            pinned |= potentially_pinned & friendly;
             pinners |= 1ULL << (from);
         }
         potential_king_attackers &= potential_king_attackers - 1;

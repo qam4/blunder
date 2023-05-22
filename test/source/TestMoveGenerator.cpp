@@ -602,9 +602,13 @@ TEST_CASE("move_generator_can_get_checkers_and_pinned", "[move generator]")
 TEST_CASE("move_generator_can_add_all_moves", "[move generator]")
 {
     cout << "- Can add all moves" << endl;
-    string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    Board board = Parser::parse_fen(fen);
+    Board board;
     MoveList list;
+    string fen;
+
+    // check starting position
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    board = Parser::parse_fen(fen);
     MoveGenerator::add_all_moves(list, board, WHITE);
     REQUIRE(list.length() == 20);
     REQUIRE(list.contains_valid_moves(board));
