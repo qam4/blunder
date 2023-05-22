@@ -94,6 +94,7 @@ public:
     static void add_slider_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, U64 pinned_mask, U8 king_sq, const U8 side);
     static void add_knight_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, U64 from_mask, const U8 side);
     static void add_king_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, const U8 side);
+    static void add_castles(class MoveList& list, const class Board& board, U64 attacks, const U8 side);
     static void add_all_moves(class MoveList &list, const class Board &board, const U8 side);
     static bool in_check(const class Board &board, const U8 side);
     static void score_moves(class MoveList &list, const class Board &board);

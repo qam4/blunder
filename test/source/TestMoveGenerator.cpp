@@ -402,12 +402,17 @@ TEST_CASE("move_generator_can_generate_king_moves", "[move generator]")
 TEST_CASE("move_generator_can_get_checkers", "[move generator]")
 {
     cout << "- Can get checkers" << endl;
-    string fen = "rnbq1bnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1BNR w";
-    Board board = Parser::parse_fen(fen);
+    string fen;
+    Board board;
+    U64 checkers;
+    string expected;
+
+    fen = "rnbq1bnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1BNR w";
+    board = Parser::parse_fen(fen);
     board.add_piece(WHITE_KING, C6);
     // cout << Output::board(board);
-    U64 checkers = MoveGenerator::get_checkers(board, WHITE);
-    string expected =
+    checkers = MoveGenerator::get_checkers(board, WHITE);
+    expected =
         "  ABCDEFGH  \n"
         "8|-X------|8\n"
         "7|-X-X----|7\n"
@@ -472,6 +477,22 @@ TEST_CASE("move_generator_can_get_checkers", "[move generator]")
         "4|--------|4\n"
         "3|X---X---|3\n"
         "2|--------|2\n"
+        "1|--------|1\n"
+        "  ABCDEFGH  \n";
+    REQUIRE(Output::bitboard(checkers) == expected);
+
+    fen = "r1bqkb1r/pppppppp/2n5/8/4P3/2N2N2/PPPPBnPP/R1BQR2K b kq - 9 1";
+    board = Parser::parse_fen(fen);
+    checkers = MoveGenerator::get_checkers(board, WHITE);
+    expected =
+        "  ABCDEFGH  \n"
+        "8|--------|8\n"
+        "7|--------|7\n"
+        "6|--------|6\n"
+        "5|--------|5\n"
+        "4|--------|4\n"
+        "3|--------|3\n"
+        "2|-----X--|2\n"
         "1|--------|1\n"
         "  ABCDEFGH  \n";
     REQUIRE(Output::bitboard(checkers) == expected);
@@ -619,7 +640,7 @@ TEST_CASE("move_generator_can_add_all_moves", "[move generator]")
     fen = "r1b1k2r/p1p2ppp/2p4q/4N1Q1/3NP3/3P4/PPP2nPP/R1K4R w KQkq - 0 1";
     board = Parser::parse_fen(fen);
     MoveGenerator::add_all_moves(list, board, WHITE);
-    REQUIRE(list.length() == 35);
+    REQUIRE(list.length() == 36);
     REQUIRE(list.contains_valid_moves(board));
     REQUIRE(!list.contains_duplicates());
     list.reset();

@@ -111,27 +111,105 @@ void Board::do_move(Move_t move)
         irrev.ep_square = static_cast<U8>((to + from) >> 1);
     }
 
-    remove_piece(from);
-
-    if (is_capture(move))
+    if (is_castle(move))
     {
-        U8 captured_sq = to;
-        if (is_ep_capture(move))
+        if (move == QUEEN_CASTLE)
         {
-            // along_row_with_col
-            // returns a square at the same row as "from", and the same col as "to"
-            captured_sq = (from & 56) | (to & 7);
+            if (irrev.side_to_move == WHITE)
+            {
+#ifdef NDEBUG
+                assert(board_array[A1] == WHITE_ROOK);
+                assert(board_array[E1] == WHITE_KING);
+#endif
+                remove_piece(A1);
+                remove_piece(E1);
+                add_piece(WHITE_KING, A1);
+                add_piece(WHITE_ROOK, E1);
+                irrev.castling_rights &= ~(WHITE_QUEEN_SIDE | WHITE_KING_SIDE);
+            }
+            else
+            {
+#ifdef NDEBUG
+                assert(board_array[A8] == BLACK_ROOK);
+                assert(board_array[E8] == BLACK_KING);
+#endif
+                remove_piece(A8);
+                remove_piece(E8);
+                add_piece(BLACK_KING, A8);
+                add_piece(BLACK_ROOK, E8);
+                irrev.castling_rights &= ~(BLACK_QUEEN_SIDE | BLACK_KING_SIDE);
+            }
         }
-        remove_piece(captured_sq);
-    }
-
-    if (is_promotion(move))
-    {
-        add_piece(move_promote_to(move), to);
+        else
+        {
+            if (irrev.side_to_move == WHITE)
+            {
+#ifdef NDEBUG
+                assert(board_array[H1] == WHITE_ROOK);
+                assert(board_array[E1] == WHITE_KING);
+#endif
+                remove_piece(H1);
+                remove_piece(E1);
+                add_piece(WHITE_KING, H1);
+                add_piece(WHITE_ROOK, E1);
+                irrev.castling_rights &= ~(WHITE_QUEEN_SIDE | WHITE_KING_SIDE);
+            }
+            else
+            {
+#ifdef NDEBUG
+                assert(board_array[H8] == BLACK_ROOK);
+                assert(board_array[E8] == BLACK_KING);
+#endif
+                remove_piece(H8);
+                remove_piece(E8);
+                add_piece(BLACK_KING, H8);
+                add_piece(BLACK_ROOK, E8);
+                irrev.castling_rights &= ~(BLACK_QUEEN_SIDE | BLACK_KING_SIDE);
+            }
+        }
     }
     else
     {
-        add_piece(piece, to);
+        remove_piece(from);
+
+        if (is_capture(move))
+        {
+            U8 captured_sq = to;
+            if (is_ep_capture(move))
+            {
+                // along_row_with_col
+                // returns a square at the same row as "from", and the same col as "to"
+                captured_sq = (from & 56) | (to & 7);
+            }
+            remove_piece(captured_sq);
+        }
+
+        if (is_promotion(move))
+        {
+            add_piece(move_promote_to(move), to);
+        }
+        else
+        {
+            add_piece(piece, to);
+        }
+    }
+
+    // Update castling rights
+    if ((board_array[A1] != WHITE_ROOK) || (board_array[E1] != WHITE_KING))
+    {
+        irrev.castling_rights &= ~(WHITE_QUEEN_SIDE);
+    }
+    if ((board_array[H1] != WHITE_ROOK) || (board_array[E1] != WHITE_KING))
+    {
+        irrev.castling_rights &= ~(WHITE_KING_SIDE);
+    }
+    if ((board_array[A8] != BLACK_ROOK) || (board_array[E8] != BLACK_KING))
+    {
+        irrev.castling_rights &= ~(BLACK_QUEEN_SIDE);
+    }
+    if ((board_array[H8] != BLACK_ROOK) || (board_array[E8] != BLACK_KING))
+    {
+        irrev.castling_rights &= ~(BLACK_KING_SIDE);
     }
 
     // update flags
@@ -159,27 +237,83 @@ void Board::undo_move(Move_t move)
     // update irreversible state
     irrev = move_stack[search_ply];
 
-    remove_piece(to);
-
-    if (is_promotion(move))
+    if (is_castle(move))
     {
-        add_piece(PAWN | irrev.side_to_move, from);
+        if (move == QUEEN_CASTLE)
+        {
+            if (irrev.side_to_move == WHITE)
+            {
+#ifdef NDEBUG
+                assert(board_array[A1] == WHITE_KING);
+                assert(board_array[E1] == WHITE_ROOK);
+#endif
+                remove_piece(A1);
+                remove_piece(E1);
+                add_piece(WHITE_KING, E1);
+                add_piece(WHITE_ROOK, A1);
+            }
+            else
+            {
+#ifdef NDEBUG
+                assert(board_array[A8] == BLACK_KING);
+                assert(board_array[E8] == BLACK_ROOK);
+#endif
+                remove_piece(A8);
+                remove_piece(E8);
+                add_piece(BLACK_KING, E8);
+                add_piece(BLACK_ROOK, A8);
+            }
+        }
+        else
+        {
+            if (irrev.side_to_move == WHITE)
+            {
+#ifdef NDEBUG
+                assert(board_array[H1] == WHITE_KING);
+                assert(board_array[E1] == WHITE_ROOK);
+#endif
+                remove_piece(H1);
+                remove_piece(E1);
+                add_piece(WHITE_KING, E1);
+                add_piece(WHITE_ROOK, H1);
+            }
+            else
+            {
+#ifdef NDEBUG
+                assert(board_array[H8] == BLACK_KING);
+                assert(board_array[E8] == BLACK_ROOK);
+#endif
+                remove_piece(H8);
+                remove_piece(E8);
+                add_piece(BLACK_KING, E8);
+                add_piece(BLACK_ROOK, H8);
+            }
+        }
     }
     else
     {
-        add_piece(piece, from);
-    }
+        remove_piece(to);
 
-    if (is_capture(move))
-    {
-        U8 captured_sq = to;
-        if (is_ep_capture(move))
+        if (is_promotion(move))
         {
-            // along_row_with_col
-            // returns a square at the same row as "from", and the same col as "to"
-            captured_sq = (from & 56) | (to & 7);
+            add_piece(PAWN | irrev.side_to_move, from);
         }
-        add_piece(move_captured(move), captured_sq);
+        else
+        {
+            add_piece(piece, from);
+        }
+
+        if (is_capture(move))
+        {
+            U8 captured_sq = to;
+            if (is_ep_capture(move))
+            {
+                // along_row_with_col
+                // returns a square at the same row as "from", and the same col as "to"
+                captured_sq = (from & 56) | (to & 7);
+            }
+            add_piece(move_captured(move), captured_sq);
+        }
     }
 }
 

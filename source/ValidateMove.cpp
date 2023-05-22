@@ -7,14 +7,26 @@
 #include "MoveGenerator.h"
 #include "Output.h"
 
-string static is_valid_move_err(Move_t move, const class Board& board, bool check_legal);
+string static is_legal_move_err(Move_t move, const class Board& board);
+string static is_valid_move_err(Move_t move, const class Board& board);
 
 bool is_valid_move(Move_t move, const class Board& board, bool check_legal)
 {
-    string error = is_valid_move_err(move, board, check_legal);
+    string error = is_valid_move_err(move, board);
     if (error == "")
     {
-        return true;
+        if (check_legal)
+        {
+            error = is_legal_move_err(move, board);
+            if (error == "")
+            {
+                return true;
+            }
+        }
+        else
+        {
+            return true;
+        }
     }
     cerr << "INVALID MOVE " << Output::move(move, board) << ": " << error << endl;
     cerr << Output::board(board);
@@ -22,7 +34,22 @@ bool is_valid_move(Move_t move, const class Board& board, bool check_legal)
     return false;
 }
 
-string is_valid_move_err(Move_t move, const class Board& board, bool check_legal)
+
+string is_legal_move_err(Move_t move, const class Board& board)
+{
+    U8 side = board.side_to_move();
+    Board board_copy = board;
+    board_copy.do_move(move);
+    bool is_in_check = MoveGenerator::in_check(board_copy, side);
+    board_copy.undo_move(move);
+    if (is_in_check)
+    {
+        return "king is in check";
+    }
+    return "";
+}
+
+string is_valid_move_err(Move_t move, const class Board& board)
 {
     U8 side = board.side_to_move();
     U8 from = move_from(move);
@@ -34,8 +61,8 @@ string is_valid_move_err(Move_t move, const class Board& board, bool check_legal
     // check castle first
     if (is_castle(move))
     {
-        if ((move & 0xFFFFFF) != 0)
-            return "Castle move shouldn't have data in lower 3 bytes";
+        if ((move & 0xFFFF) != 0)
+            return "Castle move shouldn't have data in lower 2 bytes";
         if (move != build_castle(KING_CASTLE) && move != build_castle(QUEEN_CASTLE))
             return "Invalid castle move";
         if (move == build_castle(KING_CASTLE))
@@ -65,7 +92,8 @@ string is_valid_move_err(Move_t move, const class Board& board, bool check_legal
             }
         }
         // still need to add checks
-        assert(false);  // implement stuff
+        // assert(false);  // TODO: implement stuff
+        return "";
     }
     if (mover == EMPTY)
         return "mover doesn't exist in board";
@@ -183,20 +211,6 @@ string is_valid_move_err(Move_t move, const class Board& board, bool check_legal
             return "king can't move more than 1 row";
         if (files > 1)
             return "king can't move more than 1 file";
-    }
-
-    if (!check_legal)
-    {
-        return "";
-    }
-
-    Board board_copy = board;
-    board_copy.do_move(move);
-    bool is_in_check = MoveGenerator::in_check(board_copy, side);
-    board_copy.undo_move(move);
-    if (is_in_check)
-    {
-        return "king is in check";
     }
 
     return "";

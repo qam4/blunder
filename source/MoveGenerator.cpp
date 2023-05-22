@@ -401,14 +401,14 @@ void MoveGenerator::add_pawn_pushes(class MoveList& list, const class Board& boa
     const int diffs[2] = { 8, 64 - 8 };
     const U64 promotions_mask[2] = { ROW_8, ROW_1 };
     const U64 start_row_plus_one_mask[2] = { ROW_3, ROW_6 };
-    U64 pushes, double_pushes, promotions, pawns, free_squares;
+    U64 pushes, double_pushes, promotions, pawns, empty_squares;
 
     int diff = diffs[side];
     pawns = board.bitboards[PAWN | side];
-    free_squares = ~(board.bitboards[WHITE] | board.bitboards[BLACK]);
+    empty_squares = ~(board.bitboards[WHITE] | board.bitboards[BLACK]);
 
     // ADD SINGLE PUSHES
-    pushes = circular_left_shift(pawns, diff) & free_squares;
+    pushes = circular_left_shift(pawns, diff) & empty_squares;
     add_moves_with_diff(diff, pushes & (~promotions_mask[side]), list, board, NO_FLAGS, 0);
 
     // ADD PROMOTIONS
@@ -417,7 +417,7 @@ void MoveGenerator::add_pawn_pushes(class MoveList& list, const class Board& boa
 
     // ADD DOUBLE PUSHES
     double_pushes =
-        circular_left_shift(pushes & start_row_plus_one_mask[side], diff) & free_squares;
+        circular_left_shift(pushes & start_row_plus_one_mask[side], diff) & empty_squares;
     add_moves_with_diff(diff + diff, double_pushes, list, board, PAWN_DOUBLE_PUSH, 0);
 }
 
@@ -486,13 +486,15 @@ void MoveGenerator::add_pawn_legal_pushes(
     const int diffs[2] = { 8, 64 - 8 };
     const U64 promotions_mask[2] = { ROW_8, ROW_1 };
     const U64 start_row_plus_one_mask[2] = { ROW_3, ROW_6 };
-    U64 pushes, single_pushes, double_pushes, promotions, pawns;
+    U64 pushes, single_pushes, double_pushes, promotions, pawns, empty_squares;
 
     int diff = diffs[side];
     pawns = board.bitboards[PAWN | side] & from_mask;
+    empty_squares = ~(board.bitboards[WHITE] | board.bitboards[BLACK]);
 
     // ADD SINGLE PUSHES
-    pushes = circular_left_shift(pawns, diff);
+    // Dont apply to_mask here to avoid masking double pushes
+    pushes = circular_left_shift(pawns, diff) & empty_squares;
     single_pushes = pushes & (~promotions_mask[side]);
     add_moves_with_diff(diff, single_pushes & to_mask, list, board, NO_FLAGS, 0);
 
@@ -501,7 +503,8 @@ void MoveGenerator::add_pawn_legal_pushes(
     add_promotions_with_diff(diff, promotions & to_mask, list, board, side);
 
     // ADD DOUBLE PUSHES
-    double_pushes = circular_left_shift(pushes & start_row_plus_one_mask[side], diff);
+    double_pushes =
+        circular_left_shift(pushes & start_row_plus_one_mask[side], diff) & empty_squares;
     add_moves_with_diff(diff + diff, double_pushes & to_mask, list, board, PAWN_DOUBLE_PUSH, 0);
 }
 
@@ -589,8 +592,10 @@ void MoveGenerator::add_pawn_pin_ray_moves(class MoveList& list,
     const U64 pawn_file_mask[2] = { ~FILE_H, ~FILE_A };
     const U64 promotions_mask[2] = { ROW_8, ROW_1 };
     const U64 start_row_plus_one_mask[2] = { ROW_3, ROW_6 };
-    U64 pawns = board.bitboards[PAWN | side];
-    U64 movers = pawns & pinned_mask;
+    U64 pushes, single_pushes, double_pushes, promotions, pawns, empty_squares, movers;
+    pawns = board.bitboards[PAWN | side];
+    empty_squares = ~(board.bitboards[WHITE] | board.bitboards[BLACK]);
+    movers = pawns & pinned_mask;
 
     // exit early if no pinned pawns
     if (movers == BB_EMPTY)
@@ -605,16 +610,17 @@ void MoveGenerator::add_pawn_pin_ray_moves(class MoveList& list,
 
     // For pinned pawns, only possible moves are those along the king file
     // ADD SINGLE PUSHES
-    U64 pushes = circular_left_shift(can_push, diff);
-    U64 single_pushes = pushes & (~promotions_mask[side]);
+    pushes = circular_left_shift(can_push, diff) & empty_squares;
+    single_pushes = pushes & (~promotions_mask[side]);
     add_moves_with_diff(diff, single_pushes & push_mask, list, board, NO_FLAGS, 0);
 
     // ADD PROMOTIONS (fred: not sure it's possible though)
-    U64 promotions = pushes & promotions_mask[side];
+    promotions = pushes & promotions_mask[side];
     add_promotions_with_diff(diff, promotions & push_mask, list, board, side);
 
     // ADD DOUBLE PUSHES
-    U64 double_pushes = circular_left_shift(pushes & start_row_plus_one_mask[side], diff);
+    double_pushes =
+        circular_left_shift(pushes & start_row_plus_one_mask[side], diff) & empty_squares;
     add_moves_with_diff(diff + diff, double_pushes & push_mask, list, board, PAWN_DOUBLE_PUSH, 0);
 
     // CALCULATE ATTACKS FOR LEFT, RIGHT
@@ -761,6 +767,60 @@ void MoveGenerator::add_king_legal_moves(
     }
 }
 
+void MoveGenerator::add_castles(class MoveList& list,
+                                const class Board& board,
+                                U64 attacks,
+                                const U8 side)
+{
+    const U64 CASTLE_BLOCKING_SQUARES[2][2] = {
+        {
+            (1ULL << F1) + (1ULL << G1),                 // WHITE KS = F1 + G1
+            (1ULL << B1) + (1ULL << C1) + (1ULL << D1),  // WHITE QS = B1 + C1 + D1
+        },
+        {
+            (1ULL << F8) + (1ULL << G8),                 // BLACK KS = F8 + G8
+            (1ULL << B8) + (1ULL << C8) + (1ULL << D8),  // BLACK QS = B8 + C8 + D8
+        },
+    };
+
+    // squares that must be not attacked for a castle to take place
+    const U64 KING_SAFE_SQUARES[2][2] = {
+        {
+            (1ULL << E1) + (1ULL << F1) + (1ULL << G1),  // WHITE KS = E1 + F1 + G1
+            (1ULL << C1) + (1ULL << D1) + (1ULL << E1),  // WHITE QS = C1 + D1 + E1
+        },
+        {
+            (1ULL << E8) + (1ULL << F8) + (1ULL << G8),  // BLACK KS = E8 + F8 + G8
+            (1ULL << C8) + (1ULL << D8) + (1ULL << E8),  // BLACK QS = C8 + D8  + E8
+        },
+    };
+
+    U8 rights = board.castling_rights();
+    U64 occupied = board.bitboards[WHITE] | board.bitboards[BLACK];
+
+    for (int castle_side = 0; castle_side < 2; castle_side++)
+    {
+        // NOTE: should not need to check king and rook pos since
+        // should not be able to castle once these are moved
+        U8 castling_right = static_cast<U8>(1U << castle_side << side);
+        U64 blockers = CASTLE_BLOCKING_SQUARES[castle_side][side];
+        U64 king_safe = KING_SAFE_SQUARES[castle_side][side];
+
+        if ((castling_right & rights) == 0)
+        {
+            continue;
+        }
+
+        if ((occupied & blockers) || (attacks & king_safe))
+        {
+            continue;
+        }
+
+        Move_t move = build_castle((castle_side == 0) ? KING_CASTLE : QUEEN_CASTLE);
+        list.push(move);
+    }
+}
+
 U64 MoveGenerator::rook_targets(U64 from, U64 occupied)
 {
     U64 targets = BB_EMPTY;
@@ -862,9 +922,9 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
     U64 enemy = board.bitboards[!side];
     U64 empty_squares = ~(board.bitboards[WHITE] | board.bitboards[BLACK]);
 
-    U64 capture_mask = enemy;
+    U64 capture_mask = enemy;  // set of squares a piece can capture on
     U64 king_capture_mask = enemy & (~attacked_squares);
-    U64 push_mask = empty_squares;
+    U64 push_mask = empty_squares;  // set of squares a piece can move to
     U64 king_push_mask = empty_squares & (~attacked_squares);
 
     if (king_attacks_count > 1)
@@ -888,7 +948,7 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
         {
             // If the piece giving check is a slider, we can additionally attempt
             // to block the sliding piece
-            push_mask = squares_between(king_sq, checker_sq);
+            push_mask &= squares_between(king_sq, checker_sq);
         }
         else
         {
@@ -911,12 +971,13 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
     // pinned pawn captures can only include pinners
     add_pawn_pin_ray_moves(list, board, capture_mask & pinners, push_mask, pinned, king_sq, side);
 
-    // if (king_attacks_count == 0) {
-    //     // Not in check so can generate castles
-    //     // impossible for castles to be affected by pins
-    //     // so we don't need to consider pins here
-    //     castles(position, attacked_squares, list);
-    // }
+    if (king_attacks_count == 0)
+    {
+        // Not in check so can generate castles
+        // impossible for castles to be affected by pins
+        // so we don't need to consider pins here
+        add_castles(list, board, attacked_squares, side);
+    }
 
     add_king_legal_moves(list, board, king_capture_mask, king_push_mask, side);
 
