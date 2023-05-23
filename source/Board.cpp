@@ -113,30 +113,38 @@ void Board::do_move(Move_t move)
 
     if (is_castle(move))
     {
-        if (move == QUEEN_CASTLE)
+        if (move & build_castle(QUEEN_CASTLE))
         {
             if (irrev.side_to_move == WHITE)
             {
+                // White queen-side castle
 #ifndef NDEBUG
                 assert(board_array[A1] == WHITE_ROOK);
                 assert(board_array[E1] == WHITE_KING);
+                assert(board_array[B1] == EMPTY);
+                assert(board_array[C1] == EMPTY);
+                assert(board_array[D1] == EMPTY);
 #endif
                 remove_piece(A1);
                 remove_piece(E1);
-                add_piece(WHITE_KING, A1);
-                add_piece(WHITE_ROOK, E1);
+                add_piece(WHITE_KING, C1);
+                add_piece(WHITE_ROOK, D1);
                 irrev.castling_rights &= static_cast<U8>(~(WHITE_QUEEN_SIDE | WHITE_KING_SIDE));
             }
             else
             {
+                // Black queen-side castle
 #ifndef NDEBUG
                 assert(board_array[A8] == BLACK_ROOK);
                 assert(board_array[E8] == BLACK_KING);
+                assert(board_array[B8] == EMPTY);
+                assert(board_array[C8] == EMPTY);
+                assert(board_array[D8] == EMPTY);
 #endif
                 remove_piece(A8);
                 remove_piece(E8);
-                add_piece(BLACK_KING, A8);
-                add_piece(BLACK_ROOK, E8);
+                add_piece(BLACK_KING, C8);
+                add_piece(BLACK_ROOK, D8);
                 irrev.castling_rights &= static_cast<U8>(~(BLACK_QUEEN_SIDE | BLACK_KING_SIDE));
             }
         }
@@ -144,26 +152,38 @@ void Board::do_move(Move_t move)
         {
             if (irrev.side_to_move == WHITE)
             {
+                // White king-side castle
 #ifndef NDEBUG
                 assert(board_array[H1] == WHITE_ROOK);
                 assert(board_array[E1] == WHITE_KING);
+                assert(board_array[G1] == EMPTY);
+                assert(board_array[F1] == EMPTY);
 #endif
                 remove_piece(H1);
                 remove_piece(E1);
-                add_piece(WHITE_KING, H1);
-                add_piece(WHITE_ROOK, E1);
+                add_piece(WHITE_KING, G1);
+                add_piece(WHITE_ROOK, F1);
                 irrev.castling_rights &= static_cast<U8>(~(WHITE_QUEEN_SIDE | WHITE_KING_SIDE));
             }
             else
             {
+                // Black king-side castle
 #ifndef NDEBUG
                 assert(board_array[H8] == BLACK_ROOK);
                 assert(board_array[E8] == BLACK_KING);
+                if (board_array[G8] != EMPTY)
+                {
+                    cout << "dbg\n" << Output::board(*this) << endl;
+                    cout << "do_move:" << Output::move(move, *this) << endl;
+                    cout << "do_move: move_flag=" << hex << move << endl;
+                }
+                assert(board_array[G8] == EMPTY);
+                assert(board_array[F8] == EMPTY);
 #endif
                 remove_piece(H8);
                 remove_piece(E8);
-                add_piece(BLACK_KING, H8);
-                add_piece(BLACK_ROOK, E8);
+                add_piece(BLACK_KING, G8);
+                add_piece(BLACK_ROOK, F8);
                 irrev.castling_rights &= static_cast<U8>(~(BLACK_QUEEN_SIDE | BLACK_KING_SIDE));
             }
         }
@@ -239,27 +259,31 @@ void Board::undo_move(Move_t move)
 
     if (is_castle(move))
     {
-        if (move == QUEEN_CASTLE)
+        if (move & build_castle(QUEEN_CASTLE))
         {
             if (irrev.side_to_move == WHITE)
             {
 #ifndef NDEBUG
-                assert(board_array[A1] == WHITE_KING);
-                assert(board_array[E1] == WHITE_ROOK);
+                assert(board_array[C1] == WHITE_KING);
+                assert(board_array[D1] == WHITE_ROOK);
+                assert(board_array[E1] == EMPTY);
+                assert(board_array[A1] == EMPTY);
 #endif
-                remove_piece(A1);
-                remove_piece(E1);
+                remove_piece(C1);
+                remove_piece(D1);
                 add_piece(WHITE_KING, E1);
                 add_piece(WHITE_ROOK, A1);
             }
             else
             {
 #ifndef NDEBUG
-                assert(board_array[A8] == BLACK_KING);
-                assert(board_array[E8] == BLACK_ROOK);
+                assert(board_array[C8] == BLACK_KING);
+                assert(board_array[D8] == BLACK_ROOK);
+                assert(board_array[E8] == EMPTY);
+                assert(board_array[A8] == EMPTY);
 #endif
-                remove_piece(A8);
-                remove_piece(E8);
+                remove_piece(C8);
+                remove_piece(D8);
                 add_piece(BLACK_KING, E8);
                 add_piece(BLACK_ROOK, A8);
             }
@@ -269,22 +293,26 @@ void Board::undo_move(Move_t move)
             if (irrev.side_to_move == WHITE)
             {
 #ifndef NDEBUG
-                assert(board_array[H1] == WHITE_KING);
-                assert(board_array[E1] == WHITE_ROOK);
+                assert(board_array[G1] == WHITE_KING);
+                assert(board_array[F1] == WHITE_ROOK);
+                assert(board_array[E1] == EMPTY);
+                assert(board_array[H1] == EMPTY);
 #endif
-                remove_piece(H1);
-                remove_piece(E1);
+                remove_piece(G1);
+                remove_piece(F1);
                 add_piece(WHITE_KING, E1);
                 add_piece(WHITE_ROOK, H1);
             }
             else
             {
 #ifndef NDEBUG
-                assert(board_array[H8] == BLACK_KING);
-                assert(board_array[E8] == BLACK_ROOK);
+                assert(board_array[G8] == BLACK_KING);
+                assert(board_array[F8] == BLACK_ROOK);
+                assert(board_array[E8] == EMPTY);
+                assert(board_array[H8] == EMPTY);
 #endif
-                remove_piece(H8);
-                remove_piece(E8);
+                remove_piece(G8);
+                remove_piece(F8);
                 add_piece(BLACK_KING, E8);
                 add_piece(BLACK_ROOK, H8);
             }

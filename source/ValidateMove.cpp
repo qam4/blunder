@@ -72,24 +72,60 @@ string is_valid_move_err(Move_t move, const class Board& board)
             {
                 if (!(board.castling_rights() & WHITE_KING_SIDE))
                     return "White doesn't have king-side castling rights";
+                if (board[H1] != WHITE_ROOK)
+                    return "White cannot castle king-side no rook in h1";
+                if (board[E1] != WHITE_KING)
+                    return "White cannot castle king-side no king in e1";
+                if (board[G1] != EMPTY)
+                    return "White cannot castle king-side g1 not empty";
+                if (board[F1] != EMPTY)
+                    return "White cannot castle king-side f1 not empty";
             }
             else
             {
                 if (!(board.castling_rights() & BLACK_KING_SIDE))
                     return "Black doesn't have king-side castling rights";
+                if (board[H8] != BLACK_ROOK)
+                    return "Black cannot castle king-side no rook in h1";
+                if (board[E8] != BLACK_KING)
+                    return "Black cannot castle king-side no king in e1";
+                if (board[G8] != EMPTY)
+                    return "Black cannot castle king-side g1 not empty";
+                if (board[F8] != EMPTY)
+                    return "Black cannot castle king-side f1 not empty";
             }
         }
-        if (move == QUEEN_CASTLE)
+        if (move == build_castle(QUEEN_CASTLE))
         {
             if (side == WHITE)
             {
                 if (!(board.castling_rights() & WHITE_QUEEN_SIDE))
                     return "White doesn't have queen-side castling rights";
+                if (board[A1] != WHITE_ROOK)
+                    return "White cannot castle queen-side no rook in a1";
+                if (board[E1] != WHITE_KING)
+                    return "White cannot castle queen-side no king in e1";
+                if (board[B1] != EMPTY)
+                    return "White cannot castle queen-side b1 not empty";
+                if (board[C1] != EMPTY)
+                    return "White cannot castle queen-side c1 not empty";
+                if (board[D1] != EMPTY)
+                    return "White cannot castle queen-side d1 not empty";
             }
             else
             {
                 if (!(board.castling_rights() & BLACK_QUEEN_SIDE))
                     return "Black doesn't have queen-side castling rights";
+                if (board[A8] != BLACK_ROOK)
+                    return "Black cannot castle queen-side no rook in a8";
+                if (board[E8] != BLACK_KING)
+                    return "Black cannot castle queen-side no king in e8";
+                if (board[B8] != EMPTY)
+                    return "Black cannot castle queen-side b8 not empty";
+                if (board[C8] != EMPTY)
+                    return "Black cannot castle queen-side c8 not empty";
+                if (board[D8] != EMPTY)
+                    return "Black cannot castle queen-side d8 not empty";
             }
         }
         // still need to add checks

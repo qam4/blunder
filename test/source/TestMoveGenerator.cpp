@@ -736,3 +736,21 @@ TEST_CASE("move_generator_can_add_pawn_pin_ray_moves", "[move generator]")
     REQUIRE(list.contains(build_capture(B4, A5, BLACK_QUEEN)));
     list.reset();
 }
+
+TEST_CASE("move_generator_can_add_castles", "[move generator]")
+{
+    cout << "- Can add castles" << endl;
+    // TODO
+    // Board board;
+    // MoveList list;
+    // string fen;
+
+    // fen = "r3kbnr/p1p1pppp/p7/3q4/8/7P/PPPP1P1P/RNBQK2R w KQkq - 10 1";
+    // board = Parser::parse_fen(fen);
+    // MoveGenerator::add_castles(list, board, 1ULL << A8, WHITE);
+    // REQUIRE(list.length() == 1);
+    // REQUIRE(list.contains_valid_moves(board));
+    // REQUIRE(!list.contains_duplicates());
+    // REQUIRE(list.contains(build_castle(KING_SIDE)));
+    // list.reset();
+}

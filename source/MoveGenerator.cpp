@@ -772,27 +772,39 @@ void MoveGenerator::add_castles(class MoveList& list,
                                 U64 attacks,
                                 const U8 side)
 {
+    // squares that must be empty
     const U64 CASTLE_BLOCKING_SQUARES[2][2] = {
         {
-            (1ULL << F1) + (1ULL << G1),                 // WHITE KS = F1 + G1
             (1ULL << B1) + (1ULL << C1) + (1ULL << D1),  // WHITE QS = B1 + C1 + D1
-        },
-        {
-            (1ULL << F8) + (1ULL << G8),                 // BLACK KS = F8 + G8
             (1ULL << B8) + (1ULL << C8) + (1ULL << D8),  // BLACK QS = B8 + C8 + D8
         },
+        {
+            (1ULL << F1) + (1ULL << G1),                 // WHITE KS = F1 + G1
+            (1ULL << F8) + (1ULL << G8),                 // BLACK KS = F8 + G8
+        }
     };
 
     // squares that must be not attacked for a castle to take place
     const U64 KING_SAFE_SQUARES[2][2] = {
         {
-            (1ULL << E1) + (1ULL << F1) + (1ULL << G1),  // WHITE KS = E1 + F1 + G1
             (1ULL << C1) + (1ULL << D1) + (1ULL << E1),  // WHITE QS = C1 + D1 + E1
+            (1ULL << C8) + (1ULL << D8) + (1ULL << E8),  // BLACK QS = C8 + D8 + E8
         },
         {
+            (1ULL << E1) + (1ULL << F1) + (1ULL << G1),  // WHITE KS = E1 + F1 + G1
             (1ULL << E8) + (1ULL << F8) + (1ULL << G8),  // BLACK KS = E8 + F8 + G8
-            (1ULL << C8) + (1ULL << D8) + (1ULL << E8),  // BLACK QS = C8 + D8  + E8
+        }
+    };
+
+    const U8 CASTLING_RIGHTS[2][2] = {
+        {
+            WHITE_QUEEN_SIDE,
+            BLACK_QUEEN_SIDE
         },
+        {
+            WHITE_KING_SIDE,
+            BLACK_KING_SIDE
+        }
     };
 
     U8 rights = board.castling_rights();
@@ -802,7 +814,7 @@ void MoveGenerator::add_castles(class MoveList& list,
     {
         // NOTE: should not need to check king and rook pos since
         // should not be able to castle once these are moved
-        U8 castling_right = static_cast<U8>(1U << castle_side << side);
+        U8 castling_right = CASTLING_RIGHTS[castle_side][side];
         U64 blockers = CASTLE_BLOCKING_SQUARES[castle_side][side];
         U64 king_safe = KING_SAFE_SQUARES[castle_side][side];
 
@@ -816,7 +828,7 @@ void MoveGenerator::add_castles(class MoveList& list,
             continue;
         }
 
-        Move_t move = build_castle((castle_side == 0) ? KING_CASTLE : QUEEN_CASTLE);
+        Move_t move = build_castle((castle_side == 0) ? QUEEN_CASTLE : KING_CASTLE);
         list.push(move);
     }
 }
