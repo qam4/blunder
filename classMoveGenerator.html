@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MoveGenerator class | blunder</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
+  <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
+  <link rel="icon" href="favicon-dark.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#22272e" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">blunder</a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path id="m-doc-search-icon-path" d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li>
+              <a href="pages.html">Pages</a>
+              <ol>
+                <li><a href="about.html">About</a></li>
+              </ol>
+            </li>
+            <li><a href="namespaces.html">Namespaces</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="3">
+            <li><a href="annotated.html">Classes</a></li>
+            <li><a href="files.html">Files</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <use href="#m-doc-search-icon-path" />
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          MoveGenerator <span class="m-thin">class</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="MoveGenerator_8h.html">&lt;MoveGenerator.h&gt;</a></div>
+        </h1>
+        <p><span></span></p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#pub-static-methods">Public static functions</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <section id="pub-static-methods">
+          <h2><a href="#pub-static-methods">Public static functions</a></h2>
+          <dl class="m-doc">
+            <dt id="a533a98d8daf563ff16017a6bdc1698f3">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a533a98d8daf563ff16017a6bdc1698f3" class="m-doc-self">get_checkers</a>(</span><span class="m-doc-wrap">const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side) -&gt; <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a></span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ab9d34059b965935f949ca7401226d653">
+              <span class="m-doc-wrap-bumper">static auto <a href="#ab9d34059b965935f949ca7401226d653" class="m-doc-self">get_checkers_and_pinned</a>(</span><span class="m-doc-wrap">const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side) -&gt; <a href="structMoveGenPreprocessing.html" class="m-doc">MoveGenPreprocessing</a></span>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">static auto <a href="#a0f3730a5f92c9585a45db6094e84c9fd" class="m-doc">get_king_danger_squares</a>(</span><span class="m-doc-wrap">const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> king) -&gt; <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a></span>
+            </dt>
+            <dd></dd>
+            <dt id="a9b02778c6d0eb27d75e57fedc4cc0c36">
+              <span class="m-doc-wrap-bumper">static void <a href="#a9b02778c6d0eb27d75e57fedc4cc0c36" class="m-doc-self">add_rook_moves</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="adf4a2198128797dc9e81c18ec88b19c6">
+              <span class="m-doc-wrap-bumper">static void <a href="#adf4a2198128797dc9e81c18ec88b19c6" class="m-doc-self">add_bishop_moves</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a54c9e49d64e8d43209cbf889c2a42976">
+              <span class="m-doc-wrap-bumper">static void <a href="#a54c9e49d64e8d43209cbf889c2a42976" class="m-doc-self">add_pawn_pushes</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a5b09f9c5ab7e5bfdfb776e8d7991bce5">
+              <span class="m-doc-wrap-bumper">static void <a href="#a5b09f9c5ab7e5bfdfb776e8d7991bce5" class="m-doc-self">add_pawn_attacks</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a17883d71fe40677ac4465e3cc2227f06">
+              <span class="m-doc-wrap-bumper">static void <a href="#a17883d71fe40677ac4465e3cc2227f06" class="m-doc-self">add_knight_moves</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a71f915eeef0d45d9e5864a035e30fb7b">
+              <span class="m-doc-wrap-bumper">static void <a href="#a71f915eeef0d45d9e5864a035e30fb7b" class="m-doc-self">add_queen_moves</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a9b94c855966388dcb8c934061795b5dd">
+              <span class="m-doc-wrap-bumper">static void <a href="#a9b94c855966388dcb8c934061795b5dd" class="m-doc-self">add_king_moves</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="aeac23c07c1807fa862d7e6c36469e79c">
+              <span class="m-doc-wrap-bumper">static void <a href="#aeac23c07c1807fa862d7e6c36469e79c" class="m-doc-self">add_pawn_legal_pushes</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> to_mask,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> from_mask,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="aaff8537d90cab901b9ee98af18f8d9f5">
+              <span class="m-doc-wrap-bumper">static void <a href="#aaff8537d90cab901b9ee98af18f8d9f5" class="m-doc-self">add_pawn_legal_attacks</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> capture_mask,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> push_mask,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> from_mask,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ab16dd71a88c0ea067fab43a216c58a72">
+              <span class="m-doc-wrap-bumper">static void <a href="#ab16dd71a88c0ea067fab43a216c58a72" class="m-doc-self">add_pawn_legal_moves</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> capture_mask,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> push_mask,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> from_mask,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a49121c7c0916a67c65819ebc89470ba5">
+              <span class="m-doc-wrap-bumper">static void <a href="#a49121c7c0916a67c65819ebc89470ba5" class="m-doc-self">add_pawn_pin_ray_moves</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> capture_mask,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> push_mask,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> pinned_mask,
+              <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> king_sq,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a6a2cf33efaf78b07cb06f2cd29785806">
+              <span class="m-doc-wrap-bumper">static void <a href="#a6a2cf33efaf78b07cb06f2cd29785806" class="m-doc-self">add_slider_legal_moves</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> capture_mask,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> push_mask,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> pinned_mask,
+              <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> king_sq,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a39b6088cda8b183d7fab9375671ac261">
+              <span class="m-doc-wrap-bumper">static void <a href="#a39b6088cda8b183d7fab9375671ac261" class="m-doc-self">add_knight_legal_moves</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> capture_mask,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> push_mask,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> from_mask,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="aa6af77cf5996eb2ee6ea13ccf8b9851f">
+              <span class="m-doc-wrap-bumper">static void <a href="#aa6af77cf5996eb2ee6ea13ccf8b9851f" class="m-doc-self">add_king_legal_moves</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> capture_mask,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> push_mask,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="aacd3d3935eb8c494b9a95dfb121c8a3e">
+              <span class="m-doc-wrap-bumper">static void <a href="#aacd3d3935eb8c494b9a95dfb121c8a3e" class="m-doc-self">add_castles</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> attacks,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a056f4a7324bc6e39ea4e94b1fac4919f">
+              <span class="m-doc-wrap-bumper">static void <a href="#a056f4a7324bc6e39ea4e94b1fac4919f" class="m-doc-self">add_all_moves</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ab9bd82d802d5cbe71815d3e948fa63e2">
+              <span class="m-doc-wrap-bumper">static auto <a href="#ab9bd82d802d5cbe71815d3e948fa63e2" class="m-doc-self">in_check</a>(</span><span class="m-doc-wrap">const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side) -&gt; bool</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a63ef10650fe63fbbeb1d37818d74d9e8">
+              <span class="m-doc-wrap-bumper">static void <a href="#a63ef10650fe63fbbeb1d37818d74d9e8" class="m-doc-self">score_moves</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ad9d2331acc24b5f685f7819118424e22">
+              <span class="m-doc-wrap-bumper">static void <a href="#ad9d2331acc24b5f685f7819118424e22" class="m-doc-self">generate_move_lookup_tables</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a0f3730a5f92c9585a45db6094e84c9fd"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">static <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> MoveGenerator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a0f3730a5f92c9585a45db6094e84c9fd" class="m-doc-self">get_king_danger_squares</a>(</span><span class="m-doc-wrap">const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              const <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> king)</span></span>
+            </h3>
+<p>returns squares king may not move to</p><ul><li>removes king from occupied to handle attacking sliders correctly</li></ul>
+          </div></section>
+        </section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search-v1.js"></script>
+<script src="searchdata-v1.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>blunder. Created with <a href="https://doxygen.org/">Doxygen</a> 1.9.1 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>
