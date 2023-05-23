@@ -69,6 +69,7 @@ void Board::reset()
         bitboards[i] = BB_EMPTY;
     }
     irrev.half_move_count = 0;
+    irrev.full_move_count = 1;
     irrev.castling_rights = FULL_CASTLING_RIGHTS;
     irrev.ep_square = NULL_SQUARE;
     irrev.side_to_move = WHITE;
@@ -93,12 +94,15 @@ U64 Board::bitboard(const int type) const
 }
 
 // [fm] TODO:
-// handle special moves: caste, promo, ep
+// fifty-move rule: https://www.chessprogramming.org/Fifty-move_Rule
+// threefold repetition rule: https://en.wikipedia.org/wiki/Threefold_repetition
 void Board::do_move(Move_t move)
 {
     U8 from = move_from(move);
     U8 to = move_to(move);
     U8 piece = board_array[from];
+    bool move_resets_half_move_clock = false;
+
     // cout << "do_move:" << Output::move(move, *this) << endl;
     // cout << "do_move: move_flag=" << hex << move << endl;
 
@@ -118,13 +122,6 @@ void Board::do_move(Move_t move)
             if (irrev.side_to_move == WHITE)
             {
                 // White queen-side castle
-#ifndef NDEBUG
-                assert(board_array[A1] == WHITE_ROOK);
-                assert(board_array[E1] == WHITE_KING);
-                assert(board_array[B1] == EMPTY);
-                assert(board_array[C1] == EMPTY);
-                assert(board_array[D1] == EMPTY);
-#endif
                 remove_piece(A1);
                 remove_piece(E1);
                 add_piece(WHITE_KING, C1);
@@ -134,13 +131,6 @@ void Board::do_move(Move_t move)
             else
             {
                 // Black queen-side castle
-#ifndef NDEBUG
-                assert(board_array[A8] == BLACK_ROOK);
-                assert(board_array[E8] == BLACK_KING);
-                assert(board_array[B8] == EMPTY);
-                assert(board_array[C8] == EMPTY);
-                assert(board_array[D8] == EMPTY);
-#endif
                 remove_piece(A8);
                 remove_piece(E8);
                 add_piece(BLACK_KING, C8);
@@ -153,12 +143,6 @@ void Board::do_move(Move_t move)
             if (irrev.side_to_move == WHITE)
             {
                 // White king-side castle
-#ifndef NDEBUG
-                assert(board_array[H1] == WHITE_ROOK);
-                assert(board_array[E1] == WHITE_KING);
-                assert(board_array[G1] == EMPTY);
-                assert(board_array[F1] == EMPTY);
-#endif
                 remove_piece(H1);
                 remove_piece(E1);
                 add_piece(WHITE_KING, G1);
@@ -168,18 +152,6 @@ void Board::do_move(Move_t move)
             else
             {
                 // Black king-side castle
-#ifndef NDEBUG
-                assert(board_array[H8] == BLACK_ROOK);
-                assert(board_array[E8] == BLACK_KING);
-                if (board_array[G8] != EMPTY)
-                {
-                    cout << "dbg\n" << Output::board(*this) << endl;
-                    cout << "do_move:" << Output::move(move, *this) << endl;
-                    cout << "do_move: move_flag=" << hex << move << endl;
-                }
-                assert(board_array[G8] == EMPTY);
-                assert(board_array[F8] == EMPTY);
-#endif
                 remove_piece(H8);
                 remove_piece(E8);
                 add_piece(BLACK_KING, G8);
@@ -190,10 +162,18 @@ void Board::do_move(Move_t move)
     }
     else
     {
+        if ((piece & (~1)) == PAWN)
+        {
+            move_resets_half_move_clock = true;
+        }
+
         remove_piece(from);
 
         if (is_capture(move))
         {
+            // half move clock reset after all pawn moves and captures
+            move_resets_half_move_clock = true;
+
             U8 captured_sq = to;
             if (is_ep_capture(move))
             {
@@ -233,7 +213,18 @@ void Board::do_move(Move_t move)
     }
 
     // update flags
-    irrev.half_move_count++;
+    if (move_resets_half_move_clock)
+    {
+        irrev.half_move_count = 0;
+    }
+    else
+    {
+        irrev.half_move_count++;
+    }
+    if (irrev.side_to_move == BLACK)
+    {
+        irrev.full_move_count++;
+    }
 
     // update side_to_move
     irrev.side_to_move ^= 1;
@@ -473,7 +464,6 @@ int Board::is_game_over()
 {
     // Game over if:
     // - no legal moves
-    // TODO
     MoveList list;
     MoveGenerator::add_all_moves(list, *this, side_to_move());
     if (list.length() == 0)

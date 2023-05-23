@@ -779,8 +779,8 @@ void MoveGenerator::add_castles(class MoveList& list,
             (1ULL << B8) + (1ULL << C8) + (1ULL << D8),  // BLACK QS = B8 + C8 + D8
         },
         {
-            (1ULL << F1) + (1ULL << G1),                 // WHITE KS = F1 + G1
-            (1ULL << F8) + (1ULL << G8),                 // BLACK KS = F8 + G8
+            (1ULL << F1) + (1ULL << G1),  // WHITE KS = F1 + G1
+            (1ULL << F8) + (1ULL << G8),  // BLACK KS = F8 + G8
         }
     };
 
@@ -796,16 +796,8 @@ void MoveGenerator::add_castles(class MoveList& list,
         }
     };
 
-    const U8 CASTLING_RIGHTS[2][2] = {
-        {
-            WHITE_QUEEN_SIDE,
-            BLACK_QUEEN_SIDE
-        },
-        {
-            WHITE_KING_SIDE,
-            BLACK_KING_SIDE
-        }
-    };
+    const U8 CASTLING_RIGHTS[2][2] = { { WHITE_QUEEN_SIDE, BLACK_QUEEN_SIDE },
+                                       { WHITE_KING_SIDE, BLACK_KING_SIDE } };
 
     U8 rights = board.castling_rights();
     U64 occupied = board.bitboards[WHITE] | board.bitboards[BLACK];
@@ -925,6 +917,7 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
     int king_attacks_count = pop_count(checkers);
 
     // cout << "board\n" << Output::board(board) << endl;
+    // cout << "attacked_squares\n" << Output::bitboard(attacked_squares) << endl;
     // cout << "checkers\n" << Output::bitboard(checkers) << endl;
     // cout << "pinned\n" << Output::bitboard(pinned) << endl;
     // cout << "pinners\n" << Output::bitboard(pinners) << endl;
@@ -1008,10 +1001,18 @@ void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
     for (int i = 0; i < n; i++)
     {
         Move_t move = list[i];
+
+        if (is_castle(move))
+        {
+            continue;
+        }
         U8 from = move_from(move);
         U8 to = move_to(move);
         U8 score = MVVLVA[board[to] >> 1][board[from] >> 1];
-
+        if (is_ep_capture(move))
+        {
+            score = MVVLVA[PAWN >> 1][PAWN >> 1];
+        }
         move_add_score(&move, score);
         list.set_move(i, move);
     }

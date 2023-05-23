@@ -35,11 +35,6 @@ int Board::quiesce(int alpha, int beta)
         alpha = stand_pat;
     }
 
-    if (is_game_over())
-    {
-        return -MATE_SCORE + search_ply;
-    }
-
     MoveGenerator::add_all_moves(list, *this, side_to_move());
     MoveGenerator::score_moves(list, *this);
     n = list.length();
@@ -64,5 +59,18 @@ int Board::quiesce(int alpha, int beta)
             alpha = max(value, alpha);
         }
     }
+
+    if (n == 0)
+    {
+        if (MoveGenerator::in_check(*this, side_to_move()))
+        {
+            return -MATE_SCORE + search_ply;
+        }
+        else
+        {
+            return DRAW_SCORE;
+        }
+    }
+
     return alpha;
 }

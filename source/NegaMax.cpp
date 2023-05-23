@@ -12,7 +12,14 @@ int Board::negamax(int depth)
 
     if (is_game_over())
     {
-        return -MATE_SCORE + search_ply;
+        if (MoveGenerator::in_check(*this, side_to_move()))
+        {
+            return -MATE_SCORE + search_ply;
+        }
+        else
+        {
+            return DRAW_SCORE;
+        }
     }
 
     // Leaf node

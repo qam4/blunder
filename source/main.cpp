@@ -48,7 +48,11 @@ int main()
         cout << Output::board(board);
         if (board.is_game_over())
         {
-            if (board.side_to_move() == WHITE)
+            if (MoveGenerator::in_check(board, board.side_to_move()))
+            {
+                cout << "Draw" << endl;
+            }
+            else if (board.side_to_move() == WHITE)
             {
                 cout << "Black player won" << endl;
             }

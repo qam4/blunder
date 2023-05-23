@@ -35,7 +35,6 @@ bool is_valid_move(Move_t move, const class Board& board, bool check_legal)
     return false;
 }
 
-
 string is_legal_move_err(Move_t move, const class Board& board)
 {
     U8 side = board.side_to_move();

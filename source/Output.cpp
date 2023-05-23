@@ -27,8 +27,14 @@ string Output::board(const class Board board)
         ss << '|' << row + 1 << endl;
     }
     ss << "  ABCDEFGH  " << endl;
-    ss << ((board.side_to_move() == WHITE) ? "WHITE" : "BLACK") << " turn" << endl;
-    ss << "Ply: " << board.get_game_ply() << endl;
+    ss << "side to move: " << ((board.side_to_move() == WHITE) ? "WHITE" : "BLACK") << endl;
+    ss << "castling rights: " << Output::castling_rights(board.castling_rights()) << endl;
+    ss << "en-passant: "
+       << ((board.ep_square() == NULL_SQUARE) ? "-" : Output::square(board.ep_square())) << endl;
+    ss << "halfmove clock: " << int(board.half_move_count()) << endl;
+    ss << "fullmove clock: " << int(board.full_move_count()) << endl;
+    ss << "ply: " << board.get_game_ply() << endl;
+    ss << "FEN: " << Output::board_to_fen(board) << endl;
     return ss.str();
 }
 
@@ -133,6 +139,29 @@ string Output::movelist(const class MoveList& list, const class Board& board)
     return ss.str();
 }
 
+string Output::castling_rights(U8 castling_rights)
+{
+    stringstream ss;
+    if (castling_rights & WHITE_KING_SIDE)
+    {
+        ss << 'K';
+    }
+    if (castling_rights & WHITE_QUEEN_SIDE)
+    {
+        ss << 'Q';
+    }
+    if (castling_rights & BLACK_KING_SIDE)
+    {
+        ss << 'k';
+    }
+    if (castling_rights & BLACK_QUEEN_SIDE)
+    {
+        ss << 'q';
+    }
+
+    return ss.str();
+}
+
 string Output::board_to_fen(const class Board board)
 {
     stringstream fen;
@@ -171,6 +200,10 @@ string Output::board_to_fen(const class Board board)
     fen << ((board.side_to_move() == BLACK) ? 'b' : 'w');
     fen << ' ';
     U8 castling_rights = board.castling_rights();
+    if (castling_rights == 0)
+    {
+        fen << '-';
+    }
     if (castling_rights & WHITE_KING_SIDE)
     {
         fen << 'K';
@@ -200,7 +233,7 @@ string Output::board_to_fen(const class Board board)
     fen << ' ';
     fen << int(board.half_move_count());
     fen << ' ';
-    fen << '1';  // board.full_move_count();
+    fen << int(board.full_move_count());
 
     return fen.str();
 }

@@ -30,6 +30,7 @@ TEST_CASE("parser_can_parse_fen", "[parser]")
         REQUIRE(board[i] == expected_board_A[i]);
     }
     REQUIRE(board.half_move_count() == 0);
+    REQUIRE(board.full_move_count() == 1);
     REQUIRE(board.castling_rights() == FULL_CASTLING_RIGHTS);
     REQUIRE(board.ep_square() == NULL_SQUARE);
     REQUIRE(board.side_to_move() == WHITE);
@@ -56,6 +57,7 @@ TEST_CASE("parser_can_parse_fen", "[parser]")
         REQUIRE(board[i] == expected_board_B[i]);
     }
     REQUIRE(board.half_move_count() == 5);
+    REQUIRE(board.full_move_count() == 2);
     REQUIRE(board.castling_rights() == (WHITE_QUEEN_SIDE | BLACK_KING_SIDE | BLACK_QUEEN_SIDE));
     REQUIRE(board.ep_square() == A3);
     REQUIRE(board.side_to_move() == BLACK);

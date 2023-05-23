@@ -637,7 +637,7 @@ TEST_CASE("move_generator_can_add_all_moves", "[move generator]")
     list.reset();
 
     // check pinned slider
-    fen = "r1b1k2r/p1p2ppp/2p4q/4N1Q1/3NP3/3P4/PPP2nPP/R1K4R w   - 0 1";
+    fen = "r1b1k2r/p1p2ppp/2p4q/4N1Q1/3NP3/3P4/PPP2nPP/R1K4R w - - 0 1";
     board = Parser::parse_fen(fen);
     MoveGenerator::add_all_moves(list, board, WHITE);
     REQUIRE(list.length() == 35);
@@ -680,7 +680,7 @@ TEST_CASE("move_generator_can_add_all_moves", "[move generator]")
     list.reset();
 
     // En-passant discovered check
-    fen = "8/8/8/8/k2Pp2Q/8/8/3K4 b KQkq d3 0 1";
+    fen = "8/8/8/8/k2Pp2Q/8/8/3K4 b   d3 0 1";
     board = Parser::parse_fen(fen);
     MoveGenerator::add_all_moves(list, board, BLACK);
     REQUIRE(list.length() == 6);
@@ -737,20 +737,132 @@ TEST_CASE("move_generator_can_add_pawn_pin_ray_moves", "[move generator]")
     list.reset();
 }
 
-TEST_CASE("move_generator_can_add_castles", "[move generator]")
+TEST_CASE("move_generator_no_castles", "[move generator]")
 {
-    cout << "- Can add castles" << endl;
-    // TODO
-    // Board board;
-    // MoveList list;
-    // string fen;
+    cout << "- No castles" << endl;
 
-    // fen = "r3kbnr/p1p1pppp/p7/3q4/8/7P/PPPP1P1P/RNBQK2R w KQkq - 10 1";
-    // board = Parser::parse_fen(fen);
-    // MoveGenerator::add_castles(list, board, 1ULL << A8, WHITE);
-    // REQUIRE(list.length() == 1);
-    // REQUIRE(list.contains_valid_moves(board));
-    // REQUIRE(!list.contains_duplicates());
-    // REQUIRE(list.contains(build_castle(KING_SIDE)));
-    // list.reset();
+    Board board;
+    MoveList list;
+    string fen;
+    U64 attacks;
+
+    fen = "rnbqkbnr/8/8/8/8/8/8/R3K2R w -";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, WHITE, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, WHITE);
+    REQUIRE(list.length() == 0);
+    list.reset();
+
+    fen = "r3k2r/8/8/8/8/8/8/R3K2R b QK";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, BLACK, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, BLACK);
+    REQUIRE(list.length() == 0);
+    list.reset();
+}
+
+TEST_CASE("move_generator_can_castle", "[move generator]")
+{
+    cout << "- Can castle" << endl;
+
+    Board board;
+    MoveList list;
+    string fen;
+    U64 attacks;
+
+    fen = "rnbqkbnr/8/8/8/8/8/8/R3K2R w K";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, WHITE, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, WHITE);
+    REQUIRE(list.length() == 1);
+    REQUIRE(list.contains(build_castle(KING_CASTLE)));
+    list.reset();
+
+    fen = "r3kbnr/8/8/8/8/8/8/R3K2R b KQq";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, BLACK, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, BLACK);
+    REQUIRE(list.length() == 1);
+    REQUIRE(list.contains(build_castle(QUEEN_CASTLE)));
+    list.reset();
+}
+
+TEST_CASE("move_generator_cant_castle_when_blocked", "[move generator]")
+{
+    cout << "- Cannot castle when blocked" << endl;
+
+    Board board;
+    MoveList list;
+    string fen;
+    U64 attacks;
+
+    fen = "rnbqkbnr/8/8/8/8/8/8/Rn2K2R w Qkq";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, WHITE, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, WHITE);
+    REQUIRE(list.length() == 0);
+    list.reset();
+
+    fen = "rnbqkb1r/8/8/8/8/8/8/Rn2K2R b QKkq";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, BLACK, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, BLACK);
+    REQUIRE(list.length() == 0);
+    list.reset();
+}
+
+TEST_CASE("move_generator_cant_castle_when_king_passes_through_attack_1", "[move generator]")
+{
+    cout << "- Cannot castle when king passes through attack 1" << endl;
+
+    Board board;
+    MoveList list;
+    string fen;
+    U64 attacks;
+
+    fen = "rnbqkbnr/pppppppp/3r4/8/8/8/8/R3K2R w Qkq";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, WHITE, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, WHITE);
+    REQUIRE(list.length() == 0);
+    list.reset();
+}
+
+TEST_CASE("move_generator_cant_castle_when_king_passes_through_attack_2", "[move generator]")
+{
+    cout << "- Cannot castle when king passes through attack 2" << endl;
+
+    Board board;
+    MoveList list;
+    string fen;
+    U64 attacks;
+
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/1n6/R3K2R w Qkq";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, WHITE, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, WHITE);
+    cout << Output::board(board);
+    cout << Output::movelist(list, board) << endl;
+    REQUIRE(list.length() == 0);
+    list.reset();
+}
+
+TEST_CASE("move_generator_cant_castle_when_rook_passes_through_attack", "[move generator]")
+{
+    cout << "- Cannot castle when rook passes through attack" << endl;
+
+    Board board;
+    MoveList list;
+    string fen;
+    U64 attacks;
+
+    fen = "rnbqkbnr/pppppppp/1r6/8/8/8/8/R3K2R w Qkq";
+    board = Parser::parse_fen(fen);
+    attacks = MoveGenerator::get_king_danger_squares(board, WHITE, 0ULL);
+    MoveGenerator::add_castles(list, board, attacks, WHITE);
+    cout << Output::board(board);
+    cout << Output::movelist(list, board) << endl;
+    REQUIRE(list.length() == 1);
+    REQUIRE(list.contains(build_castle(QUEEN_CASTLE)));
+    list.reset();
 }
