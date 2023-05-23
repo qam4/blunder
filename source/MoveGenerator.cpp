@@ -912,6 +912,7 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
     U64 pinners = mgp.pinners;
     int king_attacks_count = pop_count(checkers);
 
+    // cout << "board\n" << Output::board(board) << endl;
     // cout << "checkers\n" << Output::bitboard(checkers) << endl;
     // cout << "pinned\n" << Output::bitboard(pinned) << endl;
     // cout << "pinners\n" << Output::bitboard(pinners) << endl;

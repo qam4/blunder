@@ -637,10 +637,10 @@ TEST_CASE("move_generator_can_add_all_moves", "[move generator]")
     list.reset();
 
     // check pinned slider
-    fen = "r1b1k2r/p1p2ppp/2p4q/4N1Q1/3NP3/3P4/PPP2nPP/R1K4R w KQkq - 0 1";
+    fen = "r1b1k2r/p1p2ppp/2p4q/4N1Q1/3NP3/3P4/PPP2nPP/R1K4R w   - 0 1";
     board = Parser::parse_fen(fen);
     MoveGenerator::add_all_moves(list, board, WHITE);
-    REQUIRE(list.length() == 36);
+    REQUIRE(list.length() == 35);
     REQUIRE(list.contains_valid_moves(board));
     REQUIRE(!list.contains_duplicates());
     list.reset();

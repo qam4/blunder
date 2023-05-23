@@ -117,7 +117,7 @@ void Board::do_move(Move_t move)
         {
             if (irrev.side_to_move == WHITE)
             {
-#ifdef NDEBUG
+#ifndef NDEBUG
                 assert(board_array[A1] == WHITE_ROOK);
                 assert(board_array[E1] == WHITE_KING);
 #endif
@@ -125,11 +125,11 @@ void Board::do_move(Move_t move)
                 remove_piece(E1);
                 add_piece(WHITE_KING, A1);
                 add_piece(WHITE_ROOK, E1);
-                irrev.castling_rights &= ~(WHITE_QUEEN_SIDE | WHITE_KING_SIDE);
+                irrev.castling_rights &= static_cast<U8>(~(WHITE_QUEEN_SIDE | WHITE_KING_SIDE));
             }
             else
             {
-#ifdef NDEBUG
+#ifndef NDEBUG
                 assert(board_array[A8] == BLACK_ROOK);
                 assert(board_array[E8] == BLACK_KING);
 #endif
@@ -137,14 +137,14 @@ void Board::do_move(Move_t move)
                 remove_piece(E8);
                 add_piece(BLACK_KING, A8);
                 add_piece(BLACK_ROOK, E8);
-                irrev.castling_rights &= ~(BLACK_QUEEN_SIDE | BLACK_KING_SIDE);
+                irrev.castling_rights &= static_cast<U8>(~(BLACK_QUEEN_SIDE | BLACK_KING_SIDE));
             }
         }
         else
         {
             if (irrev.side_to_move == WHITE)
             {
-#ifdef NDEBUG
+#ifndef NDEBUG
                 assert(board_array[H1] == WHITE_ROOK);
                 assert(board_array[E1] == WHITE_KING);
 #endif
@@ -152,11 +152,11 @@ void Board::do_move(Move_t move)
                 remove_piece(E1);
                 add_piece(WHITE_KING, H1);
                 add_piece(WHITE_ROOK, E1);
-                irrev.castling_rights &= ~(WHITE_QUEEN_SIDE | WHITE_KING_SIDE);
+                irrev.castling_rights &= static_cast<U8>(~(WHITE_QUEEN_SIDE | WHITE_KING_SIDE));
             }
             else
             {
-#ifdef NDEBUG
+#ifndef NDEBUG
                 assert(board_array[H8] == BLACK_ROOK);
                 assert(board_array[E8] == BLACK_KING);
 #endif
@@ -164,7 +164,7 @@ void Board::do_move(Move_t move)
                 remove_piece(E8);
                 add_piece(BLACK_KING, H8);
                 add_piece(BLACK_ROOK, E8);
-                irrev.castling_rights &= ~(BLACK_QUEEN_SIDE | BLACK_KING_SIDE);
+                irrev.castling_rights &= static_cast<U8>(~(BLACK_QUEEN_SIDE | BLACK_KING_SIDE));
             }
         }
     }
@@ -197,19 +197,19 @@ void Board::do_move(Move_t move)
     // Update castling rights
     if ((board_array[A1] != WHITE_ROOK) || (board_array[E1] != WHITE_KING))
     {
-        irrev.castling_rights &= ~(WHITE_QUEEN_SIDE);
+        irrev.castling_rights &= static_cast<U8>(~(WHITE_QUEEN_SIDE));
     }
     if ((board_array[H1] != WHITE_ROOK) || (board_array[E1] != WHITE_KING))
     {
-        irrev.castling_rights &= ~(WHITE_KING_SIDE);
+        irrev.castling_rights &= static_cast<U8>(~(WHITE_KING_SIDE));
     }
     if ((board_array[A8] != BLACK_ROOK) || (board_array[E8] != BLACK_KING))
     {
-        irrev.castling_rights &= ~(BLACK_QUEEN_SIDE);
+        irrev.castling_rights &= static_cast<U8>(~(BLACK_QUEEN_SIDE));
     }
     if ((board_array[H8] != BLACK_ROOK) || (board_array[E8] != BLACK_KING))
     {
-        irrev.castling_rights &= ~(BLACK_KING_SIDE);
+        irrev.castling_rights &= static_cast<U8>(~(BLACK_KING_SIDE));
     }
 
     // update flags
@@ -243,7 +243,7 @@ void Board::undo_move(Move_t move)
         {
             if (irrev.side_to_move == WHITE)
             {
-#ifdef NDEBUG
+#ifndef NDEBUG
                 assert(board_array[A1] == WHITE_KING);
                 assert(board_array[E1] == WHITE_ROOK);
 #endif
@@ -254,7 +254,7 @@ void Board::undo_move(Move_t move)
             }
             else
             {
-#ifdef NDEBUG
+#ifndef NDEBUG
                 assert(board_array[A8] == BLACK_KING);
                 assert(board_array[E8] == BLACK_ROOK);
 #endif
@@ -268,7 +268,7 @@ void Board::undo_move(Move_t move)
         {
             if (irrev.side_to_move == WHITE)
             {
-#ifdef NDEBUG
+#ifndef NDEBUG
                 assert(board_array[H1] == WHITE_KING);
                 assert(board_array[E1] == WHITE_ROOK);
 #endif
@@ -279,7 +279,7 @@ void Board::undo_move(Move_t move)
             }
             else
             {
-#ifdef NDEBUG
+#ifndef NDEBUG
                 assert(board_array[H8] == BLACK_KING);
                 assert(board_array[E8] == BLACK_ROOK);
 #endif

@@ -12,6 +12,7 @@ string static is_valid_move_err(Move_t move, const class Board& board);
 
 bool is_valid_move(Move_t move, const class Board& board, bool check_legal)
 {
+    // cout << "Validating " << Output::move(move, board) << "..." << endl;
     string error = is_valid_move_err(move, board);
     if (error == "")
     {
