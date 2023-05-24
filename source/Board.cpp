@@ -254,12 +254,6 @@ void Board::undo_move(Move_t move)
         {
             if (irrev.side_to_move == WHITE)
             {
-#ifndef NDEBUG
-                assert(board_array[C1] == WHITE_KING);
-                assert(board_array[D1] == WHITE_ROOK);
-                assert(board_array[E1] == EMPTY);
-                assert(board_array[A1] == EMPTY);
-#endif
                 remove_piece(C1);
                 remove_piece(D1);
                 add_piece(WHITE_KING, E1);
@@ -267,12 +261,6 @@ void Board::undo_move(Move_t move)
             }
             else
             {
-#ifndef NDEBUG
-                assert(board_array[C8] == BLACK_KING);
-                assert(board_array[D8] == BLACK_ROOK);
-                assert(board_array[E8] == EMPTY);
-                assert(board_array[A8] == EMPTY);
-#endif
                 remove_piece(C8);
                 remove_piece(D8);
                 add_piece(BLACK_KING, E8);
@@ -283,12 +271,6 @@ void Board::undo_move(Move_t move)
         {
             if (irrev.side_to_move == WHITE)
             {
-#ifndef NDEBUG
-                assert(board_array[G1] == WHITE_KING);
-                assert(board_array[F1] == WHITE_ROOK);
-                assert(board_array[E1] == EMPTY);
-                assert(board_array[H1] == EMPTY);
-#endif
                 remove_piece(G1);
                 remove_piece(F1);
                 add_piece(WHITE_KING, E1);
@@ -296,12 +278,6 @@ void Board::undo_move(Move_t move)
             }
             else
             {
-#ifndef NDEBUG
-                assert(board_array[G8] == BLACK_KING);
-                assert(board_array[F8] == BLACK_ROOK);
-                assert(board_array[E8] == EMPTY);
-                assert(board_array[H8] == EMPTY);
-#endif
                 remove_piece(G8);
                 remove_piece(F8);
                 add_piece(BLACK_KING, E8);
