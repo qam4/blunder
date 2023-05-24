@@ -26,6 +26,7 @@ add_executable(blunder_test
     source/TestMoveList.cpp
     source/TestMoveGenerator.cpp
     source/TestZobrist.cpp
+    source/TestPerft.cpp
     source/TestsRunner.cpp
     )
 target_link_libraries(blunder_test PRIVATE blunder_lib)

@@ -13,6 +13,7 @@
 #include "MoveList.h"
 #include "Output.h"
 #include "Parser.h"
+#include "Perft.h"
 #include "ValidateMove.h"
 
 using namespace std;
@@ -35,7 +36,12 @@ vector<string> split(const string& s, const char delimiter)
 int main()
 {
 #if 0
+    cout << "Generating lookup tables..." << endl;
     MoveGenerator::generate_move_lookup_tables();
+#endif
+#if 0
+    cout << "Perft..." << endl;
+    perft_benchmark("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 6);
 #endif
 
     bool computer_plays[2] = { false };

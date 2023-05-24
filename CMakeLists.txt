@@ -32,6 +32,7 @@ add_library(
     source/ValidateMove.cpp
     source/Hash.cpp
     source/PrincipalVariation.cpp
+    source/Perft.cpp
 )
 
 target_include_directories(
