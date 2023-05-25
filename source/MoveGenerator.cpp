@@ -146,8 +146,7 @@ U64 MoveGenerator::flip_vertical(U64 x)
  */
 U64 MoveGenerator::byteswap(U64 x)
 {
-#if 0
-    //  __builtin_bswap64()
+#if defined(__GNUC__)
     return (__builtin_bswap64(x));
 #endif
     return flip_vertical(x);

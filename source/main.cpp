@@ -39,7 +39,7 @@ int main()
     cout << "Generating lookup tables..." << endl;
     MoveGenerator::generate_move_lookup_tables();
 #endif
-#if 0
+#if 1
     cout << "Perft..." << endl;
     perft_benchmark("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 6);
 #endif
