@@ -146,8 +146,7 @@ U64 MoveGenerator::flip_vertical(U64 x)
  */
 U64 MoveGenerator::byteswap(U64 x)
 {
-#if 0
-    //  __builtin_bswap64()
+#if defined(__GNUC__)
     return (__builtin_bswap64(x));
 #endif
     return flip_vertical(x);
@@ -176,17 +175,17 @@ U64 MoveGenerator::mirror_horizontal(U64 x)
 // https://www.chessprogramming.org/Sliding_Piece_Attacks
 
 // Ray Masks (should be turned into lookup tables)
-U64 MoveGenerator::rank_mask(int sq)
+U64 MoveGenerator::rank_mask_calc(int sq)
 {
     return C64(0xff) << (sq & 56);
 }
 
-U64 MoveGenerator::file_mask(int sq)
+U64 MoveGenerator::file_mask_calc(int sq)
 {
     return C64(0x0101010101010101) << (sq & 7);
 }
 
-U64 MoveGenerator::diag_mask(int sq)
+U64 MoveGenerator::diag_mask_calc(int sq)
 {
     const U64 maindia = C64(0x8040201008040201);
     int diag = 8 * (sq & 7) - (sq & 56);
@@ -195,7 +194,7 @@ U64 MoveGenerator::diag_mask(int sq)
     return (maindia >> sout) << nort;
 }
 
-U64 MoveGenerator::anti_diag_mask(int sq)
+U64 MoveGenerator::anti_diag_mask_calc(int sq)
 {
     const U64 maindia = C64(0x0102040810204080);
     int diag = 56 - 8 * (sq & 7) - (sq & 56);
@@ -204,29 +203,92 @@ U64 MoveGenerator::anti_diag_mask(int sq)
     return (maindia >> sout) << nort;
 }
 // excluding the square bit:
+U64 MoveGenerator::rank_mask_ex_calc(int sq)
+{
+    return (C64(1) << sq) ^ rank_mask_calc(sq);
+}
+U64 MoveGenerator::file_mask_ex_calc(int sq)
+{
+    return (C64(1) << sq) ^ file_mask_calc(sq);
+}
+U64 MoveGenerator::diag_mask_ex_calc(int sq)
+{
+    return (C64(1) << sq) ^ diag_mask_calc(sq);
+}
+U64 MoveGenerator::anti_diag_mask_ex_calc(int sq)
+{
+    return (C64(1) << sq) ^ anti_diag_mask_calc(sq);
+}
+
+U64 MoveGenerator::rook_mask_calc(int sq)
+{
+    return rank_mask_calc(sq) | file_mask_calc(sq);
+}
+U64 MoveGenerator::bishop_mask_calc(int sq)
+{
+    return diag_mask_calc(sq) | anti_diag_mask_calc(sq);
+}
+U64 MoveGenerator::rook_mask_ex_calc(int sq)
+{
+    return rank_mask_calc(sq) ^ file_mask_calc(sq);
+}
+U64 MoveGenerator::bishop_mask_ex_calc(int sq)
+{
+    return diag_mask_calc(sq) ^ anti_diag_mask_calc(sq);
+}
+
+U64 MoveGenerator::rank_mask(int sq)
+{
+    return RANK_MASK[sq];
+}
+
+U64 MoveGenerator::file_mask(int sq)
+{
+    return FILE_MASK[sq];
+}
+
+U64 MoveGenerator::diag_mask(int sq)
+{
+    return DIAG_MASK[sq];
+}
+
+U64 MoveGenerator::anti_diag_mask(int sq)
+{
+    return ANTI_DIAG_MASK[sq];
+}
+
 U64 MoveGenerator::rank_mask_ex(int sq)
 {
-    return (C64(1) << sq) ^ rank_mask(sq);
+    return RANK_MASK_EX[sq];
 }
 U64 MoveGenerator::file_mask_ex(int sq)
 {
-    return (C64(1) << sq) ^ file_mask(sq);
+    return FILE_MASK_EX[sq];
 }
 U64 MoveGenerator::diag_mask_ex(int sq)
 {
-    return (C64(1) << sq) ^ diag_mask(sq);
+    return DIAG_MASK_EX[sq];
 }
 U64 MoveGenerator::anti_diag_mask_ex(int sq)
 {
-    return (C64(1) << sq) ^ anti_diag_mask(sq);
+    return ANTI_DIAG_MASK_EX[sq];
 }
-
-#if 0
-U64 MoveGenerator::rookMask    (int sq) {return rank_mask(sq)     | file_mask(sq);}
-U64 MoveGenerator::bishopMask  (int sq) {return diagonalMask(sq) | anti_diag_mask(sq);}
-U64 MoveGenerator::rookMaskEx  (int sq) {return rank_mask(sq)     ^ file_mask(sq);}
-U64 MoveGenerator::bishopMaskEx(int sq) {return diagonalMask(sq) ^ anti_diag_mask(sq);}
-#endif
+U64 MoveGenerator::rook_mask(int sq)
+{
+    return ROOK_MASK[sq];
+}
+U64 MoveGenerator::bishop_mask(int sq)
+{
+    return BISHOP_MASK[sq];
+}
+U64 MoveGenerator::rook_mask_ex(int sq)
+{
+    return ROOK_MASK_EX[sq];
+}
+U64 MoveGenerator::bishop_mask_ex(int sq)
+{
+    return BISHOP_MASK_EX[sq];
+}
 
 // https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks
 U64 MoveGenerator::diag_attacks(U64 occ, int sq)
@@ -305,6 +367,16 @@ U64 MoveGenerator::rank_attacks(U64 occ, int sq)
     return forward;
 }
 
+U64 MoveGenerator::rook_attacks(U64 occ, int sq)
+{
+    return file_attacks(occ, sq) + rank_attacks(occ, sq);
+}
+
+U64 MoveGenerator::bishop_attacks(U64 occ, int sq)
+{
+    return diag_attacks(occ, sq) + anti_diag_attacks(occ, sq);
+}
+
 bool MoveGenerator::ep_move_discovers_check(const class Board& board,
                                             U64 from_bb,
                                             U64 to_bb,
@@ -347,7 +419,7 @@ void MoveGenerator::add_rook_moves(class MoveList& list, const class Board& boar
 
         U64 targets;
         // Add file and rank attacks
-        targets = file_attacks(occupied, from) + rank_attacks(occupied, from);
+        targets = rook_attacks(occupied, from);
         targets &= ~(friendly);
         add_moves(from, targets, list, board, NO_FLAGS);
 
@@ -368,7 +440,7 @@ void MoveGenerator::add_bishop_moves(class MoveList& list, const class Board& bo
 
         U64 targets;
         // Add diagonal and antidiagonal attacks
-        targets = diag_attacks(occupied, from) + anti_diag_attacks(occupied, from);
+        targets = bishop_attacks(occupied, from);
         targets &= ~(friendly);
         add_moves(from, targets, list, board, NO_FLAGS);
 
@@ -388,8 +460,7 @@ void MoveGenerator::add_queen_moves(class MoveList& list, const class Board& boa
 
         U64 targets;
         // Add diagonal, antidiagonal, file and rank attacks
-        targets = diag_attacks(occupied, from) + anti_diag_attacks(occupied, from)
-            + file_attacks(occupied, from) + rank_attacks(occupied, from);
+        targets = bishop_attacks(occupied, from) + rook_attacks(occupied, from);
         targets &= ~(friendly);
         add_moves(from, targets, list, board, NO_FLAGS);
 
@@ -606,7 +677,7 @@ void MoveGenerator::add_pawn_pin_ray_moves(class MoveList& list,
 
     int diff = pushes_diffs[side];
     U64 can_push = movers & file_mask(king_sq);
-    U64 king_diags = diag_mask_ex(king_sq) | anti_diag_mask_ex(king_sq);  // bishop_rays()
+    U64 king_diags = bishop_mask_ex(king_sq);
     U64 can_capture = movers & king_diags;
 
     // For pinned pawns, only possible moves are those along the king file
@@ -690,7 +761,7 @@ void MoveGenerator::add_slider_legal_moves(class MoveList& list,
     {
         U8 from = bit_scan_forward(attackers);
         // Add file and rank attacks
-        U64 targets = file_attacks(occupied, from) + rank_attacks(occupied, from);
+        U64 targets = rook_attacks(occupied, from);
         add_moves(from, targets & capture_mask, list, board, NO_FLAGS);
         add_moves(from, targets & push_mask, list, board, NO_FLAGS);
         attackers &= attackers - 1;
@@ -704,7 +775,7 @@ void MoveGenerator::add_slider_legal_moves(class MoveList& list,
         U8 from = bit_scan_forward(attackers);
         // Add file and rank attacks along the line between the king and slider
         U64 ray_mask = lines_along(from, king_sq);
-        U64 targets = (file_attacks(occupied, from) + rank_attacks(occupied, from)) & ray_mask;
+        U64 targets = rook_attacks(occupied, from) & ray_mask;
         add_moves(from, targets & capture_mask, list, board, NO_FLAGS);
         add_moves(from, targets & push_mask, list, board, NO_FLAGS);
         attackers &= attackers - 1;
@@ -715,7 +786,7 @@ void MoveGenerator::add_slider_legal_moves(class MoveList& list,
     {
         U8 from = bit_scan_forward(attackers);
         // Add diag and anti-diag attacks
-        U64 targets = diag_attacks(occupied, from) + anti_diag_attacks(occupied, from);
+        U64 targets = bishop_attacks(occupied, from);
         add_moves(from, targets & capture_mask, list, board, NO_FLAGS);
         add_moves(from, targets & push_mask, list, board, NO_FLAGS);
         attackers &= attackers - 1;
@@ -727,7 +798,7 @@ void MoveGenerator::add_slider_legal_moves(class MoveList& list,
         U8 from = bit_scan_forward(attackers);
         // Add diag and anti-diag attacks along the line between the king and slider
         U64 ray_mask = lines_along(from, king_sq);
-        U64 targets = (diag_attacks(occupied, from) + anti_diag_attacks(occupied, from)) & ray_mask;
+        U64 targets = bishop_attacks(occupied, from) & ray_mask;
         add_moves(from, targets & capture_mask, list, board, NO_FLAGS);
         add_moves(from, targets & push_mask, list, board, NO_FLAGS);
         attackers &= attackers - 1;
@@ -834,7 +905,7 @@ U64 MoveGenerator::rook_targets(U64 from, U64 occupied)
         U8 sq = bit_scan_forward(from);
 
         // Add file and rank attacks
-        targets |= file_attacks(occupied, sq) + rank_attacks(occupied, sq);
+        targets |= rook_attacks(occupied, sq);
         from &= from - 1;
     }
     return targets;
@@ -848,7 +919,7 @@ U64 MoveGenerator::bishop_targets(U64 from, U64 occupied)
         U8 sq = bit_scan_forward(from);
 
         // Add diagonal and antidiagonal attacks
-        targets |= diag_attacks(occupied, sq) + anti_diag_attacks(occupied, sq);
+        targets |= bishop_attacks(occupied, sq);
         from &= from - 1;
     }
     return targets;
@@ -1019,127 +1090,6 @@ void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
     }
 }
 
-#define INDENT "    "
-void MoveGenerator::generate_move_lookup_tables()
-{
-    cout << "GENERATING LOOKUP TABLES FOR KNIGHT MOVES" << endl;
-    cout << "const U64 KNIGHT_LOOKUP_TABLE[64] = {" << endl << INDENT;
-    for (int row = 0; row < 8; row++)
-    {
-        for (int file = 0; file < 8; file++)
-        {
-            int square = row * 8 + file;
-            // calculate each one individually starting with up1 left2 and working clockwise
-            U64 targets = 0ULL;
-            if (file >= 2 && row <= 6)
-            {
-                targets |= 1ULL << (square + 8 - 2);
-            }
-            if (file >= 1 && row <= 5)
-            {
-                targets |= 1ULL << (square + 16 - 1);
-            }
-            if (file <= 6 && row <= 5)
-            {
-                targets |= 1ULL << (square + 16 + 1);
-            }
-            if (file <= 5 && row <= 6)
-            {
-                targets |= 1ULL << (square + 8 + 2);
-            }
-            if (file >= 2 && row >= 1)
-            {
-                targets |= 1ULL << (square - 8 - 2);
-            }
-            if (file >= 1 && row >= 2)
-            {
-                targets |= 1ULL << (square - 16 - 1);
-            }
-            if (file <= 6 && row >= 2)
-            {
-                targets |= 1ULL << (square - 16 + 1);
-            }
-            if (file <= 5 && row >= 1)
-            {
-                targets |= 1ULL << (square - 8 + 2);
-            }
-            printf("0x%016llXULL", targets);
-            cout << ", ";
-            if (file == 3)
-                cout << endl << INDENT;
-        }
-        cout << endl << INDENT;
-    }
-    cout << "};" << endl;
-    cout << "GENERATING LOOKUP TABLES FOR KING MOVES" << endl;
-    cout << "const U64 KING_LOOKUP_TABLE[64] = {" << endl << INDENT;
-    for (int row = 0; row < 8; row++)
-    {
-        for (int file = 0; file < 8; file++)
-        {
-            int square = row * 8 + file;
-            // calculate each one individually starting with up1 left1 and working clockwise
-            U64 targets = 0ULL;
-            if (file >= 1 && row <= 6)
-                targets |= 1ULL << (square + 7);
-            if (row <= 6)
-                targets |= 1ULL << (square + 8);
-            if (file <= 6 && row <= 6)
-                targets |= 1ULL << (square + 9);
-            if (file <= 6)
-                targets |= 1ULL << (square + 1);
-            if (file <= 6 && row >= 1)
-                targets |= 1ULL << (square - 7);
-            if (row >= 1)
-                targets |= 1ULL << (square - 8);
-            if (file >= 1 && row >= 1)
-                targets |= 1ULL << (square - 9);
-            if (file >= 1)
-                targets |= 1ULL << (square - 1);
-            printf("0x%016llXULL", targets);
-            cout << ", ";
-            if (file == 3)
-                cout << endl << INDENT;
-        }
-        cout << endl << INDENT;
-    }
-    cout << "};" << endl;
-    cout << "GENERATING LOOKUP TABLES FOR SQUARES BETWEEN" << endl;
-    cout << "const U64 SQUARES_BETWEEN[64][64] = {" << endl << INDENT;
-    for (U8 from = 0; from < 64; from++)
-    {
-        cout << "{ ";
-        for (U8 to = 0; to < 64; to++)
-        {
-            if (to % 4 == 0)
-                cout << endl << INDENT << INDENT;
-            U64 between = squares_between_calc(from, to);
-            printf("0x%016llXULL, ", between);
-        }
-        cout << endl << INDENT << INDENT;
-        cout << "},";
-        cout << endl << INDENT;
-    }
-    cout << "};" << endl;
-    cout << "GENERATING LOOKUP TABLES FOR LINES ALONG" << endl;
-    cout << "const U64 LINES_ALONG[64][64] = {" << endl << INDENT;
-    for (U8 from = 0; from < 64; from++)
-    {
-        cout << "{ ";
-        for (U8 to = 0; to < 64; to++)
-        {
-            if (to % 4 == 0)
-                cout << endl << INDENT << INDENT;
-            U64 lines = lines_along_calc(from, to);
-            printf("0x%016llXULL, ", lines);
-        }
-        cout << endl << INDENT << INDENT;
-        cout << "},";
-        cout << endl << INDENT;
-    }
-    cout << "};" << endl;
-}
-
 U64 MoveGenerator::get_checkers(const class Board& board, const U8 side)
 {
     const int diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
@@ -1180,10 +1130,8 @@ U64 MoveGenerator::get_checkers(const class Board& board, const U8 side)
     U64 diag_attackers = queens | bishops;
     U64 non_diag_attackers = queens | rooks;
 
-    checkers |=
-        (file_attacks(occupied, king_sq) | rank_attacks(occupied, king_sq)) & non_diag_attackers;
-    checkers |=
-        (diag_attacks(occupied, king_sq) | anti_diag_attacks(occupied, king_sq)) & diag_attackers;
+    checkers |= rook_attacks(occupied, king_sq) & non_diag_attackers;
+    checkers |= bishop_attacks(occupied, king_sq) & diag_attackers;
 
     return checkers;
 }
@@ -1230,10 +1178,8 @@ MoveGenPreprocessing MoveGenerator::get_checkers_and_pinned(const class Board& b
     U64 non_diag_attackers = queens | rooks;
 
     U64 potential_king_attackers = BB_EMPTY;
-    potential_king_attackers |=
-        (file_mask_ex(king_sq) | rank_mask_ex(king_sq)) & non_diag_attackers;
-    potential_king_attackers |=
-        (diag_mask_ex(king_sq) | anti_diag_mask_ex(king_sq)) & diag_attackers;
+    potential_king_attackers |= rook_mask_ex(king_sq) & non_diag_attackers;
+    potential_king_attackers |= bishop_mask_ex(king_sq) & diag_attackers;
     potential_king_attackers &= occupied;
 
     while (potential_king_attackers)
@@ -1295,4 +1241,311 @@ U64 MoveGenerator::get_king_danger_squares(const class Board& board, const U8 si
     attacked_squares |= pawn_targets(pawns, attacker_side);
 
     return attacked_squares;
+}
+
+#define INDENT "    "
+void MoveGenerator::generate_move_lookup_tables()
+{
+    cout << "// LOOKUP TABLE FOR KNIGHT MOVES" << endl;
+    cout << "const U64 KNIGHT_LOOKUP_TABLE[64] = {" << endl << INDENT;
+    for (int row = 0; row < 8; row++)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            int square = row * 8 + file;
+            // calculate each one individually starting with up1 left2 and working clockwise
+            U64 targets = 0ULL;
+            if (file >= 2 && row <= 6)
+            {
+                targets |= 1ULL << (square + 8 - 2);
+            }
+            if (file >= 1 && row <= 5)
+            {
+                targets |= 1ULL << (square + 16 - 1);
+            }
+            if (file <= 6 && row <= 5)
+            {
+                targets |= 1ULL << (square + 16 + 1);
+            }
+            if (file <= 5 && row <= 6)
+            {
+                targets |= 1ULL << (square + 8 + 2);
+            }
+            if (file >= 2 && row >= 1)
+            {
+                targets |= 1ULL << (square - 8 - 2);
+            }
+            if (file >= 1 && row >= 2)
+            {
+                targets |= 1ULL << (square - 16 - 1);
+            }
+            if (file <= 6 && row >= 2)
+            {
+                targets |= 1ULL << (square - 16 + 1);
+            }
+            if (file <= 5 && row >= 1)
+            {
+                targets |= 1ULL << (square - 8 + 2);
+            }
+            printf("0x%016llXULL", targets);
+            cout << ", ";
+            if (file == 3)
+                cout << endl << INDENT;
+        }
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
+
+    cout << "// LOOKUP TABLE FOR KING MOVES" << endl;
+    cout << "const U64 KING_LOOKUP_TABLE[64] = {" << endl << INDENT;
+    for (int row = 0; row < 8; row++)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            int square = row * 8 + file;
+            // calculate each one individually starting with up1 left1 and working clockwise
+            U64 targets = 0ULL;
+            if (file >= 1 && row <= 6)
+                targets |= 1ULL << (square + 7);
+            if (row <= 6)
+                targets |= 1ULL << (square + 8);
+            if (file <= 6 && row <= 6)
+                targets |= 1ULL << (square + 9);
+            if (file <= 6)
+                targets |= 1ULL << (square + 1);
+            if (file <= 6 && row >= 1)
+                targets |= 1ULL << (square - 7);
+            if (row >= 1)
+                targets |= 1ULL << (square - 8);
+            if (file >= 1 && row >= 1)
+                targets |= 1ULL << (square - 9);
+            if (file >= 1)
+                targets |= 1ULL << (square - 1);
+            printf("0x%016llXULL", targets);
+            cout << ", ";
+            if (file == 3)
+                cout << endl << INDENT;
+        }
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
+
+    cout << "// LOOKUP TABLES FOR SLIDERS" << endl;
+    cout << "const U64 RANK_MASK[64] = {" << endl << INDENT;
+    for (int row = 0; row < 8; row++)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            int square = row * 8 + file;
+            U64 targets = rank_mask_calc(square);
+            printf("0x%016llXULL", targets);
+            cout << ", ";
+            if (file == 3)
+                cout << endl << INDENT;
+        }
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
+    cout << "const U64 FILE_MASK[64] = {" << endl << INDENT;
+    for (int row = 0; row < 8; row++)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            int square = row * 8 + file;
+            U64 targets = file_mask_calc(square);
+            printf("0x%016llXULL", targets);
+            cout << ", ";
+            if (file == 3)
+                cout << endl << INDENT;
+        }
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
+    cout << "const U64 DIAG_MASK[64] = {" << endl << INDENT;
+    for (int row = 0; row < 8; row++)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            int square = row * 8 + file;
+            U64 targets = diag_mask_calc(square);
+            printf("0x%016llXULL", targets);
+            cout << ", ";
+            if (file == 3)
+                cout << endl << INDENT;
+        }
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
+    cout << "const U64 ANTI_DIAG_MASK[64] = {" << endl << INDENT;
+    for (int row = 0; row < 8; row++)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            int square = row * 8 + file;
+            U64 targets = anti_diag_mask_calc(square);
+            printf("0x%016llXULL", targets);
+            cout << ", ";
+            if (file == 3)
+                cout << endl << INDENT;
+        }
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
+    cout << "const U64 ROOK_MASK[64] = {" << endl << INDENT;
+    for (int row = 0; row < 8; row++)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            int square = row * 8 + file;
+            U64 targets = rook_mask_calc(square);
+            printf("0x%016llXULL", targets);
+            cout << ", ";
+            if (file == 3)
+                cout << endl << INDENT;
+        }
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
+    cout << "const U64 BISHOP_MASK[64] = {" << endl << INDENT;
+    for (int row = 0; row < 8; row++)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            int square = row * 8 + file;
+            U64 targets = bishop_mask_calc(square);
+            printf("0x%016llXULL", targets);
+            cout << ", ";
+            if (file == 3)
+                cout << endl << INDENT;
+        }
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
+
+    cout << "const U64 RANK_MASK_EX[64] = {" << endl << INDENT;
+    for (int row = 0; row < 8; row++)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            int square = row * 8 + file;
+            U64 targets = rank_mask_ex_calc(square);
+            printf("0x%016llXULL", targets);
+            cout << ", ";
+            if (file == 3)
+                cout << endl << INDENT;
+        }
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
+    cout << "const U64 FILE_MASK_EX[64] = {" << endl << INDENT;
+    for (int row = 0; row < 8; row++)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            int square = row * 8 + file;
+            U64 targets = file_mask_ex_calc(square);
+            printf("0x%016llXULL", targets);
+            cout << ", ";
+            if (file == 3)
+                cout << endl << INDENT;
+        }
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
+    cout << "const U64 DIAG_MASK_EX[64] = {" << endl << INDENT;
+    for (int row = 0; row < 8; row++)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            int square = row * 8 + file;
+            U64 targets = diag_mask_ex_calc(square);
+            printf("0x%016llXULL", targets);
+            cout << ", ";
+            if (file == 3)
+                cout << endl << INDENT;
+        }
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
+    cout << "const U64 ANTI_DIAG_MASK_EX[64] = {" << endl << INDENT;
+    for (int row = 0; row < 8; row++)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            int square = row * 8 + file;
+            U64 targets = anti_diag_mask_ex_calc(square);
+            printf("0x%016llXULL", targets);
+            cout << ", ";
+            if (file == 3)
+                cout << endl << INDENT;
+        }
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
+    cout << "const U64 ROOK_MASK_EX[64] = {" << endl << INDENT;
+    for (int row = 0; row < 8; row++)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            int square = row * 8 + file;
+            U64 targets = rook_mask_ex_calc(square);
+            printf("0x%016llXULL", targets);
+            cout << ", ";
+            if (file == 3)
+                cout << endl << INDENT;
+        }
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
+    cout << "const U64 BISHOP_MASK_EX[64] = {" << endl << INDENT;
+    for (int row = 0; row < 8; row++)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            int square = row * 8 + file;
+            U64 targets = bishop_mask_ex_calc(square);
+            printf("0x%016llXULL", targets);
+            cout << ", ";
+            if (file == 3)
+                cout << endl << INDENT;
+        }
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
+
+    // cout << "// LOOKUP TABLE FOR SQUARES BETWEEN" << endl;
+    // cout << "const U64 SQUARES_BETWEEN[64][64] = {" << endl << INDENT;
+    // for (U8 from = 0; from < 64; from++)
+    // {
+    //     cout << "{ ";
+    //     for (U8 to = 0; to < 64; to++)
+    //     {
+    //         if (to % 4 == 0)
+    //             cout << endl << INDENT << INDENT;
+    //         U64 between = squares_between_calc(from, to);
+    //         printf("0x%016llXULL, ", between);
+    //     }
+    //     cout << endl << INDENT << INDENT;
+    //     cout << "},";
+    //     cout << endl << INDENT;
+    // }
+    // cout << "};" << endl << endl;
+
+    // cout << "// LOOKUP TABLE FOR LINES ALONG" << endl;
+    // cout << "const U64 LINES_ALONG[64][64] = {" << endl << INDENT;
+    // for (U8 from = 0; from < 64; from++)
+    // {
+    //     cout << "{ ";
+    //     for (U8 to = 0; to < 64; to++)
+    //     {
+    //         if (to % 4 == 0)
+    //             cout << endl << INDENT << INDENT;
+    //         U64 lines = lines_along_calc(from, to);
+    //         printf("0x%016llXULL, ", lines);
+    //     }
+    //     cout << endl << INDENT << INDENT;
+    //     cout << "},";
+    //     cout << endl << INDENT;
+    // }
+    // cout << "};" << endl << endl;
 }

@@ -52,9 +52,13 @@ U8 inline bit_scan_forward(U64 bb)
 #ifndef NDEBUG
     assert(bb > 0);
 #endif
+#if defined(__GNUC__)
+    return static_cast<U8>(__builtin_ffsll(static_cast<long long>(bb)) - 1);
+#else
    const U64 debruijn64 = C64(0x07EDD5E59A4E28C2);
    const U64 neg_bb = (0 - bb);
    return index64[((bb & neg_bb) * debruijn64) >> 58];
+#endif
 }
 
 U64 inline circular_left_shift(U64 target, int shift)
@@ -122,6 +126,18 @@ private:
     static U64 lines_along(U8 sq1, U8 sq2);
     static U64 flip_vertical(U64 x);
     static U64 mirror_horizontal(U64 x);
+    static U64 rank_mask_calc(int sq);
+    static U64 file_mask_calc(int sq);
+    static U64 diag_mask_calc(int sq);
+    static U64 anti_diag_mask_calc(int sq);
+    static U64 rank_mask_ex_calc(int sq);
+    static U64 file_mask_ex_calc(int sq);
+    static U64 diag_mask_ex_calc(int sq);
+    static U64 anti_diag_mask_ex_calc(int sq);
+    static U64 rook_mask_calc(int sq);
+    static U64 rook_mask_ex_calc(int sq);
+    static U64 bishop_mask_calc(int sq);
+    static U64 bishop_mask_ex_calc(int sq);
     static U64 rank_mask(int sq);
     static U64 file_mask(int sq);
     static U64 diag_mask(int sq);
@@ -130,10 +146,16 @@ private:
     static U64 file_mask_ex(int sq);
     static U64 diag_mask_ex(int sq);
     static U64 anti_diag_mask_ex(int sq);
+    static U64 rook_mask(int sq);
+    static U64 rook_mask_ex(int sq);
+    static U64 bishop_mask(int sq);
+    static U64 bishop_mask_ex(int sq);
     static U64 diag_attacks(U64 occ, int sq);
     static U64 anti_diag_attacks(U64 occ, int sq);
     static U64 file_attacks(U64 occ, int sq);
     static U64 rank_attacks(U64 occ, int sq);
+    static U64 rook_attacks(U64 occ, int sq);
+    static U64 bishop_attacks(U64 occ, int sq);
 };
 
 #endif /* MOVEGENERATOR_H */

@@ -74,3 +74,47 @@ https://github.com/KierenP/Halogen/tree/master
 
 - CMAKE
 https://github.com/friendlyanon/cmake-init
+
+Dev notes:
+Comparing with peterellisjones / rust_move_gen
+https://github.com/peterellisjones/rust_move_gen
+-------------------------
+U64 MoveGenerator::get_king_danger_squares(const class Board& board, const U8 side, U64 king)
+  U64 MoveGenerator::bishop_targets(U64 from, U64 occupied)
+    U64 MoveGenerator::bishop_attacks(U64 occ, int sq)
+      return diag_attacks(occ, sq) + anti_diag_attacks(occ, sq)
+
+fn king_danger_squares(king: BB, attacker: Side, position: &Position) -> BB
+  fn bishop_attacks(from: BB, occupied: BB) -> BB
+    hyperbola: fn bishop_attacks_from_sq(from: Square, occupied: BB) -> BB
+    hyperbola:   file_attacks_from_sq(from, occupied) | rank_attacks_from_sq(from, occupied)
+
+-------------------------
+void MoveGenerator::add_all_moves()
+  void MoveGenerator::add_slider_legal_moves(class MoveList& list,
+    U64 MoveGenerator::bishop_attacks(U64 occ, int sq)
+      return diag_attacks(occ, sq) + anti_diag_attacks(occ, sq);
+
+fn legal_moves_with_preprocessing<L: MoveAdder>()
+  fn slider_moves<L: MoveAdder>()
+    fn bishop_attacks_from_sq(from: Square, occupied: BB) -> BB
+      hyperbola: file_attacks_from_sq(from, occupied) | rank_attacks_from_sq(from, occupied)
+-------------------------
+
+
+pub use self::ray_hyperbola::rank_attacks_from_sq;
+pub use self::ray_kogge_stone::diag_pin_rays_including_attackers;  // not used
+pub use self::ray_kogge_stone::non_diag_pin_rays_including_attackers;  // not used
+pub use self::ray_kogge_stone::pinned_pieces;  // not used
+pub use self::ray_kogge_stone::{bishop_attacks, rook_attacks};
+pub use self::ray_kogge_stone::{pin_ray_diag, pin_ray_non_diag};
+. target_feature = bmi2
+pub use self::ray_bmi2::{bishop_attacks_from_sq, rook_attacks_from_sq};
+. target_feature != bmi2
+pub use self::ray_magic::{bishop_attacks_from_sq, rook_attacks_from_sq};
+
+
+
+
+
+
