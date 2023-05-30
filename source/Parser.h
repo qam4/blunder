@@ -8,6 +8,7 @@
 
 #include "Common.h"
 #include "Board.h"
+#include "Move.h"
 
 class Parser
 {
@@ -17,7 +18,7 @@ public:
     static U8 side(char c);
     static U8 castling_right(char c);
     static U8 square(char sq[]);
-    static U32 move(string str, Board &board);
+    static Move_t move(string str, const Board &board);
 
 private:
 };

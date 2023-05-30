@@ -9,40 +9,50 @@
 #include <string>
 
 #include "Board.h"
+#include "CLIUtils.h"
+#include "CmdLineArgs.h"
 #include "MoveGenerator.h"
 #include "MoveList.h"
 #include "Output.h"
 #include "Parser.h"
 #include "Perft.h"
 #include "ValidateMove.h"
+#include "Xboard.h"
 
 using namespace std;
-#define SEARCH_DEPTH 64
 
 static void print_help(void);
+static void usage(const string& prog_name);
 
-vector<string> split(const string& s, const char delimiter)
+int main(int argc, char** argv)
 {
-    vector<string> tokens;
-    string token;
-    istringstream tokenStream(s);
-    while (getline(tokenStream, token, delimiter))
+    CmdLineArgs cmd_line_args(argc, argv);
+    if (cmd_line_args.cmd_option_exists("-h") || cmd_line_args.cmd_option_exists("--help"))
     {
-        tokens.push_back(token);
+        usage(cmd_line_args.get_program_name());
+        return 0;
     }
-    return tokens;
-}
 
-int main()
-{
-#if 0
-    cout << "Generating lookup tables..." << endl;
-    MoveGenerator::generate_move_lookup_tables();
-#endif
-#if 0
-    cout << "Perft..." << endl;
-    perft_benchmark("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 6);
-#endif
+    if (cmd_line_args.cmd_option_exists("--gen-lookup-tables"))
+    {
+        cout << "Generating lookup tables..." << endl;
+        MoveGenerator::generate_move_lookup_tables();
+        return 0;
+    }
+
+    if (cmd_line_args.cmd_option_exists("--perft"))
+    {
+        cout << "Perft..." << endl;
+        perft_benchmark("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 6);
+        return 0;
+    }
+
+    if (cmd_line_args.cmd_option_exists("--xboard"))
+    {
+        Xboard xboard;
+        xboard.run();
+        return 0;
+    }
 
     bool computer_plays[2] = { false };
 
@@ -75,7 +85,7 @@ int main()
             cout << "Thinking..." << endl;
 
             Move_t move;
-            move = board.search(SEARCH_DEPTH);
+            move = board.search(MAX_SEARCH_PLY);
             clock_t toc = clock();
             double elapsed_secs = double(toc - tic) / CLOCKS_PER_SEC;
             cout << "time: " << elapsed_secs << "s" << endl;
@@ -103,7 +113,7 @@ int main()
         }
         else if (tokens[0] == "move")
         {
-            Move_t move = Parser::move(line.substr(5), board);
+            Move_t move = Parser::move(tokens[1], board);
             if (is_valid_move(move, board, true))
             {
                 board.do_move(move);
@@ -149,4 +159,15 @@ void print_help()
             "  move <move>               Play <move> on the board\n"
             "  play <color>              Let computer play <color>\n"
             "  colors <on|off>\n";
+}
+
+void usage(const string& prog_name)
+{
+    cout << prog_name
+         << "\n"
+            "Options:\n"
+            "-h|--help           Print this help\n"
+            "--gen-lookup-tables Generate lookup tables\n"
+            "--perft             Run perft benchmark\n"
+            "--xboard            xboard interface\n";
 }

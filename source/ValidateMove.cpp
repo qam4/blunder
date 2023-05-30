@@ -29,7 +29,7 @@ bool is_valid_move(Move_t move, const class Board& board, bool check_legal)
             return true;
         }
     }
-    cerr << "INVALID MOVE " << Output::move(move, board) << ": " << error << endl;
+    cerr << "INVALID_MOVE MOVE " << Output::move(move, board) << ": " << error << endl;
     cerr << Output::board(board);
     cerr << "fen=" << Output::board_to_fen(board) << endl;
     return false;

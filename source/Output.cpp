@@ -91,30 +91,22 @@ string Output::square(U8 square)
 
 string Output::move(Move_t move, const class Board& board)
 {
+    (void)board;
     stringstream ss;
     if (is_castle(move))
     {
         if (move == build_castle(KING_CASTLE))
-            ss << "0-0";
+            ss << "O-O";
         else
-            ss << "0-0-0";
+            ss << "O-O-O";
         return ss.str();
     }
     U8 from = move_from(move);
-    ss << Output::piece(board[from] & (0xFEU));
     ss << Output::square(from);
-    if (is_capture(move))
-    {
-        ss << 'x' << Output::piece(move_captured(move) & (0xFEU));
-    }
     ss << Output::square(move_to(move));
-    if (is_ep_capture(move))
-    {
-        ss << "ep";
-    }
     if (is_promotion(move))
     {
-        ss << "(" << Output::piece(move_promote_to(move) & (0xFEU)) << ")";
+        ss << Output::piece(move_promote_to(move) | (0x1U));
     }
     return ss.str();
 }
