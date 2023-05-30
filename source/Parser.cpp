@@ -3,19 +3,11 @@
  *
  */
 
+#include <cstring>
+
 #include "Parser.h"
 
-static vector<string> split(const string& s, const char delimiter)
-{
-    vector<string> tokens;
-    string token;
-    istringstream tokenStream(s);
-    while (getline(tokenStream, token, delimiter))
-    {
-        tokens.push_back(token);
-    }
-    return tokens;
-}
+#include "CLIUtils.h"
 
 class Board Parser::parse_fen(string fen)
 {
@@ -174,37 +166,56 @@ U8 Parser::square(char sq[])
     return static_cast<U8>((row * 8) + col);
 }
 
-// [fm] TODO
-U32 Parser::move(string str, Board& board)
+Move_t Parser::move(string str, const Board& board)
 {
     size_t len = str.length();
-    U8 from, to, piece, capture;
-    U32 move = 0;
+    U8 side, from, to, piece, capture;
+    Move_t move = 0;
 
-    // note: is it ok to return 0 for errors?
-    if (len != 4)
-        return 0;
+    if (str.compare("O-O"))
+    {
+        return build_castle(KING_CASTLE);
+    }
+    if (str.compare("O-O-O"))
+    {
+        return build_castle(KING_CASTLE);
+    }
 
+    side = board.side_to_move();
     from = square(&str[0]);
     to = square(&str[2]);
     piece = board[from];
     capture = board[to];
     if ((from == NULL_SQUARE) || (to == NULL_SQUARE))
         return 0;
-    // TODO
     U8 flags = NO_FLAGS;
-    (void)piece;
-    // U8 flags = NO_FLAGS | board.last_move_sideways();
-    // Check if tie-fighter sideway move
-    // cout << "piece=" << ((piece&(~1)) == TIEFIGHTER)
-    // << ((to&(~C64(0x7))) == (from&(~C64(0x7))))
-    // << ", from=" << (int)from << "-" << (int)(from&(~C64(0x7)))
-    // << ", to=" << (int)to << "-" << (int)(to&(~C64(0x7))) << endl;
-    // if (((piece & (~1)) == TIEFIGHTER) && ((to & (~C64(0x7))) == (from & (~C64(0x7)))))
-    // {
-    //     // cout << "this is a move sideways"  << endl;
-    //     flags |= MOVED_SIDEWAYS;
-    // }
+
+    if (piece == PAWN)
+    {
+        // Promotion
+        // e7e8q
+        if ((side == WHITE && ((from & 56) == 6 * 8) && ((to & 56) == 7 * 8))
+            || (side == BLACK && ((from & 56) == 1 * 8) && ((to & 56) == 0 * 8)))
+        {
+            U8 promo = Parser::parse_piece(str[4]) & (~1);
+            return build_promotion(from, to, promo | side);
+        }
+
+        // Double push
+        if ((side == WHITE && ((from & 56) == 1 * 8) && ((to & 56) == 3 * 8) && ((to - from == 16))
+            || (side == BLACK && ((from & 56) == 6 * 8) && ((to & 56) == 5 * 8) && (from - to == 16)))
+        {
+            return build_pawn_double_push(from, to);
+        }
+
+        // EP capture
+        if ((side == WHITE && ((from & 56) == 4 * 8) && ((to & 56) == 5 * 8) && ((to - from == 7) || (to -from == 9)))
+            || (side == BLACK && ((from & 56) == 3 * 8) && ((to & 56) == 2 * 8) && ((from - to == 7) || (from - to == 9))))
+        {
+            return build_ep_capture(from, to, PAWN | !side);
+        }
+    }
+
     move |= build_move_all(from, to, flags, capture);
     // cout << "move=" << hex <<move << dec << endl;
     return move;

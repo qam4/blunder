@@ -61,6 +61,13 @@ https://github.com/nescitus/cpw-engine
 https://crates.io/crates/littlewing
 https://github.com/KierenP/Halogen/tree/master
 
+- Chess engine communication protocols
+  - Winboard/Xboard
+  http://www.open-aurec.com/wbforum/WinBoard/engine-intf.html
+  http://hgm.nubati.net/CECP.html
+  https://stackoverflow.com/questions/22060432/how-to-make-a-simple-protocol-to-winboard
+  https://www.youtube.com/watch?v=ubSDzI3ecwc
+  http://www.open-aurec.com/wbforum/viewtopic.php?f=24&t=51739
 
 - CMAKE
 https://github.com/friendlyanon/cmake-init

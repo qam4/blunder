@@ -18,6 +18,8 @@ include(cmake/variables.cmake)
 add_library(
     blunder_lib OBJECT
     source/Board.cpp
+    source/CLIUtils.cpp
+    source/CmdLineArgs.cpp
     source/Common.cpp
     source/Move.cpp
     source/MoveGenerator.cpp
@@ -33,6 +35,7 @@ add_library(
     source/Hash.cpp
     source/PrincipalVariation.cpp
     source/Perft.cpp
+    source/Xboard.cpp
 )
 
 target_include_directories(
