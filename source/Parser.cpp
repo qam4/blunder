@@ -194,23 +194,28 @@ Move_t Parser::move(string str, const Board& board)
     {
         // Promotion
         // e7e8q
-        if ((side == WHITE && ((from & 56) == 6 * 8) && ((to & 56) == 7 * 8))
-            || (side == BLACK && ((from & 56) == 1 * 8) && ((to & 56) == 0 * 8)))
+        if (((side == WHITE) && ((from & 56) == 6 * 8) && ((to & 56) == 7 * 8))
+            || ((side == BLACK) && ((from & 56) == 1 * 8) && ((to & 56) == 0 * 8)))
         {
             U8 promo = Parser::parse_piece(str[4]) & (~1);
             return build_promotion(from, to, promo | side);
         }
 
         // Double push
-        if ((side == WHITE && ((from & 56) == 1 * 8) && ((to & 56) == 3 * 8) && ((to - from == 16))
-            || (side == BLACK && ((from & 56) == 6 * 8) && ((to & 56) == 5 * 8) && (from - to == 16)))
+        if (((side == WHITE) && ((from & 56) == 1 * 8) && ((to & 56) == 3 * 8)
+             && ((to - from) == 16))
+            || ((side == BLACK) && ((from & 56) == 6 * 8) && ((to & 56) == 5 * 8)
+                && ((from - to) == 16)))
         {
             return build_pawn_double_push(from, to);
         }
 
         // EP capture
-        if ((side == WHITE && ((from & 56) == 4 * 8) && ((to & 56) == 5 * 8) && ((to - from == 7) || (to -from == 9)))
-            || (side == BLACK && ((from & 56) == 3 * 8) && ((to & 56) == 2 * 8) && ((from - to == 7) || (from - to == 9))))
+        if (((side == WHITE) && ((from & 56) == 4 * 8) && ((to & 56) == 5 * 8)
+             && ((to - from == 7) || ((to - from) == 9)))
+            || ((side == BLACK) && ((from & 56) == 3 * 8) && ((to & 56) == 2 * 8)
+                    && ((from - to) == 7)
+                || ((from - to) == 9)))
         {
             return build_ep_capture(from, to, PAWN | !side);
         }
