@@ -42,6 +42,7 @@ private:
     int max_search_ply;
     clock_t search_start_time;
     Move_t search_best_move;
+    int search_best_score;
 
     int follow_pv;
 
@@ -58,7 +59,7 @@ public:
     int evaluate();
     int is_game_over();
     // Algos
-    Move_t search(int depth);
+    Move_t search(int depth, bool xboard=false);
     int minimax(int depth, bool maximizing_player);
     Move_t minimax_root(int depth, bool maximizing_player);
     int negamax(int depth);
@@ -81,6 +82,7 @@ public:
     void set_full_move_count(U8 count) { irrev.full_move_count = count; };
     int get_searched_moves() const { return searched_moves; };
     int get_game_ply() const { return game_ply; };
+    int get_search_best_score() const { return search_best_score; }
 
     U64 get_hash();
     int probe_hash(int depth, int alpha, int beta, Move_t &best_move);

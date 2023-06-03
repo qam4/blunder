@@ -6,6 +6,7 @@
 
 #include "Xboard.h"
 
+#include "Output.h"
 #include "Parser.h"
 
 Xboard::Xboard() {}
@@ -23,16 +24,27 @@ void Xboard::UnMake(Move_t move)
     return;
 }
 
-int Xboard::Setup(char* fen)
+int Xboard::Setup(const char* fen)
 {
-    board = Parser::parse_fen(fen);
+    if (fen != NULL)
+    {
+        setup_fen = fen;
+    }
+    board = Parser::parse_fen(setup_fen);
+    return board.side_to_move();
 }
 
-void Xboard::SetMemorySize(int n) {}
+void Xboard::SetMemorySize(int n)
+{
+    (void)n;
+}
 
-char* Xboard::MoveToText(Move_t move) {}
+string Xboard::MoveToText(Move_t move)
+{
+    return Output::move(move, board);
+}
 
-Move_t Xboard::ParseMove(char* moveText)
+Move_t Xboard::ParseMove(const char* moveText)
 {
     return Parser::move(moveText, board);
 }
@@ -46,9 +58,24 @@ int Xboard::SearchBestMove(int stm,
                            Move_t* move,
                            Move_t* ponderMove)
 {
+    (void)stm;
+    (void)timeLeft;
+    (void)mps;
+    (void)timeControl;
+    (void)inc;
+    (void)timePerMove;
+    (void)ponderMove;
+
+    Move_t best_move = board.search(MAX_SEARCH_PLY, true);
+    *move = best_move;
+
+    return board.get_search_best_score();
 }
 
-void Xboard::PonderUntilInput(int stm) {}
+void Xboard::PonderUntilInput(int stm)
+{
+    (void)stm;
+}
 
 int Xboard::TakeBack(int n)
 {  // reset the game and then replay it to the desired point
@@ -65,18 +92,24 @@ int Xboard::TakeBack(int n)
 void Xboard::PrintResult(int stm, int score)
 {
     if (score == 0)
-        printf("1/2-1/2\n");
-    if (score > 0 && stm == WHITE || score < 0 && stm == BLACK)
-        printf("1-0\n");
+    {
+        cout << "1/2-1/2" << endl;
+    }
+    if (((score > 0) && (stm == WHITE)) || ((score < 0) && (stm == BLACK)))
+    {
+        cout << "1-0" << endl;
+    }
     else
-        printf("0-1\n");
+    {
+        cout << "0-1" << endl;
+    }
 }
 
 void Xboard::run()
 {
-    int stm;                                 // side to move
+    int stm = 0;                             // side to move
     int engineSide = STM_NONE;               // side played by engine
-    int timeLeft;                            // timeleft on engine's clock
+    int timeLeft = 0;                        // timeleft on engine's clock
     int mps, timeControl, inc, timePerMove;  // time-control parameters, to be used by Search
     int maxDepth;                            // used by search
     Move_t move, ponderMove;
@@ -84,7 +117,9 @@ void Xboard::run()
     char inBuf[80], command[80];
 
     while (1)
-    {  // infinite loop
+    {
+        // infinite loop
+        cout << "# FEN: " << Output::board_to_fen(board) << endl;
 
         fflush(stdout);  // make sure everything is printed
                          // before we do something that might take time
@@ -92,10 +127,11 @@ void Xboard::run()
         if (stm == engineSide)
         {  // if it is the engine's turn to move, set it thinking, and let it move
 
+            cout << "# Thinking..." << endl;
             score = SearchBestMove(
                 stm, timeLeft, mps, timeControl, inc, timePerMove, &move, &ponderMove);
 
-            if (move == INVALID)
+            if (move == INVALID_MOVE)
             {                           // game apparently ended
                 engineSide = STM_NONE;  // so stop playing
                 PrintResult(stm, score);
@@ -104,12 +140,12 @@ void Xboard::run()
             {
                 stm = MakeMove(stm, move);  // assumes MakeMove returns new side to move
                 gameMove[moveNr++] = move;  // remember game
-                printf("move %s\n", MoveToText(move));
+                cout << "move " << MoveToText(move) << endl;
             }
         }
 
-        fflush(
-            stdout);  // make sure everything is printed before we do something that might take time
+        fflush(stdout);  // make sure everything is printed
+                         // before we do something that might take time
 
         // now it is not our turn (anymore)
         if (engineSide == STM_ANALYZE)
@@ -118,7 +154,7 @@ void Xboard::run()
         }
         else if (engineSide != STM_NONE && ponder == ON && moveNr != 0)
         {  // ponder while waiting for input
-            if (ponderMove == INVALID)
+            if (ponderMove == INVALID_MOVE)
             {  // if we have no move to ponder on, ponder the position
                 PonderUntilInput(stm);
             }
@@ -132,12 +168,13 @@ void Xboard::run()
 
     noPonder:
         // wait for input, and read it until we have collected a complete line
-        for (i = 0; (inBuf[i] = getchar()) != '\n'; i++)
+        for (i = 0; (inBuf[i] = static_cast<char>(getchar())) != '\n'; i++)
             ;
         inBuf[i + 1] = 0;
 
         // extract the first word
         sscanf(inBuf, "%s", command);
+        cout << "# input command: " << command << endl;
 
         // recognize the command,and execute it
         if (!strcmp(command, "quit"))
@@ -149,7 +186,12 @@ void Xboard::run()
             engineSide = STM_NONE;
             continue;
         }
-        if (!strcmp(command, "STM_ANALYZE"))
+        if (!strcmp(command, "result"))
+        {
+            engineSide = STM_NONE;
+            continue;
+        }
+        if (!strcmp(command, "analyze"))
         {
             engineSide = STM_ANALYZE;
             continue;
@@ -180,10 +222,25 @@ void Xboard::run()
         }
         if (!strcmp(command, "protover"))
         {
-            printf("feature ping=1 setboard=1 colors=0 usermove=1 memory=1 debug=1");
-            printf("feature option=\"Resign -check 0\"");  // example of an engine-defined option
-            printf("feature option=\"Contempt -spin 0 -200 200\"");  // and another one
-            printf("feature done=1");
+            cout << "feature done=0 myname=\"blunder\" ping=1 memory=1 setboard=1 debug=1 sigint=0 "
+                    "sigterm=0"
+                 << endl;                            // always support these!
+            cout << "feature name=1 ics=1" << endl;  // likely you are not interested in receiving
+                                                     // these, and leave out this line
+            cout << "feature usermove=1" << endl;  // when you are not confident you can distinguish
+                                                   // moves from other commands
+            // cout << "feature egt=\"syzygy,scorpio\"" << endl;           // when you support
+            // end-game tables of the mentioned flavor(s) cout << "feature
+            // variants=\"normal,suicide,foo\"" << endl;  // when you support variants other than
+            // orthodox chess cout << "feature nps=1" << endl;                          // when you
+            // support node-count-based time controls cout << "feature smp=1" << endl; // when you
+            // support multi-threaded parallel search cout << "feature exclude=1" << endl; // when
+            // you support move exclusion in analysis cout << "feature option=\"MultiPV -spin 1 1
+            // 100\"" << endl; // 3 examples of engine-defined options, first is sort of standard
+            // cout << "feature option=\"Resign -check 0\"" << endl;
+            // cout << "feature option=\"Clear Hash -button\"" << endl;
+            cout << "feature done=1" << endl;  // never forget this one!
+            cout << "# debug message" << endl;
             continue;
         }
         if (!strcmp(command, "option"))
@@ -211,7 +268,7 @@ void Xboard::run()
         }
         if (!strcmp(command, "ping"))
         {
-            printf("pong%s", inBuf + 4);
+            cout << "pong" << inBuf + 4 << endl;
             continue;
         }
         //  if(!strcmp(command, ""))        { sscanf(inBuf, " %d", &); continue; }
@@ -219,7 +276,7 @@ void Xboard::run()
         {
             engineSide = BLACK;
             stm = Setup(DEFAULT_FEN);
-            maxDepth = MAXPLY;
+            maxDepth = MAX_SEARCH_PLY;
             randomize = OFF;
             continue;
         }
@@ -271,8 +328,8 @@ void Xboard::run()
         }
         if (!strcmp(command, "hint"))
         {
-            if (ponderMove != INVALID)
-                printf("Hint: %s\n", MoveToText(ponderMove));
+            if (ponderMove != INVALID_MOVE)
+                cout << "Hint: " << MoveToText(ponderMove) << endl;
             continue;
         }
         if (!strcmp(command, "book"))
@@ -314,18 +371,18 @@ void Xboard::run()
         }
         if (!strcmp(command, "usermove"))
         {
-            int move = ParseMove(inBuf + 9);
-            if (move == INVALID)
-                printf("Illegal move\n");
+            move = ParseMove(inBuf + 9);
+            if (move == INVALID_MOVE)
+                cout << "Illegal move" << endl;
             else
             {
                 stm = MakeMove(stm, move);
-                ponderMove = INVALID;
+                ponderMove = INVALID_MOVE;
                 gameMove[moveNr++] = move;  // remember game
             }
             continue;
         }
-        printf("Error: unknown command\n");
+        cout << "Error: unknown command" << endl;
     }
 
     return;

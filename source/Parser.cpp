@@ -168,27 +168,32 @@ U8 Parser::square(char sq[])
 
 Move_t Parser::move(string str, const Board& board)
 {
-    size_t len = str.length();
     U8 side, from, to, piece, capture;
     Move_t move = 0;
-
-    if (str.compare("O-O"))
-    {
-        return build_castle(KING_CASTLE);
-    }
-    if (str.compare("O-O-O"))
-    {
-        return build_castle(KING_CASTLE);
-    }
-
     side = board.side_to_move();
+
+    // Remove trailing new line
+    if (!str.empty() && str[str.length() - 1] == '\n')
+    {
+        str.erase(str.length() - 1);
+    }
+    if ((str.compare("O-O") == 0) || ((side == WHITE) && (str.compare("e1g1") == 0))
+        || ((side == BLACK) && (str.compare("e8g8") == 0)))
+    {
+        return build_castle(KING_CASTLE);
+    }
+    if ((str.compare("O-O-O") == 0) || ((side == WHITE) && (str.compare("e1c1") == 0))
+        || ((side == BLACK) && (str.compare("e8c8") == 0)))
+    {
+        return build_castle(QUEEN_CASTLE);
+    }
+
     from = square(&str[0]);
     to = square(&str[2]);
     piece = board[from];
     capture = board[to];
     if ((from == NULL_SQUARE) || (to == NULL_SQUARE))
         return 0;
-    U8 flags = NO_FLAGS;
 
     if (piece == PAWN)
     {
@@ -197,7 +202,7 @@ Move_t Parser::move(string str, const Board& board)
         if (((side == WHITE) && ((from & 56) == 6 * 8) && ((to & 56) == 7 * 8))
             || ((side == BLACK) && ((from & 56) == 1 * 8) && ((to & 56) == 0 * 8)))
         {
-            U8 promo = Parser::parse_piece(str[4]) & (~1);
+            U8 promo = Parser::parse_piece(str[4]) & (0xFEU);
             return build_promotion(from, to, promo | side);
         }
 
@@ -212,16 +217,14 @@ Move_t Parser::move(string str, const Board& board)
 
         // EP capture
         if (((side == WHITE) && ((from & 56) == 4 * 8) && ((to & 56) == 5 * 8)
-             && ((to - from == 7) || ((to - from) == 9)))
+             && (((to - from) == 7) || ((to - from) == 9)))
             || ((side == BLACK) && ((from & 56) == 3 * 8) && ((to & 56) == 2 * 8)
-                    && ((from - to) == 7)
-                || ((from - to) == 9)))
+                && (((from - to) == 7) || ((from - to) == 9))))
         {
             return build_ep_capture(from, to, PAWN | !side);
         }
     }
 
-    move |= build_move_all(from, to, flags, capture);
-    // cout << "move=" << hex <<move << dec << endl;
+    move |= build_move_all(from, to, NO_FLAGS, capture);
     return move;
 }

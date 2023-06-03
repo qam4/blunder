@@ -1,9 +1,0 @@
-[ 16%] Built target blunder_lib
-[ 17%] Building CXX object CMakeFiles/blunder_exe.dir/source/main.cpp.o
-[ 88%] Built target Catch2
-[ 90%] Built target Catch2WithMain
-[ 98%] Built target blunder_test
-Checking /home/fred/src/blunder/source/main.cpp ...
-Checking /home/fred/src/blunder/source/main.cpp: _FORTIFY_SOURCE=3...
-[100%] Linking CXX executable blunder
-[100%] Built target blunder_exe

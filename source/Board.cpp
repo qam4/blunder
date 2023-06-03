@@ -448,7 +448,7 @@ int Board::is_game_over()
     return 0;
 }
 
-Move_t Board::search(int depth)
+Move_t Board::search(int depth, bool xboard /*=false*/)
 {
     search_start_time = clock();
     search_ply = 0;
@@ -457,6 +457,7 @@ Move_t Board::search(int depth)
 
     // Iterative deepening
     Move_t last_best_move = 0;
+
     for (int current_depth = 1; current_depth <= depth; current_depth++)
     {
         follow_pv = 1;
@@ -465,18 +466,36 @@ Move_t Board::search(int depth)
 
         int value = alphabeta(-MAX_SCORE, MAX_SCORE, current_depth);
         search_best_move = pv_table[0];
-        cout << "depth=" << current_depth;
-        cout << ", search ply=" << max_search_ply;
-        cout << ", searched moves=" << searched_moves;
-        cout << ", score=" << value;
-        cout << ", pv=";
-        print_pv();
-        cout << endl;
+        if (xboard)
+        {
+            clock_t current_time = clock();
+            int elapsed_csecs =
+                int((100 * double(current_time - search_start_time)) / CLOCKS_PER_SEC);
+
+            // DEPTH SCORE TIME NODES PV
+            cout << current_depth << " ";   // search depth
+            cout << value << " ";           // score in centi-Pawn
+            cout << elapsed_csecs << " ";   // time searched in centi-seconds
+            cout << searched_moves << " ";  // node searched
+            print_pv();
+            cout << endl;
+        }
+        else
+        {
+            cout << "depth=" << current_depth;
+            cout << ", search ply=" << max_search_ply;
+            cout << ", searched moves=" << searched_moves;
+            cout << ", score=" << value;
+            cout << ", pv=";
+            print_pv();
+            cout << endl;
+        }
         if (is_search_time_over())
         {
             break;
         }
         last_best_move = search_best_move;
+        search_best_score = value;
     }
 
     return last_best_move;
@@ -485,9 +504,9 @@ Move_t Board::search(int depth)
 bool Board::is_search_time_over()
 {
     clock_t current_time = clock();
-    clock_t elapsed_secs = current_time - search_start_time;
+    clock_t elapsed_time = current_time - search_start_time;
 
-    return (elapsed_secs > MAX_SEARCH_TIME);
+    return (elapsed_time > MAX_SEARCH_TIME);
 }
 
 U64 Board::get_hash()

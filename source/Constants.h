@@ -16,6 +16,8 @@ const int MAX_SEARCH_PLY = 64;
 
 const int MAX_SEARCH_TIME = 1000000;  // max search time in usec
 
+const char* const DEFAULT_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
 // PIECES
 const U8 EMPTY = 0;
 

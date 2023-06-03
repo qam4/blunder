@@ -20,7 +20,6 @@
 #include "Xboard.h"
 
 using namespace std;
-#define SEARCH_DEPTH 64
 
 static void print_help(void);
 static void usage(const string& prog_name);
@@ -86,7 +85,7 @@ int main(int argc, char** argv)
             cout << "Thinking..." << endl;
 
             Move_t move;
-            move = board.search(SEARCH_DEPTH);
+            move = board.search(MAX_SEARCH_PLY);
             clock_t toc = clock();
             double elapsed_secs = double(toc - tic) / CLOCKS_PER_SEC;
             cout << "time: " << elapsed_secs << "s" << endl;
