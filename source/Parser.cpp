@@ -122,6 +122,7 @@ class Board Parser::parse_fen(string fen)
         }
         board.set_full_move_count(static_cast<U8>(full_move_count));
     }
+    board.update_hash();
 
     return board;
 }

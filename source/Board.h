@@ -32,9 +32,11 @@ private:
         U8 castling_rights;
         U8 ep_square;
         U8 side_to_move;
+        U64 board_hash;
     } irrev;
 
     Zobrist zobrist;
+    U64 hash_history[MAX_GAME_PLY];
 
     int searched_moves;
     int game_ply;
@@ -57,7 +59,8 @@ public:
     void do_move(Move_t move);
     void undo_move(Move_t move);
     int evaluate();
-    int is_game_over();
+    bool is_game_over();
+    bool is_draw();
     // Algos
     Move_t search(int depth, bool xboard=false);
     int minimax(int depth, bool maximizing_player);
@@ -75,16 +78,19 @@ public:
     U8 castling_rights() const { return irrev.castling_rights; };
     U8 ep_square()       const { return irrev.ep_square; };
     U8 side_to_move()    const { return irrev.side_to_move; };
+    U64 get_hash()       const { return irrev.board_hash; };
     void set_side_to_move(U8 side) { irrev.side_to_move = side; };
     void set_castling_rights(U8 rights) { irrev.castling_rights = rights; };
     void set_ep_square(U8 square) { irrev.ep_square = square; };
     void set_half_move_count(U8 count) { irrev.half_move_count = count; };
     void set_full_move_count(U8 count) { irrev.full_move_count = count; };
+    void set_hash(U64 hash) { irrev.board_hash = hash; };
     int get_searched_moves() const { return searched_moves; };
     int get_game_ply() const { return game_ply; };
     int get_search_best_score() const { return search_best_score; }
+    U64 get_hash_history(const int i) const { return hash_history[i]; }
 
-    U64 get_hash();
+    void update_hash();
     int probe_hash(int depth, int alpha, int beta, Move_t &best_move);
     void record_hash(int depth, int val, int flags, Move_t best_move);
 

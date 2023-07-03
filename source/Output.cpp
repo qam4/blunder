@@ -34,7 +34,16 @@ string Output::board(const class Board board)
     ss << "halfmove clock: " << int(board.half_move_count()) << endl;
     ss << "fullmove clock: " << int(board.full_move_count()) << endl;
     ss << "ply: " << board.get_game_ply() << endl;
+    ss << "hash: 0x" << hex << board.get_hash() << dec << endl;
     ss << "FEN: " << Output::board_to_fen(board) << endl;
+
+    // ss << "hash_hist: " << hex ;
+    // for (int i = 0; i < board.get_game_ply() + 1; i++)
+    // {
+    //     ss << board.get_hash_history(i) << ", ";
+    // }
+    // ss << dec << endl;
+
     return ss.str();
 }
 

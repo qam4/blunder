@@ -75,6 +75,7 @@ void Board::reset()
     irrev.side_to_move = WHITE;
     game_ply = 0;
     search_ply = 0;
+    update_hash();
 }
 
 U8 Board::operator[](const int square) const
@@ -93,9 +94,6 @@ U64 Board::bitboard(const int type) const
     return bitboards[type];
 }
 
-// [fm] TODO:
-// fifty-move rule: https://www.chessprogramming.org/Fifty-move_Rule
-// threefold repetition rule: https://en.wikipedia.org/wiki/Threefold_repetition
 void Board::do_move(Move_t move)
 {
     U8 from = move_from(move);
@@ -232,6 +230,7 @@ void Board::do_move(Move_t move)
     game_ply++;
     search_ply++;
     max_search_ply = max(max_search_ply, search_ply);
+    update_hash();
 }
 
 void Board::undo_move(Move_t move)
@@ -436,16 +435,40 @@ int Board::evaluate()
 }
 
 // is_game_over(): return 1 if game is over.
-int Board::is_game_over()
+bool Board::is_game_over()
 {
     // Game over if:
     // - no legal moves
+    // - draw
     MoveList list;
     MoveGenerator::add_all_moves(list, *this, side_to_move());
     if (list.length() == 0)
-        return 1;
+        return true;
 
-    return 0;
+    return is_draw();
+}
+
+bool Board::is_draw()
+{
+    // fifty-move rule: https://www.chessprogramming.org/Fifty-move_Rule
+    if (irrev.half_move_count >= 100)
+    {
+        return true;
+    }
+
+    // threefold repetition rule
+    // https://en.wikipedia.org/wiki/Threefold_repetition
+    // https://www.chessprogramming.org/Repetitions
+    // Check if we see the current position more than once in the game history
+    int repetition_count = 0;
+    for (int i = 0; i < game_ply; i++)
+    {
+        if (irrev.board_hash == hash_history[i])
+        {
+            repetition_count++;
+        }
+    }
+    return (repetition_count > 1) ? true : false;
 }
 
 Move_t Board::search(int depth, bool xboard /*=false*/)
@@ -465,6 +488,8 @@ Move_t Board::search(int depth, bool xboard /*=false*/)
         searched_moves = 0;
 
         int value = alphabeta(-MAX_SCORE, MAX_SCORE, current_depth);
+        assert(value <= MAX_SCORE);
+        assert(value >= -MAX_SCORE);
         search_best_move = pv_table[0];
         if (xboard)
         {
@@ -509,7 +534,9 @@ bool Board::is_search_time_over()
     return (elapsed_time > MAX_SEARCH_TIME);
 }
 
-U64 Board::get_hash()
+void Board::update_hash()
 {
-    return zobrist.get_zobrist_key(*this);
+    assert(game_ply < MAX_GAME_PLY);
+    set_hash(zobrist.get_zobrist_key(*this));
+    hash_history[game_ply] = irrev.board_hash;
 }

@@ -142,13 +142,13 @@ private:
     static U64 file_mask(int sq);
     static U64 diag_mask(int sq);
     static U64 anti_diag_mask(int sq);
+    static U64 rook_mask(int sq);
+    static U64 bishop_mask(int sq);
     static U64 rank_mask_ex(int sq);
     static U64 file_mask_ex(int sq);
     static U64 diag_mask_ex(int sq);
     static U64 anti_diag_mask_ex(int sq);
-    static U64 rook_mask(int sq);
     static U64 rook_mask_ex(int sq);
-    static U64 bishop_mask(int sq);
     static U64 bishop_mask_ex(int sq);
     static U64 diag_attacks(U64 occ, int sq);
     static U64 anti_diag_attacks(U64 occ, int sq);

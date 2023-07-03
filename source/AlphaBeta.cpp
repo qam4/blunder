@@ -21,6 +21,14 @@ int Board::alphabeta(int alpha, int beta, int depth)
         return 0;
     }
 
+    // Check for draw
+    if (is_draw())
+    {
+        value = DRAW_SCORE;
+        record_hash(depth, value, HASH_EXACT, best_move);
+        return value;
+    }
+
     int hash_flag = HASH_ALPHA;
     if ((value = probe_hash(depth, alpha, beta, best_move)) != UNKNOWN_SCORE)
     {

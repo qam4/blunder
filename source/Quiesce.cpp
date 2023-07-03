@@ -18,6 +18,12 @@ int Board::quiesce(int alpha, int beta)
         return 0;
     }
 
+    // Check for draw
+    if (is_draw())
+    {
+        return DRAW_SCORE;
+    }
+
     int who2move = (side_to_move() == WHITE) ? 1 : -1;
     int stand_pat = who2move * evaluate();
 

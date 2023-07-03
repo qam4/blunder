@@ -64,7 +64,7 @@ int main(int argc, char** argv)
         cout << Output::board(board);
         if (board.is_game_over())
         {
-            if (MoveGenerator::in_check(board, board.side_to_move()))
+            if (!MoveGenerator::in_check(board, board.side_to_move()) || board.is_draw())
             {
                 cout << "Draw" << endl;
             }

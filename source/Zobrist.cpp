@@ -38,7 +38,7 @@ U64 Zobrist::rand64()
     return dist(gen);
 }
 
-U64 Zobrist::get_zobrist_key(const Board& board)
+U64 Zobrist::get_zobrist_key(const Board& board) const
 {
     U64 zobrist_key = 0;
 

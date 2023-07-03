@@ -17,7 +17,7 @@ class Zobrist
 {
 public:
     Zobrist();
-    U64 get_zobrist_key(const Board &board);
+    U64 get_zobrist_key(const Board &board) const;
 
 private:
     U64 rand64();

@@ -8,13 +8,14 @@
 
 #include "Common.h"
 
-const int UNKNOWN_SCORE = 5000;
-const int MAX_SCORE = 2000;
-const int MATE_SCORE = 1000;
+const int UNKNOWN_SCORE = 500000;
+const int MAX_SCORE = 200000;
+const int MATE_SCORE = 100000;
 const int DRAW_SCORE = 0;
 const int MAX_SEARCH_PLY = 64;
 
 const int MAX_SEARCH_TIME = 1000000;  // max search time in usec
+const int MAX_GAME_PLY = 1024;  // max number of moves in a chess game (theoretically 5949)
 
 const char* const DEFAULT_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
