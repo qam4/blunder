@@ -28,6 +28,7 @@ https://web.archive.org/web/20060107101829/http://chess.verhelst.org/1997/03/10/
     https://www.chessprogramming.org/Alpha-Beta
     http://web.archive.org/web/20080216030608/http://www.seanet.com/~brucemo/topics/alphabeta.htm
     https://mediocrechess.blogspot.com/2006/12/guide-alpha-beta-search.html?m=1
+    https://ntietz.com/blog/alpha-beta-pruning/
 
   - Position evaluation
   https://www.chessprogramming.org/Evaluation
@@ -71,6 +72,9 @@ https://github.com/KierenP/Halogen/tree/master
 
   To run xboard:
   $ xboard -debug -fcp "blunder --xboard" -fd "/home/fred/src/blunder/build/dev"
+
+- Mate puzzles
+  - wtharvey.com
 
 - CMAKE
 https://github.com/friendlyanon/cmake-init

@@ -80,5 +80,6 @@ Move_t Board::negamax_root(int depth)
             bestmove = move;
         }
     }
+    cout << "Best move: " << Output::move(bestmove, *this) << endl;
     return bestmove;
 }

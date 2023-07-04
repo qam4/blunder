@@ -21,6 +21,7 @@ project(blunderTests LANGUAGES CXX)
 
 add_executable(blunder_test
     source/TestBoard.cpp
+    source/TestSearch.cpp
     source/TestParser.cpp
     source/TestMove.cpp
     source/TestMoveList.cpp

@@ -86,6 +86,7 @@ any operating system with any build system:
 cmake --preset=dev
 cmake --build --preset=dev
 ctest --preset=dev
+ctest --preset=dev -V -R regex
 ```
 
 If you are using a compatible editor (e.g. VSCode) or IDE (e.g. CLion, VS), you

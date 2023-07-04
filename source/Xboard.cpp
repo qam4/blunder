@@ -68,7 +68,7 @@ int Xboard::SearchBestMove(int stm,
     (void)timePerMove;
     (void)ponderMove;
 
-    Move_t best_move = board.search(MAX_SEARCH_PLY, true);
+    Move_t best_move = board.search(MAX_SEARCH_PLY, MAX_SEARCH_TIME, true);
     *move = best_move;
 
     return board.get_search_best_score();

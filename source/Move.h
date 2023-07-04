@@ -10,10 +10,19 @@
 
 typedef U32 Move_t;
 
+static const U8 FROM_MASK = 0x3FU << 0;
+static const U8 FROM_SHIFT = 0;
+static const U8 TO_MASK = 0x3FU;
+static const U8 TO_SHIFT = 6;
+static const U8 CAPTURE_MASK = 0xFU;
+static const U8 CAPTURE_SHIFT = 12;
+
 // FLAGS
 static const U8 NO_FLAGS = 0;
+static const U8 FLAG_SHIFT = 16;
 // Promotions
 // to create promotion just put piece to promote to in flags bits 0-3
+static const U8 PROMOTE_TO_MASK = 0xFU;
 // fourth bit denotes double pawn push
 static const U8 PAWN_DOUBLE_PUSH = 16;
 // fifth bit denote EP capture
@@ -23,6 +32,9 @@ static const U8 KING_CASTLE = 64;
 static const U8 QUEEN_CASTLE = 128;
 static const U8 CASTLE_MASK = KING_CASTLE | QUEEN_CASTLE;
 
+static const U8 SCORE_MASK = 0xFFU;
+static const U8 SCORE_SHIFT = 24;
+
 Move_t inline build_move(U8 from, U8 to) { return (from & 0x3FU) | (to & 0x3FU) << 6; }
 Move_t inline build_capture(U8 from, U8 to, U8 capture) { return (from & 0x3FU) | (to & 0x3FU) << 6 | (capture & 0xFU) << 12; }
 Move_t inline build_ep_capture(U8 from, U8 to, U8 capture) { return (from & 0x3FU) | (to & 0x3FU) << 6 | (capture & 0xFU) << 12 | EP_CAPTURE << 16; }
@@ -31,10 +43,10 @@ Move_t inline build_capture_promotion(U8 from, U8 to, U8 capture, U8 promote_to)
 Move_t inline build_pawn_double_push(U8 from, U8 to) { return (from & 0x3FU) | (to & 0x3FU) << 6 | PAWN_DOUBLE_PUSH << 16; }
 Move_t inline build_castle(U8 flags) { return static_cast<U32>(flags & CASTLE_MASK) << 16; }
 
-
 Move_t inline build_move_flags(U8 from, U8 to, U8 flags) { return (from & 0x3FU) | (to & 0x3FU) << 6 | (flags & 0xFFU) << 16; }
 Move_t inline build_move_all(U8 from, U8 to, U8 flags, U8 capture) { return (from & 0x3FU) | (to & 0x3FU) << 6 | (capture & 0xFU) << 12 | (flags & 0xFFU) << 16; }
 void inline move_add_score(Move_t *move, U8 score) { *move = *move | (score & 0xFFU) << 24; }
+void inline move_remove_score(Move_t *move) { *move = *move & ~(0xFFU << 24); }
 
 bool inline is_capture(Move_t move) { return (move >> 12) & 0xFU; }
 bool inline is_promotion(Move_t move){ return (move >> 16) & (0xFU); } // mask all pieces

@@ -75,6 +75,7 @@ void Board::reset()
     irrev.side_to_move = WHITE;
     game_ply = 0;
     search_ply = 0;
+    search_time = MAX_SEARCH_TIME;
     update_hash();
 }
 
@@ -471,8 +472,9 @@ bool Board::is_draw()
     return (repetition_count > 1) ? true : false;
 }
 
-Move_t Board::search(int depth, bool xboard /*=false*/)
+Move_t Board::search(int depth, int searchtime /*=MAX_SEARCH_TIME*/, bool xboard /*=false*/)
 {
+    search_time = searchtime;
     search_start_time = clock();
     search_ply = 0;
     reset_hash_table();
@@ -487,10 +489,15 @@ Move_t Board::search(int depth, bool xboard /*=false*/)
         max_search_ply = 0;
         searched_moves = 0;
 
+#if 1
         int value = alphabeta(-MAX_SCORE, MAX_SCORE, current_depth);
         assert(value <= MAX_SCORE);
         assert(value >= -MAX_SCORE);
         search_best_move = pv_table[0];
+#else
+        search_best_move = negamax_root(current_depth);
+        int value = 0;
+#endif
         if (xboard)
         {
             clock_t current_time = clock();
@@ -523,15 +530,22 @@ Move_t Board::search(int depth, bool xboard /*=false*/)
         search_best_score = value;
     }
 
+    move_remove_score(&last_best_move);
     return last_best_move;
 }
 
 bool Board::is_search_time_over()
 {
+    // Special case to allow infinite search time
+    if (search_time == -1)
+    {
+        return false;
+    }
+
     clock_t current_time = clock();
     clock_t elapsed_time = current_time - search_start_time;
 
-    return (elapsed_time > MAX_SEARCH_TIME);
+    return (elapsed_time > search_time);
 }
 
 void Board::update_hash()
