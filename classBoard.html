@@ -106,12 +106,17 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a3669aa7482204b35711b2040be2aff31" class="m-doc-self">evaluate</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="ae5f940eb80b92c4bee38c299c2d2552c">
-              <span class="m-doc-wrap-bumper">auto <a href="#ae5f940eb80b92c4bee38c299c2d2552c" class="m-doc-self">is_game_over</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
+            <dt id="a386f2e5861a55976ec6a4e94d4cae38b">
+              <span class="m-doc-wrap-bumper">auto <a href="#a386f2e5861a55976ec6a4e94d4cae38b" class="m-doc-self">is_game_over</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a80d40c299f91ed19d06c266c2761e0a0">
-              <span class="m-doc-wrap-bumper">auto <a href="#a80d40c299f91ed19d06c266c2761e0a0" class="m-doc-self">search</a>(</span><span class="m-doc-wrap">int depth,
+            <dt id="afbdda3d36866e1f5f706ff97546b588e">
+              <span class="m-doc-wrap-bumper">auto <a href="#afbdda3d36866e1f5f706ff97546b588e" class="m-doc-self">is_draw</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a954752c2447afd2bf52794ee9fd19014">
+              <span class="m-doc-wrap-bumper">auto <a href="#a954752c2447afd2bf52794ee9fd19014" class="m-doc-self">search</a>(</span><span class="m-doc-wrap">int depth,
+              int searchtime = <a href="Constants_8h.html#a6fa882dbb9d7184881329b123fe43437" class="m-doc">MAX_<wbr />SEARCH_<wbr />TIME</a>,
               bool xboard = false) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
             </dt>
             <dd><span></span></dd>
@@ -176,6 +181,10 @@
               <span class="m-doc-wrap-bumper">auto <a href="#af11789e16f3ea44df1fd9b7ec749b625" class="m-doc-self">side_to_move</a>(</span><span class="m-doc-wrap">) const -&gt; <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a></span>
             </dt>
             <dd><span></span></dd>
+            <dt id="aa7bca29ba7249181a289326e669e6316">
+              <span class="m-doc-wrap-bumper">auto <a href="#aa7bca29ba7249181a289326e669e6316" class="m-doc-self">get_hash</a>(</span><span class="m-doc-wrap">) const -&gt; <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a></span>
+            </dt>
+            <dd><span></span></dd>
             <dt id="ade5213ce72f9c6dbb8ece8929b9f6f51">
               <span class="m-doc-wrap-bumper">void <a href="#ade5213ce72f9c6dbb8ece8929b9f6f51" class="m-doc-self">set_side_to_move</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> side)</span>
             </dt>
@@ -196,6 +205,10 @@
               <span class="m-doc-wrap-bumper">void <a href="#a7922929e41953fae1dbaa7a85242aaeb" class="m-doc-self">set_full_move_count</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> count)</span>
             </dt>
             <dd><span></span></dd>
+            <dt id="a1839c56fbf30665be1c8d92e3c0d1cba">
+              <span class="m-doc-wrap-bumper">void <a href="#a1839c56fbf30665be1c8d92e3c0d1cba" class="m-doc-self">set_hash</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> hash)</span>
+            </dt>
+            <dd><span></span></dd>
             <dt id="a050c5993a6cb372766d5fbb800259f94">
               <span class="m-doc-wrap-bumper">auto <a href="#a050c5993a6cb372766d5fbb800259f94" class="m-doc-self">get_searched_moves</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
             </dt>
@@ -208,8 +221,12 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a5d840f03fbf890880fdb45d03feebde5" class="m-doc-self">get_search_best_score</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="afbdd7af96cb9d1797c7fbf41a195c45c">
-              <span class="m-doc-wrap-bumper">auto <a href="#afbdd7af96cb9d1797c7fbf41a195c45c" class="m-doc-self">get_hash</a>(</span><span class="m-doc-wrap">) -&gt; <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a></span>
+            <dt id="ad4157f3df52c3268828abb509e332578">
+              <span class="m-doc-wrap-bumper">auto <a href="#ad4157f3df52c3268828abb509e332578" class="m-doc-self">get_hash_history</a>(</span><span class="m-doc-wrap">const int i) const -&gt; <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a></span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a931f27e7a3daaf7784639e7dd012aaa3">
+              <span class="m-doc-wrap-bumper">void <a href="#a931f27e7a3daaf7784639e7dd012aaa3" class="m-doc-self">update_hash</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd><span></span></dd>
             <dt id="a5c76e47a21b159cb9a0261dd878034a6">
