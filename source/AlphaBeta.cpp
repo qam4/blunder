@@ -25,7 +25,6 @@ int Board::alphabeta(int alpha, int beta, int depth)
     if (is_draw())
     {
         value = DRAW_SCORE;
-        record_hash(depth, value, HASH_EXACT, best_move);
         return value;
     }
 
@@ -39,7 +38,6 @@ int Board::alphabeta(int alpha, int beta, int depth)
     if (depth == 0)
     {
         value = quiesce(alpha, beta);
-        record_hash(depth, value, HASH_EXACT, best_move);
         return value;
     }
 
@@ -60,6 +58,7 @@ int Board::alphabeta(int alpha, int beta, int depth)
         undo_move(move);
         if (value >= beta)
         {
+            // store hash entry with the score equal to beta
             record_hash(depth, beta, HASH_BETA, best_move);
             return beta;  // fail hard beta-cutoff
         }
@@ -72,6 +71,7 @@ int Board::alphabeta(int alpha, int beta, int depth)
         }
     }
 
+    // checkmate or stalemate
     if (n == 0)
     {
         if (MoveGenerator::in_check(*this, side_to_move()))
@@ -82,10 +82,10 @@ int Board::alphabeta(int alpha, int beta, int depth)
         {
             value = DRAW_SCORE;
         }
-        record_hash(depth, value, HASH_EXACT, best_move);
         return value;
     }
 
+    // store hash entry with the score equal to alpha
     record_hash(depth, alpha, hash_flag, best_move);
     return alpha;
 }

@@ -7,6 +7,16 @@
 
 #include <catch2/catch_test_macros.hpp>
 
+TEST_CASE("search_black_mates_in_one_1", "[search]")
+{
+    cout << "- Mate in one" << endl;
+    string fen = "8/1pp4p/4k3/8/8/K7/5r2/1q6 b - - 19 49";
+    Board board = Parser::parse_fen(fen);
+    // setting depth > 2 for iterative deepening test
+    Move_t move = board.search(8, -1);
+    REQUIRE(move == build_move(F2, A2));
+}
+
 TEST_CASE("search_white_mates_in_two_1", "[search]")
 {
     cout << "- Mate in two" << endl;

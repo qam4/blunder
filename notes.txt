@@ -80,6 +80,13 @@ https://github.com/KierenP/Halogen/tree/master
 https://github.com/friendlyanon/cmake-init
 
 Dev notes:
+
+TODO:
+- optimize search time, based on game remaining time, and estimation of search time for next depth.
+- zobrist hash relative update: only update the hash based on the move.
+Do not recompute the hash from the board position.
+
+
 Comparing with peterellisjones / rust_move_gen
 https://github.com/peterellisjones/rust_move_gen
 -------------------------
