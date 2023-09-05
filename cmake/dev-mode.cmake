@@ -22,6 +22,11 @@ if(ENABLE_COVERAGE)
   include(cmake/coverage.cmake)
 endif()
 
+option(ENABLE_PROFILE "Enable profiling support separate from CTest's" OFF)
+if(ENABLE_PROFILE)
+  include(cmake/profile.cmake)
+endif()
+
 include(cmake/lint-targets.cmake)
 include(cmake/spell-targets.cmake)
 

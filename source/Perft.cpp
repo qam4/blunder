@@ -8,7 +8,7 @@
 // Performance testing
 // https://www.chessprogramming.org/Perft
 
-int perft(class Board board, int depth)
+int perft(class Board &board, int depth)
 {
     if (depth == 0)
     {

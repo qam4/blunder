@@ -117,6 +117,17 @@
       }
     },
     {
+      "name": "profile-linux",
+      "binaryDir": "${sourceDir}/build/profile",
+      "inherits": "ci-linux",
+      "hidden": true,
+      "cacheVariables": {
+        "ENABLE_PROFILE": "ON",
+        "CMAKE_BUILD_TYPE": "Profile",
+        "CMAKE_CXX_FLAGS_PROFILE": "-O2 -g -DNDEBUG -fkeep-inline-functions -fkeep-static-functions -fno-omit-frame-pointer"
+      }
+    },
+    {
       "name": "ci-coverage",
       "inherits": ["coverage-linux", "dev-mode"],
       "cacheVariables": {
