@@ -12,7 +12,7 @@
 
 bool Output::colors_enabled { false };
 
-string Output::board(const class Board board)
+string Output::board(const class Board& board)
 {
     stringstream ss;
     ss << "  ABCDEFGH " << endl;
@@ -163,7 +163,7 @@ string Output::castling_rights(U8 castling_rights)
     return ss.str();
 }
 
-string Output::board_to_fen(const class Board board)
+string Output::board_to_fen(const class Board& board)
 {
     stringstream fen;
 

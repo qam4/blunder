@@ -89,9 +89,9 @@ int main(int argc, char** argv)
             clock_t toc = clock();
             double elapsed_secs = double(toc - tic) / CLOCKS_PER_SEC;
             cout << "time: " << elapsed_secs << "s" << endl;
-            cout << "searched moves: " << board.get_searched_moves() << endl;
-            cout << "searched moves per second: " << int(board.get_searched_moves() / elapsed_secs)
-                 << endl;
+            cout << "searched moves: " << board.get_total_searched_moves() << endl;
+            cout << "searched moves per second: "
+                 << int(board.get_total_searched_moves() / elapsed_secs) << endl;
 
             cout << "Computer move: " << Output::move(move, board) << endl;
             board.do_move(move);

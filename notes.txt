@@ -101,8 +101,7 @@ Dev notes:
 
 TODO:
 - optimize search time, based on game remaining time, and estimation of search time for next depth.
-- zobrist hash relative update: only update the hash based on the move.
-Do not recompute the hash from the board position.
+- Fix warning in Xboard.cpp
 
 
 Comparing with peterellisjones / rust_move_gen

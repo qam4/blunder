@@ -42,6 +42,7 @@ void Board::add_piece(U8 piece, int square)
     U64 bitboard = 1ULL << square;
     bitboards[piece & 1] |= bitboard;
     bitboards[piece] |= bitboard;
+    irrev.board_hash ^= zobrist.get_pieces(piece, square);
 }
 
 void Board::remove_piece(int square)
@@ -55,6 +56,7 @@ void Board::remove_piece(int square)
     U64 bitboard = ~(1ULL << square);
     bitboards[piece & 1] &= bitboard;
     bitboards[piece] &= bitboard;
+    irrev.board_hash ^= zobrist.get_pieces(piece, square);
 }
 
 void Board::reset()
@@ -108,10 +110,15 @@ void Board::do_move(Move_t move)
     // Save irreversible state
     move_stack[search_ply] = irrev;
 
+    if (irrev.ep_square != NULL_SQUARE)
+    {
+        irrev.board_hash ^= zobrist.get_ep_square(irrev.ep_square);
+    }
     irrev.ep_square = NULL_SQUARE;
     if (is_pawn_double_push(move))
     {
         irrev.ep_square = static_cast<U8>((to + from) >> 1);
+        irrev.board_hash ^= zobrist.get_ep_square(irrev.ep_square);
     }
 
     if (is_castle(move))
@@ -125,7 +132,6 @@ void Board::do_move(Move_t move)
                 remove_piece(E1);
                 add_piece(WHITE_KING, C1);
                 add_piece(WHITE_ROOK, D1);
-                irrev.castling_rights &= static_cast<U8>(~(WHITE_QUEEN_SIDE | WHITE_KING_SIDE));
             }
             else
             {
@@ -134,7 +140,6 @@ void Board::do_move(Move_t move)
                 remove_piece(E8);
                 add_piece(BLACK_KING, C8);
                 add_piece(BLACK_ROOK, D8);
-                irrev.castling_rights &= static_cast<U8>(~(BLACK_QUEEN_SIDE | BLACK_KING_SIDE));
             }
         }
         else
@@ -146,7 +151,6 @@ void Board::do_move(Move_t move)
                 remove_piece(E1);
                 add_piece(WHITE_KING, G1);
                 add_piece(WHITE_ROOK, F1);
-                irrev.castling_rights &= static_cast<U8>(~(WHITE_QUEEN_SIDE | WHITE_KING_SIDE));
             }
             else
             {
@@ -155,7 +159,6 @@ void Board::do_move(Move_t move)
                 remove_piece(E8);
                 add_piece(BLACK_KING, G8);
                 add_piece(BLACK_ROOK, F8);
-                irrev.castling_rights &= static_cast<U8>(~(BLACK_QUEEN_SIDE | BLACK_KING_SIDE));
             }
         }
     }
@@ -194,21 +197,26 @@ void Board::do_move(Move_t move)
     }
 
     // Update castling rights
-    if ((board_array[A1] != WHITE_ROOK) || (board_array[E1] != WHITE_KING))
+    if (irrev.castling_rights)
     {
-        irrev.castling_rights &= static_cast<U8>(~(WHITE_QUEEN_SIDE));
-    }
-    if ((board_array[H1] != WHITE_ROOK) || (board_array[E1] != WHITE_KING))
-    {
-        irrev.castling_rights &= static_cast<U8>(~(WHITE_KING_SIDE));
-    }
-    if ((board_array[A8] != BLACK_ROOK) || (board_array[E8] != BLACK_KING))
-    {
-        irrev.castling_rights &= static_cast<U8>(~(BLACK_QUEEN_SIDE));
-    }
-    if ((board_array[H8] != BLACK_ROOK) || (board_array[E8] != BLACK_KING))
-    {
-        irrev.castling_rights &= static_cast<U8>(~(BLACK_KING_SIDE));
+        irrev.board_hash ^= zobrist.get_castling_rights(irrev.castling_rights);
+        if ((board_array[A1] != WHITE_ROOK) || (board_array[E1] != WHITE_KING))
+        {
+            irrev.castling_rights &= static_cast<U8>(~(WHITE_QUEEN_SIDE));
+        }
+        if ((board_array[H1] != WHITE_ROOK) || (board_array[E1] != WHITE_KING))
+        {
+            irrev.castling_rights &= static_cast<U8>(~(WHITE_KING_SIDE));
+        }
+        if ((board_array[A8] != BLACK_ROOK) || (board_array[E8] != BLACK_KING))
+        {
+            irrev.castling_rights &= static_cast<U8>(~(BLACK_QUEEN_SIDE));
+        }
+        if ((board_array[H8] != BLACK_ROOK) || (board_array[E8] != BLACK_KING))
+        {
+            irrev.castling_rights &= static_cast<U8>(~(BLACK_KING_SIDE));
+        }
+        irrev.board_hash ^= zobrist.get_castling_rights(irrev.castling_rights);
     }
 
     // update flags
@@ -227,11 +235,17 @@ void Board::do_move(Move_t move)
 
     // update side_to_move
     irrev.side_to_move ^= 1;
+    irrev.board_hash ^= zobrist.get_side();
 
     game_ply++;
     search_ply++;
     max_search_ply = max(max_search_ply, search_ply);
-    update_hash();
+    // update_hash();
+#ifndef NDEBUG
+    assert(game_ply < MAX_GAME_PLY);
+    assert(irrev.board_hash == zobrist.get_zobrist_key(*this));
+#endif
+    hash_history[game_ply] = irrev.board_hash;
 }
 
 void Board::undo_move(Move_t move)
@@ -239,6 +253,7 @@ void Board::undo_move(Move_t move)
     U8 from = move_from(move);
     U8 to = move_to(move);
     U8 piece = board_array[to];
+    U64 hash;
     // cout << "undo_move:" << Output::move(move, *this) << endl;
     // cout << "undo_move: move_flag=" << hex << move << endl;
 
@@ -247,6 +262,7 @@ void Board::undo_move(Move_t move)
 
     // update irreversible state
     irrev = move_stack[search_ply];
+    hash = irrev.board_hash;
 
     if (is_castle(move))
     {
@@ -310,6 +326,7 @@ void Board::undo_move(Move_t move)
             add_piece(move_captured(move), captured_sq);
         }
     }
+    irrev.board_hash = hash;
 }
 
 // clang-format off
@@ -482,6 +499,7 @@ Move_t Board::search(int depth, int searchtime /*=MAX_SEARCH_TIME*/, bool xboard
 
     // Iterative deepening
     Move_t last_best_move = 0;
+    total_searched_moves = 0;
 
     for (int current_depth = 1; current_depth <= depth; current_depth++)
     {
@@ -491,13 +509,16 @@ Move_t Board::search(int depth, int searchtime /*=MAX_SEARCH_TIME*/, bool xboard
 
 #if 1
         int value = alphabeta(-MAX_SCORE, MAX_SCORE, current_depth);
+#    ifndef NDEBUG
         assert(value <= MAX_SCORE);
         assert(value >= -MAX_SCORE);
+#    endif
         search_best_move = pv_table[0];
 #else
         search_best_move = negamax_root(current_depth);
         int value = 0;
 #endif
+        total_searched_moves += searched_moves;
         if (xboard)
         {
             clock_t current_time = clock();
@@ -550,7 +571,9 @@ bool Board::is_search_time_over()
 
 void Board::update_hash()
 {
+#ifndef NDEBUG
     assert(game_ply < MAX_GAME_PLY);
+#endif
     set_hash(zobrist.get_zobrist_key(*this));
     hash_history[game_ply] = irrev.board_hash;
 }

@@ -25,7 +25,7 @@ Zobrist::Zobrist()
         castling_rights[i] = rand64();
     }
 
-    for (int i = 0; i < NUM_PIECES; i++)
+    for (int i = 0; i < NUM_SQUARES; i++)
     {
         ep_square[i] = rand64();
     }
@@ -45,11 +45,20 @@ U64 Zobrist::get_zobrist_key(const Board& board) const
     for (int i = 0; i < NUM_SQUARES; i++)
     {
         U8 piece = board[i];
-        zobrist_key ^= pieces[piece][i];
+        if (piece != EMPTY)
+        {
+            zobrist_key ^= pieces[piece][i];
+        }
     }
 
     zobrist_key ^= castling_rights[board.castling_rights()];
-    zobrist_key ^= ep_square[board.ep_square()];
+
+    U8 square = board.ep_square();
+    if (square != NULL_SQUARE)
+    {
+        zobrist_key ^= ep_square[square];
+    }
+
     if (board.side_to_move())
     {
         zobrist_key ^= side;

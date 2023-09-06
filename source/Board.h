@@ -39,6 +39,7 @@ private:
     U64 hash_history[MAX_GAME_PLY];
 
     int searched_moves;
+    int total_searched_moves;
     int game_ply;
     int search_ply;
     int max_search_ply;
@@ -87,6 +88,7 @@ public:
     void set_full_move_count(U8 count) { irrev.full_move_count = count; };
     void set_hash(U64 hash) { irrev.board_hash = hash; };
     int get_searched_moves() const { return searched_moves; };
+    int get_total_searched_moves() const {return total_searched_moves; }
     int get_game_ply() const { return game_ply; };
     int get_search_best_score() const { return search_best_score; }
     U64 get_hash_history(const int i) const { return hash_history[i]; }

@@ -18,6 +18,10 @@ class Zobrist
 public:
     Zobrist();
     U64 get_zobrist_key(const Board &board) const;
+    U64 inline get_pieces(U8 piece, int square) const { return pieces[piece][square]; };
+    U64 inline get_castling_rights(U8 rights) const { return castling_rights[rights]; };
+    U64 inline get_ep_square(U8 square) const { return ep_square[square]; };
+    U64 inline get_side() const { return side; };
 
 private:
     U64 rand64();
