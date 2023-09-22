@@ -226,6 +226,6 @@ Move_t Parser::move(string str, const Board& board)
         }
     }
 
-    move |= build_move_all(from, to, NO_FLAGS, capture);
+    move |= build_move_all(from, to, capture, NO_FLAGS);
     return move;
 }

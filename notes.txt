@@ -91,6 +91,18 @@ $ cmake --build --preset=dev-prof target=profile
 
 That will generate a profiling report (perf-report.out) and flamegraph (perf.svg) in blunder/build/profile
 
+  - valgrind/callgrind
+# install valgrind
+$ sudo yum install valgrind
+
+To run profiling
+$ cd build/profile
+$ valgrind --tool=callgrind ./blunder --perft
+# GUI
+$ kcachegrind
+#
+$ callgrind_annotate --threshold=100 callgrind.out.# > results.#.txt
+
 - Mate puzzles
   - wtharvey.com
 

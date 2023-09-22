@@ -8,13 +8,13 @@
 #include "LookupTables.h"
 
 void MoveGenerator::add_moves(
-    U8 from, U64 targets, class MoveList& list, const class Board& board, const U8 flags)
+    U8 from, U64 targets, class MoveList& list, const class Board& board, const U32 flags)
 {
     while (targets)
     {
         U8 to = bit_scan_forward(targets);
         U8 capture = board[to];
-        Move_t move = build_move_all(from, to, flags, capture);
+        Move_t move = build_move_all(from, to, capture, flags);
         list.push(move);
         targets &= targets - 1;
     }
@@ -24,7 +24,7 @@ void MoveGenerator::add_moves_with_diff(int diff,
                                         U64 targets,
                                         class MoveList& list,
                                         const class Board& board,
-                                        const U8 flags,
+                                        const U32 flags,
                                         const U8 extra_capture)
 {
     while (targets)
@@ -32,7 +32,7 @@ void MoveGenerator::add_moves_with_diff(int diff,
         U8 to = bit_scan_forward(targets);
         U8 from = static_cast<U8>(to - diff) % 64;
         U8 capture = board[to] | extra_capture;
-        Move_t move = build_move_all(from, to, flags, capture);
+        Move_t move = build_move_all(from, to, capture, flags);
         list.push(move);
         targets &= targets - 1;
     }
@@ -41,17 +41,17 @@ void MoveGenerator::add_moves_with_diff(int diff,
 void MoveGenerator::add_promotions_with_diff(
     int diff, U64 targets, class MoveList& list, const class Board& board, const U8 side)
 {
-    U8 flags = side;
+    U32 flags = static_cast<U32>(side << FLAGS_SHIFT);
     while (targets)
     {
         U8 to = bit_scan_forward(targets);
         U8 from = static_cast<U8>(to - diff) % 64;
         U8 capture = board[to];
-        Move_t move = build_move_all(from, to, flags, capture);
-        list.push(move | (KNIGHT << 16));
-        list.push(move | (BISHOP << 16));
-        list.push(move | (ROOK << 16));
-        list.push(move | (QUEEN << 16));
+        Move_t move = build_move_all(from, to, capture, flags);
+        list.push(move | (KNIGHT << FLAGS_SHIFT));
+        list.push(move | (BISHOP << FLAGS_SHIFT));
+        list.push(move | (ROOK << FLAGS_SHIFT));
+        list.push(move | (QUEEN << FLAGS_SHIFT));
         targets &= targets - 1;
     }
 }

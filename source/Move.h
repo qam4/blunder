@@ -10,55 +10,55 @@
 
 typedef U32 Move_t;
 
-static const U8 FROM_MASK = 0x3FU << 0;
-static const U8 FROM_SHIFT = 0;
-static const U8 TO_MASK = 0x3FU;
-static const U8 TO_SHIFT = 6;
-static const U8 CAPTURE_MASK = 0xFU;
-static const U8 CAPTURE_SHIFT = 12;
+static const int FROM_SHIFT = 0;
+static const U32 FROM_MASK = 0x3FU << FROM_SHIFT;
+static const int TO_SHIFT = 6;
+static const U32 TO_MASK = 0x3FU << TO_SHIFT;
+static const int CAPTURE_SHIFT = 12;
+static const U32 CAPTURE_MASK = 0xFU << CAPTURE_SHIFT;
 
 // FLAGS
-static const U8 NO_FLAGS = 0;
-static const U8 FLAG_SHIFT = 16;
+static const int FLAGS_SHIFT = 16;
+static const U32 FLAGS_MASK = 0xFFU << FLAGS_SHIFT;
+static const U32 NO_FLAGS = 0x0U;
 // Promotions
 // to create promotion just put piece to promote to in flags bits 0-3
-static const U8 PROMOTE_TO_MASK = 0xFU;
+static const U32 PROMOTE_TO_MASK = 0xFU << FLAGS_SHIFT;
 // fourth bit denotes double pawn push
-static const U8 PAWN_DOUBLE_PUSH = 16;
+static const U32 PAWN_DOUBLE_PUSH = 16U << FLAGS_SHIFT;
 // fifth bit denote EP capture
-static const U8 EP_CAPTURE = 32;
+static const U32 EP_CAPTURE = 32U << FLAGS_SHIFT;
 // sixth and seventh bit denotes castle
-static const U8 KING_CASTLE = 64;
-static const U8 QUEEN_CASTLE = 128;
-static const U8 CASTLE_MASK = KING_CASTLE | QUEEN_CASTLE;
+static const U32 KING_CASTLE = 64U << FLAGS_SHIFT;
+static const U32 QUEEN_CASTLE = 128U << FLAGS_SHIFT;
+static const U32 CASTLE_MASK = KING_CASTLE | QUEEN_CASTLE;
 
-static const U8 SCORE_MASK = 0xFFU;
-static const U8 SCORE_SHIFT = 24;
+static const int SCORE_SHIFT = 24;
+static const U32 SCORE_MASK = 0xFFU << SCORE_SHIFT;
 
-Move_t inline build_move(U8 from, U8 to) { return (from & 0x3FU) | (to & 0x3FU) << 6; }
-Move_t inline build_capture(U8 from, U8 to, U8 capture) { return (from & 0x3FU) | (to & 0x3FU) << 6 | (capture & 0xFU) << 12; }
-Move_t inline build_ep_capture(U8 from, U8 to, U8 capture) { return (from & 0x3FU) | (to & 0x3FU) << 6 | (capture & 0xFU) << 12 | EP_CAPTURE << 16; }
-Move_t inline build_promotion(U8 from, U8 to, U8 promote_to) { return (from & 0x3FU) | (to & 0x3FU) << 6 | ((promote_to & 0xFU) << 16); }
-Move_t inline build_capture_promotion(U8 from, U8 to, U8 capture, U8 promote_to){ return (from & 0x3FU) | (to & 0x3FU) << 6 | (capture & 0xFU) << 12 | ((promote_to & 0xFU) << 16); }
-Move_t inline build_pawn_double_push(U8 from, U8 to) { return (from & 0x3FU) | (to & 0x3FU) << 6 | PAWN_DOUBLE_PUSH << 16; }
-Move_t inline build_castle(U8 flags) { return static_cast<U32>(flags & CASTLE_MASK) << 16; }
+Move_t inline build_move(U8 from, U8 to) { return static_cast<U32>(from | to << TO_SHIFT); }
+Move_t inline build_capture(U8 from, U8 to, U8 capture) { return static_cast<U32>(from | (to << TO_SHIFT) | (capture << CAPTURE_SHIFT)); }
+Move_t inline build_ep_capture(U8 from, U8 to, U8 capture) { return static_cast<U32>(from | (to << TO_SHIFT) | (capture << CAPTURE_SHIFT)) | EP_CAPTURE; }
+Move_t inline build_promotion(U8 from, U8 to, U8 promote_to) { return static_cast<U32>(from | (to << TO_SHIFT) | (promote_to << FLAGS_SHIFT)); }
+Move_t inline build_capture_promotion(U8 from, U8 to, U8 capture, U8 promote_to) { return static_cast<U32>(from | (to << TO_SHIFT) | (capture << CAPTURE_SHIFT) | (promote_to << FLAGS_SHIFT)); }
+Move_t inline build_pawn_double_push(U8 from, U8 to) { return static_cast<U32>(from | (to << TO_SHIFT)) | PAWN_DOUBLE_PUSH; }
+Move_t inline build_castle(U32 flags) { return flags; }
 
-Move_t inline build_move_flags(U8 from, U8 to, U8 flags) { return (from & 0x3FU) | (to & 0x3FU) << 6 | (flags & 0xFFU) << 16; }
-Move_t inline build_move_all(U8 from, U8 to, U8 flags, U8 capture) { return (from & 0x3FU) | (to & 0x3FU) << 6 | (capture & 0xFU) << 12 | (flags & 0xFFU) << 16; }
-void inline move_add_score(Move_t *move, U8 score) { *move = *move | (score & 0xFFU) << 24; }
-void inline move_remove_score(Move_t *move) { *move = *move & ~(0xFFU << 24); }
+Move_t inline build_move_all(U8 from, U8 to, U8 capture, U32 flags) { return static_cast<U32>(from | (to << TO_SHIFT) | (capture << CAPTURE_SHIFT)) | flags; }
+void inline move_add_score(Move_t *move, U8 score) { *move = *move | static_cast<U32>(score << SCORE_SHIFT); }
+void inline move_remove_score(Move_t *move) { *move = *move & ~SCORE_MASK; }
 
-bool inline is_capture(Move_t move) { return (move >> 12) & 0xFU; }
-bool inline is_promotion(Move_t move){ return (move >> 16) & (0xFU); } // mask all pieces
-bool inline is_ep_capture(Move_t move){ return (move >> 16) & EP_CAPTURE; }
-bool inline is_castle(Move_t move){ return (move >> 16) & CASTLE_MASK; }
-bool inline is_pawn_double_push(Move_t move){ return (move >> 16) & PAWN_DOUBLE_PUSH; }
+bool inline is_capture(Move_t move) { return move & CAPTURE_MASK; }
+bool inline is_promotion(Move_t move) { return move & PROMOTE_TO_MASK; }
+bool inline is_ep_capture(Move_t move) { return move & EP_CAPTURE; }
+bool inline is_castle(Move_t move) { return move & CASTLE_MASK; }
+bool inline is_pawn_double_push(Move_t move) { return move & PAWN_DOUBLE_PUSH; }
 
-U8 inline move_from(Move_t move) { return move & 0x3FU; }
-U8 inline move_to(Move_t move) { return (move >> 6) & 0x3FU; }
-U8 inline move_captured(Move_t move) { return (move >> 12) & 0xFU; }
-U8 inline move_flags(Move_t move) { return (move >> 16) & 0xFFU; }
-U8 inline move_promote_to(Move_t move){ return (move >> 16) & 0xFU; }
-U8 inline move_score(Move_t move) { return static_cast<U8>(move >> 24) & 0xFFU; }
+U8 inline move_from(Move_t move) { return move & FROM_MASK; }
+U8 inline move_to(Move_t move) { return (move & TO_MASK) >> TO_SHIFT; }
+U8 inline move_captured(Move_t move) { return (move & CAPTURE_MASK) >> CAPTURE_SHIFT; }
+U8 inline move_flags(Move_t move) { return (move & FLAGS_MASK) >> FLAGS_SHIFT; }
+U8 inline move_promote_to(Move_t move){ return (move & PROMOTE_TO_MASK) >> FLAGS_SHIFT; }
+U8 inline move_score(Move_t move) { return static_cast<U8>((move & SCORE_MASK) >> SCORE_SHIFT); }
 
 #endif /* MOVES_H */
