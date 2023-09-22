@@ -114,13 +114,13 @@ U64 MoveGenerator::lines_along_calc(U8 sq1, U8 sq2)
 }
 
 // Using lookup table
-U64 MoveGenerator::squares_between(U8 sq1, U8 sq2)
+inline U64 MoveGenerator::squares_between(U8 sq1, U8 sq2)
 {
     return SQUARES_BETWEEN[sq1][sq2];
 }
 
 // Using lookup table
-U64 MoveGenerator::lines_along(U8 sq1, U8 sq2)
+inline U64 MoveGenerator::lines_along(U8 sq1, U8 sq2)
 {
     return LINES_ALONG[sq1][sq2];
 }
@@ -131,7 +131,7 @@ U64 MoveGenerator::lines_along(U8 sq1, U8 sq2)
  * @param x any bitboard
  * @return bitboard x flipped vertically
  */
-U64 MoveGenerator::flip_vertical(U64 x)
+inline U64 MoveGenerator::flip_vertical(U64 x)
 {
     const U64 k1 = C64(0x00FF00FF00FF00FF);
     const U64 k2 = C64(0x0000FFFF0000FFFF);
@@ -144,7 +144,7 @@ U64 MoveGenerator::flip_vertical(U64 x)
 /**
  * Byte swap === flip vertical
  */
-U64 MoveGenerator::byteswap(U64 x)
+inline U64 MoveGenerator::byteswap(U64 x)
 {
 #if defined(__GNUC__)
     return (__builtin_bswap64(x));
@@ -160,14 +160,14 @@ U64 MoveGenerator::byteswap(U64 x)
  *
  * https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#MirrorHorizontally
  */
-U64 MoveGenerator::mirror_horizontal(U64 x)
+inline U64 MoveGenerator::mirror_horizontal(U64 x)
 {
     const U64 k1 = C64(0x5555555555555555);
     const U64 k2 = C64(0x3333333333333333);
     const U64 k4 = C64(0x0f0f0f0f0f0f0f0f);
-    x = ((x >> 1) & k1) | ((x & k1) << 1);
-    x = ((x >> 2) & k2) | ((x & k2) << 2);
-    x = ((x >> 4) & k4) | ((x & k4) << 4);
+    x = ((x >> 1) & k1) +  2*(x & k1);
+    x = ((x >> 2) & k2) +  4*(x & k2);
+    x = ((x >> 4) & k4) + 16*(x & k4);
     return x;
 }
 
@@ -202,19 +202,23 @@ U64 MoveGenerator::anti_diag_mask_calc(int sq)
     int sout = diag & (-diag >> 31);
     return (maindia >> sout) << nort;
 }
+
 // excluding the square bit:
 U64 MoveGenerator::rank_mask_ex_calc(int sq)
 {
     return (C64(1) << sq) ^ rank_mask_calc(sq);
 }
+
 U64 MoveGenerator::file_mask_ex_calc(int sq)
 {
     return (C64(1) << sq) ^ file_mask_calc(sq);
 }
+
 U64 MoveGenerator::diag_mask_ex_calc(int sq)
 {
     return (C64(1) << sq) ^ diag_mask_calc(sq);
 }
+
 U64 MoveGenerator::anti_diag_mask_ex_calc(int sq)
 {
     return (C64(1) << sq) ^ anti_diag_mask_calc(sq);
@@ -224,74 +228,85 @@ U64 MoveGenerator::rook_mask_calc(int sq)
 {
     return rank_mask_calc(sq) | file_mask_calc(sq);
 }
+
 U64 MoveGenerator::bishop_mask_calc(int sq)
 {
     return diag_mask_calc(sq) | anti_diag_mask_calc(sq);
 }
+
 U64 MoveGenerator::rook_mask_ex_calc(int sq)
 {
     return rank_mask_calc(sq) ^ file_mask_calc(sq);
 }
+
 U64 MoveGenerator::bishop_mask_ex_calc(int sq)
 {
     return diag_mask_calc(sq) ^ anti_diag_mask_calc(sq);
 }
 
-U64 MoveGenerator::rank_mask(int sq)
+inline U64 MoveGenerator::rank_mask(int sq)
 {
     return RANK_MASK[sq];
 }
 
-U64 MoveGenerator::file_mask(int sq)
+inline U64 MoveGenerator::file_mask(int sq)
 {
     return FILE_MASK[sq];
 }
 
-U64 MoveGenerator::diag_mask(int sq)
+inline U64 MoveGenerator::diag_mask(int sq)
 {
     return DIAG_MASK[sq];
 }
 
-U64 MoveGenerator::anti_diag_mask(int sq)
+inline U64 MoveGenerator::anti_diag_mask(int sq)
 {
     return ANTI_DIAG_MASK[sq];
 }
 
-U64 MoveGenerator::rank_mask_ex(int sq)
+inline U64 MoveGenerator::rank_mask_ex(int sq)
 {
     return RANK_MASK_EX[sq];
 }
-U64 MoveGenerator::file_mask_ex(int sq)
+
+inline U64 MoveGenerator::file_mask_ex(int sq)
 {
     return FILE_MASK_EX[sq];
 }
-U64 MoveGenerator::diag_mask_ex(int sq)
+
+inline U64 MoveGenerator::diag_mask_ex(int sq)
 {
     return DIAG_MASK_EX[sq];
 }
-U64 MoveGenerator::anti_diag_mask_ex(int sq)
+
+inline U64 MoveGenerator::anti_diag_mask_ex(int sq)
 {
     return ANTI_DIAG_MASK_EX[sq];
 }
-U64 MoveGenerator::rook_mask(int sq)
+
+inline U64 MoveGenerator::rook_mask(int sq)
 {
     return ROOK_MASK[sq];
 }
-U64 MoveGenerator::bishop_mask(int sq)
+
+inline U64 MoveGenerator::bishop_mask(int sq)
 {
     return BISHOP_MASK[sq];
 }
-U64 MoveGenerator::rook_mask_ex(int sq)
+
+inline U64 MoveGenerator::rook_mask_ex(int sq)
 {
     return ROOK_MASK_EX[sq];
 }
-U64 MoveGenerator::bishop_mask_ex(int sq)
+
+inline U64 MoveGenerator::bishop_mask_ex(int sq)
 {
     return BISHOP_MASK_EX[sq];
 }
 
 // https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks
-U64 MoveGenerator::diag_attacks(U64 occ, int sq)
+// Hyperbola quiescence: https://www.chessprogramming.org/Hyperbola_Quintessence
+inline U64 MoveGenerator::diag_attacks(U64 occ, int sq)
 {
     // lineAttacks = (o-2s) ^ (o'-2s')'
     //     with m=mask
@@ -310,7 +325,7 @@ U64 MoveGenerator::diag_attacks(U64 occ, int sq)
     return forward;
 }
 
-U64 MoveGenerator::anti_diag_attacks(U64 occ, int sq)
+inline U64 MoveGenerator::anti_diag_attacks(U64 occ, int sq)
 {
     // lineAttacks= (o-2s) ^ (o'-2s')'
     //     with m=mask
@@ -329,7 +344,7 @@ U64 MoveGenerator::anti_diag_attacks(U64 occ, int sq)
     return forward;
 }
 
-U64 MoveGenerator::file_attacks(U64 occ, int sq)
+inline U64 MoveGenerator::file_attacks(U64 occ, int sq)
 {
     // lineAttacks= (o-2s) ^ (o'-2s')'
     //     with m=mask
@@ -348,7 +363,7 @@ U64 MoveGenerator::file_attacks(U64 occ, int sq)
     return forward;
 }
 
-U64 MoveGenerator::rank_attacks(U64 occ, int sq)
+inline U64 MoveGenerator::rank_attacks(U64 occ, int sq)
 {
     // lineAttacks= (o-2s) ^ (o'-2s')'
     //     with m=mask
@@ -367,12 +382,12 @@ U64 MoveGenerator::rank_attacks(U64 occ, int sq)
     return forward;
 }
 
-U64 MoveGenerator::rook_attacks(U64 occ, int sq)
+inline U64 MoveGenerator::rook_attacks(U64 occ, int sq)
 {
     return file_attacks(occ, sq) + rank_attacks(occ, sq);
 }
 
-U64 MoveGenerator::bishop_attacks(U64 occ, int sq)
+inline U64 MoveGenerator::bishop_attacks(U64 occ, int sq)
 {
     return diag_attacks(occ, sq) + anti_diag_attacks(occ, sq);
 }
@@ -401,15 +416,15 @@ void MoveGenerator::add_rook_moves(class MoveList& list, const class Board& boar
 {
     U64 rooks = board.bitboards[ROOK | side];
     U64 occupied = board.bitboards[WHITE] | board.bitboards[BLACK];
-    U64 friendly = board.bitboards[side];
+    U64 non_friendly = ~board.bitboards[side];
 
 #if 0
     cout << "rooks=0x" << hex << rooks<< endl;
     cout << Output::bitboard(rooks);
     cout << "occupied=0x" << hex << occupied<< endl;
     cout << Output::bitboard(occupied);
-    cout << "friendly=0x" << hex << occupied<< endl;
-    cout << Output::bitboard(friendly);
+    cout << "non_friendly=0x" << hex << non_friendly<< endl;
+    cout << Output::bitboard(non_friendly);
     cout << dec;
 #endif
 
@@ -420,7 +435,7 @@ void MoveGenerator::add_rook_moves(class MoveList& list, const class Board& boar
         U64 targets;
         // Add file and rank attacks
         targets = rook_attacks(occupied, from);
-        targets &= ~(friendly);
+        targets &= non_friendly;
         add_moves(from, targets, list, board, NO_FLAGS);
 
         rooks &= rooks - 1;
@@ -432,7 +447,7 @@ void MoveGenerator::add_bishop_moves(class MoveList& list, const class Board& bo
 {
     U64 bishops = board.bitboards[BISHOP | side];
     U64 occupied = board.bitboards[WHITE] | board.bitboards[BLACK];
-    U64 friendly = board.bitboards[side];  // own pieces
+    U64 non_friendly = ~board.bitboards[side];
 
     while (bishops)
     {
@@ -441,7 +456,7 @@ void MoveGenerator::add_bishop_moves(class MoveList& list, const class Board& bo
         U64 targets;
         // Add diagonal and antidiagonal attacks
         targets = bishop_attacks(occupied, from);
-        targets &= ~(friendly);
+        targets &= non_friendly;
         add_moves(from, targets, list, board, NO_FLAGS);
 
         bishops &= bishops - 1;
@@ -452,7 +467,7 @@ void MoveGenerator::add_queen_moves(class MoveList& list, const class Board& boa
 {
     U64 queens = board.bitboards[QUEEN | side];
     U64 occupied = board.bitboards[WHITE] | board.bitboards[BLACK];
-    U64 friendly = board.bitboards[side];  // own pieces
+    U64 non_friendly = ~board.bitboards[side];
 
     while (queens)
     {
@@ -461,7 +476,7 @@ void MoveGenerator::add_queen_moves(class MoveList& list, const class Board& boa
         U64 targets;
         // Add diagonal, antidiagonal, file and rank attacks
         targets = bishop_attacks(occupied, from) + rook_attacks(occupied, from);
-        targets &= ~(friendly);
+        targets &= non_friendly;
         add_moves(from, targets, list, board, NO_FLAGS);
 
         queens &= queens - 1;
