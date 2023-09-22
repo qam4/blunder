@@ -12,6 +12,14 @@ https://code.google.com/archive/p/javalin-chess/wikis/README.wiki
 https://chess.stackexchange.com/questions/37309/move-generation-for-sliding-pieces-and-hyperbola-quintessence
 https://www.chessprogramming.org/Hyperbola_Quintessence
 
+  - Magic bitboards
+https://www.chessprogramming.org/Hiding_the_Implementation
+https://rhysre.net/fast-chess-move-generation-with-magic-bitboards.html
+https://www.chessprogramming.org/Best_Magics_so_far
+  - SIMD
+https://www.chessprogramming.org/SIMD_Techniques
+
+
 - Move search (Algos, position evaluation, hashing, move ordering, ...)
 https://www.josherv.in/2022/12/17/chess-2/: Writing a Chess Engine: Move Selection
 https://www.cs.unm.edu/~aaron/downloads/qian_search.pdf: Game Tree Searching and pruning

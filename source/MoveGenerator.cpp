@@ -113,64 +113,6 @@ U64 MoveGenerator::lines_along_calc(U8 sq1, U8 sq2)
     return 0ULL;
 }
 
-// Using lookup table
-inline U64 MoveGenerator::squares_between(U8 sq1, U8 sq2)
-{
-    return SQUARES_BETWEEN[sq1][sq2];
-}
-
-// Using lookup table
-inline U64 MoveGenerator::lines_along(U8 sq1, U8 sq2)
-{
-    return LINES_ALONG[sq1][sq2];
-}
-
-/**
- * Flip a bitboard vertically about the center ranks.
- * Rank 1 is mapped to rank 8 and vice versa.
- * @param x any bitboard
- * @return bitboard x flipped vertically
- */
-inline U64 MoveGenerator::flip_vertical(U64 x)
-{
-    const U64 k1 = C64(0x00FF00FF00FF00FF);
-    const U64 k2 = C64(0x0000FFFF0000FFFF);
-    x = ((x >> 8) & k1) | ((x & k1) << 8);
-    x = ((x >> 16) & k2) | ((x & k2) << 16);
-    x = (x >> 32) | (x << 32);
-    return x;
-}
-
-/**
- * Byte swap === flip vertical
- */
-inline U64 MoveGenerator::byteswap(U64 x)
-{
-#if defined(__GNUC__)
-    return (__builtin_bswap64(x));
-#endif
-    return flip_vertical(x);
-}
-
-/**
- * Mirror a bitboard horizontally about the center files.
- * File a is mapped to file h and vice versa.
- * @param x any bitboard
- * @return bitboard x mirrored horizontally
- *
- * https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#MirrorHorizontally
- */
-inline U64 MoveGenerator::mirror_horizontal(U64 x)
-{
-    const U64 k1 = C64(0x5555555555555555);
-    const U64 k2 = C64(0x3333333333333333);
-    const U64 k4 = C64(0x0f0f0f0f0f0f0f0f);
-    x = ((x >> 1) & k1) +  2*(x & k1);
-    x = ((x >> 2) & k2) +  4*(x & k2);
-    x = ((x >> 4) & k4) + 16*(x & k4);
-    return x;
-}
-
 // Sliding piece attacks
 // https://www.chessprogramming.org/Sliding_Piece_Attacks
 
@@ -244,150 +186,33 @@ U64 MoveGenerator::bishop_mask_ex_calc(int sq)
     return diag_mask_calc(sq) ^ anti_diag_mask_calc(sq);
 }
 
-inline U64 MoveGenerator::rank_mask(int sq)
-{
-    return RANK_MASK[sq];
-}
-
-inline U64 MoveGenerator::file_mask(int sq)
-{
-    return FILE_MASK[sq];
-}
-
-inline U64 MoveGenerator::diag_mask(int sq)
-{
-    return DIAG_MASK[sq];
-}
-
-inline U64 MoveGenerator::anti_diag_mask(int sq)
-{
-    return ANTI_DIAG_MASK[sq];
-}
-
-inline U64 MoveGenerator::rank_mask_ex(int sq)
-{
-    return RANK_MASK_EX[sq];
-}
-
-inline U64 MoveGenerator::file_mask_ex(int sq)
-{
-    return FILE_MASK_EX[sq];
-}
-
-inline U64 MoveGenerator::diag_mask_ex(int sq)
-{
-    return DIAG_MASK_EX[sq];
-}
-
-inline U64 MoveGenerator::anti_diag_mask_ex(int sq)
-{
-    return ANTI_DIAG_MASK_EX[sq];
-}
-
-inline U64 MoveGenerator::rook_mask(int sq)
-{
-    return ROOK_MASK[sq];
-}
-
-inline U64 MoveGenerator::bishop_mask(int sq)
-{
-    return BISHOP_MASK[sq];
-}
-
-inline U64 MoveGenerator::rook_mask_ex(int sq)
-{
-    return ROOK_MASK_EX[sq];
-}
-
-inline U64 MoveGenerator::bishop_mask_ex(int sq)
-{
-    return BISHOP_MASK_EX[sq];
-}
-
 // https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks
-// Hyperbola quiescence: https://www.chessprogramming.org/Hyperbola_Quintessence
-inline U64 MoveGenerator::diag_attacks(U64 occ, int sq)
+U64 MoveGenerator::diag_attacks(U64 occ, int sq)
 {
-    // lineAttacks = (o-2s) ^ (o'-2s')'
-    //     with m=mask
-    // lineAttacks=(((o&m)-2s) ^ ((o&m)'-2s')')&m
-    U64 forward, reverse, slider, lineMask;
-
-    lineMask = diag_mask_ex(sq);  // excludes square of slider
-    slider = C64(1) << sq;        // singleBitboard[sqOfSlider]; // single bit 1 << sq, 2^sq
-
-    forward = occ & lineMask;     // also performs the first subtraction by clearing the s in o
-    reverse = byteswap(forward);  // o'-s'
-    forward -= (slider);          // o -2s
-    reverse -= byteswap(slider);  // o'-2s'
-    forward ^= byteswap(reverse);
-    forward &= lineMask;  // mask the line again
-    return forward;
+    return diag_attacks_hyperbola(occ, sq);
 }
 
-inline U64 MoveGenerator::anti_diag_attacks(U64 occ, int sq)
+U64 MoveGenerator::anti_diag_attacks(U64 occ, int sq)
 {
-    // lineAttacks= (o-2s) ^ (o'-2s')'
-    //     with m=mask
-    // lineAttacks=(((o&m)-2s) ^ ((o&m)'-2s')')&m
-    U64 forward, reverse, slider, lineMask;
-
-    lineMask = anti_diag_mask_ex(sq);  // excludes square of slider
-    slider = C64(1) << sq;             // singleBitboard[sqOfSlider]; // single bit 1 << sq, 2^sq
-
-    forward = occ & lineMask;     // also performs the first subtraction by clearing the s in o
-    reverse = byteswap(forward);  // o'-s'
-    forward -= (slider);          // o -2s
-    reverse -= byteswap(slider);  // o'-2s'
-    forward ^= byteswap(reverse);
-    forward &= lineMask;  // mask the line again
-    return forward;
+    return anti_diag_attacks_hyperbola(occ, sq);
 }
 
-inline U64 MoveGenerator::file_attacks(U64 occ, int sq)
+U64 MoveGenerator::file_attacks(U64 occ, int sq)
 {
-    // lineAttacks= (o-2s) ^ (o'-2s')'
-    //     with m=mask
-    // lineAttacks=(((o&m)-2s) ^ ((o&m)'-2s')')&m
-    U64 forward, reverse, slider, lineMask;
-
-    lineMask = file_mask_ex(sq);  // excludes square of slider
-    slider = C64(1) << sq;        // singleBitboard[sqOfSlider]; // single bit 1 << sq, 2^sq
-
-    forward = occ & lineMask;     // also performs the first subtraction by clearing the s in o
-    reverse = byteswap(forward);  // o'-s'
-    forward -= (slider);          // o -2s
-    reverse -= byteswap(slider);  // o'-2s'
-    forward ^= byteswap(reverse);
-    forward &= lineMask;  // mask the line again
-    return forward;
+    return file_attacks_hyperbola(occ, sq);
 }
 
-inline U64 MoveGenerator::rank_attacks(U64 occ, int sq)
+U64 MoveGenerator::rank_attacks(U64 occ, int sq)
 {
-    // lineAttacks= (o-2s) ^ (o'-2s')'
-    //     with m=mask
-    // lineAttacks=(((o&m)-2s) ^ ((o&m)'-2s')')&m
-    U64 forward, reverse, slider, lineMask;
-
-    lineMask = rank_mask_ex(sq);  // excludes square of slider
-    slider = C64(1) << sq;        // singleBitboard[sqOfSlider]; // single bit 1 << sq, 2^sq
-
-    forward = occ & lineMask;  // also performs the first subtraction by clearing the s in o
-    reverse = mirror_horizontal(forward);  // o'-s'
-    forward -= (slider);                   // o -2s
-    reverse -= mirror_horizontal(slider);  // o'-2s'
-    forward ^= mirror_horizontal(reverse);
-    forward &= lineMask;  // mask the line again
-    return forward;
+    return rank_attacks_hyperbola(occ, sq);
 }
 
-inline U64 MoveGenerator::rook_attacks(U64 occ, int sq)
+U64 MoveGenerator::rook_attacks(U64 occ, int sq)
 {
     return file_attacks(occ, sq) + rank_attacks(occ, sq);
 }
 
-inline U64 MoveGenerator::bishop_attacks(U64 occ, int sq)
+U64 MoveGenerator::bishop_attacks(U64 occ, int sq)
 {
     return diag_attacks(occ, sq) + anti_diag_attacks(occ, sq);
 }
