@@ -23,6 +23,7 @@ add_library(
     source/Common.cpp
     source/Move.cpp
     source/MoveGenerator.cpp
+    source/MoveGeneratorHyperbola.cpp
     source/MoveList.cpp
     source/Output.cpp
     source/Parser.cpp

@@ -11,6 +11,7 @@
 #include "Move.h"
 #include "Board.h"
 #include "Output.h"
+#include "LookupTables.h"
 
 // Move ordering table
 // Move valuable victim, least valuable attacker
@@ -70,6 +71,124 @@ U64 inline circular_left_shift(U64 target, int shift)
     return (target << shift) | (target >> (64 - shift));
 }
 
+/**
+ * Flip a bitboard vertically about the center ranks.
+ * Rank 1 is mapped to rank 8 and vice versa.
+ * @param x any bitboard
+ * @return bitboard x flipped vertically
+ */
+U64 inline flip_vertical(U64 x)
+{
+    const U64 k1 = C64(0x00FF00FF00FF00FF);
+    const U64 k2 = C64(0x0000FFFF0000FFFF);
+    x = ((x >> 8) & k1) | ((x & k1) << 8);
+    x = ((x >> 16) & k2) | ((x & k2) << 16);
+    x = (x >> 32) | (x << 32);
+    return x;
+}
+
+/**
+ * Byte swap === flip vertical
+ */
+U64 inline byteswap(U64 x)
+{
+#if defined(__GNUC__)
+    return (__builtin_bswap64(x));
+#else
+    return flip_vertical(x);
+#endif
+}
+
+/**
+ * Mirror a bitboard horizontally about the center files.
+ * File a is mapped to file h and vice versa.
+ * @param x any bitboard
+ * @return bitboard x mirrored horizontally
+ *
+ * https://www.chessprogramming.org/Flipping_Mirroring_and_Rotating#MirrorHorizontally
+ */
+U64 inline mirror_horizontal(U64 x)
+{
+    const U64 k1 = C64(0x5555555555555555);
+    const U64 k2 = C64(0x3333333333333333);
+    const U64 k4 = C64(0x0f0f0f0f0f0f0f0f);
+    x = ((x >> 1) & k1) +  2*(x & k1);
+    x = ((x >> 2) & k2) +  4*(x & k2);
+    x = ((x >> 4) & k4) + 16*(x & k4);
+    return x;
+}
+
+// Using lookup table
+U64 inline squares_between(U8 sq1, U8 sq2)
+{
+    return SQUARES_BETWEEN[sq1][sq2];
+}
+
+U64 inline lines_along(U8 sq1, U8 sq2)
+{
+    return LINES_ALONG[sq1][sq2];
+}
+
+U64 inline rank_mask(int sq)
+{
+    return RANK_MASK[sq];
+}
+
+U64 inline file_mask(int sq)
+{
+    return FILE_MASK[sq];
+}
+
+U64 inline diag_mask(int sq)
+{
+    return DIAG_MASK[sq];
+}
+
+U64 inline anti_diag_mask(int sq)
+{
+    return ANTI_DIAG_MASK[sq];
+}
+
+U64 inline rank_mask_ex(int sq)
+{
+    return RANK_MASK_EX[sq];
+}
+
+U64 inline file_mask_ex(int sq)
+{
+    return FILE_MASK_EX[sq];
+}
+
+U64 inline diag_mask_ex(int sq)
+{
+    return DIAG_MASK_EX[sq];
+}
+
+U64 inline anti_diag_mask_ex(int sq)
+{
+    return ANTI_DIAG_MASK_EX[sq];
+}
+
+U64 inline rook_mask(int sq)
+{
+    return ROOK_MASK[sq];
+}
+
+U64 inline bishop_mask(int sq)
+{
+    return BISHOP_MASK[sq];
+}
+
+U64 inline rook_mask_ex(int sq)
+{
+    return ROOK_MASK_EX[sq];
+}
+
+U64 inline bishop_mask_ex(int sq)
+{
+    return BISHOP_MASK_EX[sq];
+}
+
 struct MoveGenPreprocessing
 {
     U64 checkers; // Opponent pieces giving check
@@ -119,13 +238,9 @@ private:
     static U64 knight_targets(U64 from);
     static U64 king_targets(U64 from);
     static U64 pawn_targets(U64 from, U8 side);
-    static U64 inline byteswap(U64 x);
+
     static U64 squares_between_calc(U8 sq1, U8 sq2);
-    static inline U64 squares_between(U8 sq1, U8 sq2);
     static U64 lines_along_calc(U8 sq1, U8 sq2);
-    static inline U64 lines_along(U8 sq1, U8 sq2);
-    static inline U64 flip_vertical(U64 x);
-    static inline U64 mirror_horizontal(U64 x);
     static U64 rank_mask_calc(int sq);
     static U64 file_mask_calc(int sq);
     static U64 diag_mask_calc(int sq);
@@ -138,24 +253,18 @@ private:
     static U64 rook_mask_ex_calc(int sq);
     static U64 bishop_mask_calc(int sq);
     static U64 bishop_mask_ex_calc(int sq);
-    static inline U64 rank_mask(int sq);
-    static inline U64 file_mask(int sq);
-    static inline U64 diag_mask(int sq);
-    static inline U64 anti_diag_mask(int sq);
-    static inline U64 rook_mask(int sq);
-    static inline U64 bishop_mask(int sq);
-    static inline U64 rank_mask_ex(int sq);
-    static inline U64 file_mask_ex(int sq);
-    static inline U64 diag_mask_ex(int sq);
-    static inline U64 anti_diag_mask_ex(int sq);
-    static inline U64 rook_mask_ex(int sq);
-    static inline U64 bishop_mask_ex(int sq);
-    static inline U64 diag_attacks(U64 occ, int sq);
-    static inline U64 anti_diag_attacks(U64 occ, int sq);
-    static inline U64 file_attacks(U64 occ, int sq);
-    static inline U64 rank_attacks(U64 occ, int sq);
-    static inline U64 rook_attacks(U64 occ, int sq);
-    static inline U64 bishop_attacks(U64 occ, int sq);
+
+    static U64 diag_attacks(U64 occ, int sq);
+    static U64 anti_diag_attacks(U64 occ, int sq);
+    static U64 file_attacks(U64 occ, int sq);
+    static U64 rank_attacks(U64 occ, int sq);
+    static U64 rook_attacks(U64 occ, int sq);
+    static U64 bishop_attacks(U64 occ, int sq);
+
+    static U64 diag_attacks_hyperbola(U64 occ, int sq);
+    static U64 anti_diag_attacks_hyperbola(U64 occ, int sq);
+    static U64 file_attacks_hyperbola(U64 occ, int sq);
+    static U64 rank_attacks_hyperbola(U64 occ, int sq);
 };
 
 #endif /* MOVEGENERATOR_H */
