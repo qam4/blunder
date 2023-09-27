@@ -61,6 +61,7 @@ void Board::remove_piece(int square)
 
 void Board::reset()
 {
+    MoveGenerator::init_magic_tables();
     zobrist = Zobrist();
     for (int i = 0; i < 64; i++)
     {

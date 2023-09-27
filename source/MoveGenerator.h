@@ -223,6 +223,7 @@ public:
     static void score_moves(class MoveList &list, const class Board &board);
 
     static void generate_move_lookup_tables();
+    static void init_magic_tables();
 
 private:
     // diff is positive number denoting fixed distance between from and to squares such that:
@@ -261,10 +262,18 @@ private:
     static U64 rook_attacks(U64 occ, int sq);
     static U64 bishop_attacks(U64 occ, int sq);
 
+    static U64 rook_attacks_slow(U64 occ, int sq);
+    static U64 bishop_attacks_slow(U64 occ, int sq);
+
     static U64 diag_attacks_hyperbola(U64 occ, int sq);
     static U64 anti_diag_attacks_hyperbola(U64 occ, int sq);
     static U64 file_attacks_hyperbola(U64 occ, int sq);
     static U64 rank_attacks_hyperbola(U64 occ, int sq);
+
+    static void init_rook_magic_table();
+    static void init_bishop_magic_table();
+    static U64 rook_attacks_magic(U64 occ, int sq);
+    static U64 bishop_attacks_magic(U64 occ, int sq);
 };
 
 #endif /* MOVEGENERATOR_H */

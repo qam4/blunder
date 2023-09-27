@@ -24,6 +24,7 @@ add_library(
     source/Move.cpp
     source/MoveGenerator.cpp
     source/MoveGeneratorHyperbola.cpp
+    source/MoveGeneratorMagicBitboards.cpp
     source/MoveList.cpp
     source/Output.cpp
     source/Parser.cpp

@@ -207,14 +207,24 @@ U64 MoveGenerator::rank_attacks(U64 occ, int sq)
     return rank_attacks_hyperbola(occ, sq);
 }
 
-U64 MoveGenerator::rook_attacks(U64 occ, int sq)
+U64 MoveGenerator::rook_attacks_slow(U64 occ, int sq)
 {
     return file_attacks(occ, sq) + rank_attacks(occ, sq);
 }
 
-U64 MoveGenerator::bishop_attacks(U64 occ, int sq)
+U64 MoveGenerator::bishop_attacks_slow(U64 occ, int sq)
 {
     return diag_attacks(occ, sq) + anti_diag_attacks(occ, sq);
+}
+
+U64 MoveGenerator::rook_attacks(U64 occ, int sq)
+{
+    return rook_attacks_magic(occ, sq);
+}
+
+U64 MoveGenerator::bishop_attacks(U64 occ, int sq)
+{
+    return bishop_attacks_magic(occ, sq);
 }
 
 bool MoveGenerator::ep_move_discovers_check(const class Board& board,
@@ -1353,39 +1363,74 @@ void MoveGenerator::generate_move_lookup_tables()
     }
     cout << "};" << endl << endl;
 
-    // cout << "// LOOKUP TABLE FOR SQUARES BETWEEN" << endl;
-    // cout << "const U64 SQUARES_BETWEEN[64][64] = {" << endl << INDENT;
-    // for (U8 from = 0; from < 64; from++)
-    // {
-    //     cout << "{ ";
-    //     for (U8 to = 0; to < 64; to++)
-    //     {
-    //         if (to % 4 == 0)
-    //             cout << endl << INDENT << INDENT;
-    //         U64 between = squares_between_calc(from, to);
-    //         printf("0x%016llXULL, ", between);
-    //     }
-    //     cout << endl << INDENT << INDENT;
-    //     cout << "},";
-    //     cout << endl << INDENT;
-    // }
-    // cout << "};" << endl << endl;
+    cout << "// LOOKUP TABLE FOR SQUARES BETWEEN" << endl;
+    cout << "const U64 SQUARES_BETWEEN[64][64] = {" << endl << INDENT;
+    for (U8 from = 0; from < 64; from++)
+    {
+        cout << "{ ";
+        for (U8 to = 0; to < 64; to++)
+        {
+            if (to % 4 == 0)
+                cout << endl << INDENT << INDENT;
+            U64 between = squares_between_calc(from, to);
+            printf("0x%016llXULL, ", between);
+        }
+        cout << endl << INDENT << INDENT;
+        cout << "},";
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
 
-    // cout << "// LOOKUP TABLE FOR LINES ALONG" << endl;
-    // cout << "const U64 LINES_ALONG[64][64] = {" << endl << INDENT;
-    // for (U8 from = 0; from < 64; from++)
-    // {
-    //     cout << "{ ";
-    //     for (U8 to = 0; to < 64; to++)
-    //     {
-    //         if (to % 4 == 0)
-    //             cout << endl << INDENT << INDENT;
-    //         U64 lines = lines_along_calc(from, to);
-    //         printf("0x%016llXULL, ", lines);
-    //     }
-    //     cout << endl << INDENT << INDENT;
-    //     cout << "},";
-    //     cout << endl << INDENT;
-    // }
-    // cout << "};" << endl << endl;
+    cout << "// LOOKUP TABLE FOR LINES ALONG" << endl;
+    cout << "const U64 LINES_ALONG[64][64] = {" << endl << INDENT;
+    for (U8 from = 0; from < 64; from++)
+    {
+        cout << "{ ";
+        for (U8 to = 0; to < 64; to++)
+        {
+            if (to % 4 == 0)
+                cout << endl << INDENT << INDENT;
+            U64 lines = lines_along_calc(from, to);
+            printf("0x%016llXULL, ", lines);
+        }
+        cout << endl << INDENT << INDENT;
+        cout << "},";
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
+
+    cout << "// LOOKUP TABLES FOR MAGIC BITBOARDS" << endl;
+    cout << "const U64 ROOK_MB_MASK[64] = {" << endl << INDENT;
+    for (int row = 0; row < 8; row++)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            int square = row * 8 + file;
+            U64 targets = rank_mask_ex_calc(square) & ~FILE_A & ~FILE_H;
+            targets |= file_mask_ex_calc(square) & ~ROW_1 & ~ROW_8;
+            printf("0x%016llXULL", targets);
+            cout << ", ";
+            if (file == 3)
+                cout << endl << INDENT;
+        }
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
+
+    cout << "const U64 BISHOP_MB_MASK[64] = {" << endl << INDENT;
+    for (int row = 0; row < 8; row++)
+    {
+        for (int file = 0; file < 8; file++)
+        {
+            int square = row * 8 + file;
+            U64 edge_squares = FILE_A | FILE_H | ROW_1 | ROW_8;
+            U64 targets = bishop_mask_ex_calc(square) & ~FILE_A & ~edge_squares;
+            printf("0x%016llXULL", targets);
+            cout << ", ";
+            if (file == 3)
+                cout << endl << INDENT;
+        }
+        cout << endl << INDENT;
+    }
+    cout << "};" << endl << endl;
 }
