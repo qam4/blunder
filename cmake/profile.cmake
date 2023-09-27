@@ -29,14 +29,14 @@ set(
 
 set(
     PROFILE_REPORT_COMMAND
-    perf report --stdio > "${PROJECT_BINARY_DIR}/perf-report.out"
+    perf report --stdio | c++filt > "${PROJECT_BINARY_DIR}/perf-report.out"
     CACHE STRING
     "; separated command to generate a report for the 'profile' target"
 )
 
 set(
     PROFILE_FLAMEGRAPH_COMMAND
-    perf script -i ${PROJECT_BINARY_DIR}/perf.data | $ENV{HOME}/src/FlameGraph/stackcollapse-perf.pl | $ENV{HOME}/src/FlameGraph/flamegraph.pl > ${PROJECT_BINARY_DIR}/perf.svg
+    perf script -i ${PROJECT_BINARY_DIR}/perf.data | c++filt | $ENV{HOME}/src/FlameGraph/stackcollapse-perf.pl | $ENV{HOME}/src/FlameGraph/flamegraph.pl > ${PROJECT_BINARY_DIR}/perf.svg
     CACHE STRING
     "; separated command to generate a flamegraph for the 'profile' target"
 )

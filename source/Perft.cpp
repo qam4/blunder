@@ -8,19 +8,18 @@
 // Performance testing
 // https://www.chessprogramming.org/Perft
 
-int perft(class Board& board, int depth)
+long perft(class Board& board, int depth)
 {
-    if (depth == 0)
-    {
-        return 1;
-    }
-
     MoveList list;
-
     MoveGenerator::add_all_moves(list, board, board.side_to_move());
     int n = list.length();
 
-    int move_count = 0;
+    if (depth == 1)
+    {
+        return n;
+    }
+
+    long move_count = 0;
     for (int i = 0; i < n; i++)
     {
         Move_t move = list[i];
@@ -32,11 +31,11 @@ int perft(class Board& board, int depth)
     return move_count;
 }
 
-int perft_fen(string fen, int depth)
+long perft_fen(string fen, int depth)
 {
     Board board = Parser::parse_fen(fen);
 
-    int move_count = perft(board, depth);
+    long move_count = perft(board, depth);
 
     return move_count;
 }
@@ -46,10 +45,10 @@ void perft_benchmark(string fen, int depth)
     Board board = Parser::parse_fen(fen);
 
     clock_t tic = clock();
-    int move_count = perft(board, depth);
+    long move_count = perft(board, depth);
     clock_t toc = clock();
 
-    double elapsed_secs = double(toc - tic) / CLOCKS_PER_SEC;
+    long double elapsed_secs = static_cast<long double>(toc - tic) / CLOCKS_PER_SEC;
     cout << "time: " << elapsed_secs << "s" << endl;
     cout << "moves: " << move_count << endl;
     cout << "moves per second: " << int(move_count / elapsed_secs) << endl;

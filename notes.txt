@@ -86,6 +86,7 @@ https://github.com/KierenP/Halogen/tree/master
 https://perf.wiki.kernel.org/index.php/Tutorial
 # install perf
 $ sudo yum install perf
+$ sudo yum install perl-open.noarch
   - FlameGraph
 https://github.com/brendangregg/FlameGraph
 # install FlameGraph
@@ -93,6 +94,22 @@ $ cd ~/src
 $ git clone https://github.com/brendangregg/FlameGraph
 
 To run profiling
+add to your config presets:
+    {
+      "name": "dev-prof",
+      "inherits": ["dev-mode", "profile-linux"]
+    }
+
+and to your build presets:
+    {
+      "name": "dev-prof",
+      "configurePreset": "dev-prof",
+      "configuration": "Profile",
+      "jobs": 12
+    }
+
+
+
 $ cmake --preset=dev-prof
 $ cmake --build --preset=dev-prof
 $ cmake --build --preset=dev-prof target=profile
