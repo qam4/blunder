@@ -10,8 +10,8 @@
 #include "Common.h"
 #include "Board.h"
 
-int perft(class Board &board, int depth);
-int perft_fen(string fen, int depth);
+long perft(class Board &board, int depth);
+long perft_fen(string fen, int depth);
 void perft_benchmark(string fen, int depth);
 
 #endif /* PERFT_H */
