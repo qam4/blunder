@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>source/Perft.h file | blunder</title>
+  <title>source/MoveGeneratorMagicBitboards.cpp file | blunder</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,7 +49,7 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="dir_b2f33c71d4aa5e7af42a1ca61ff5af1b.html">source</a>/</span>Perft.h <span class="m-thin">file</span>
+          <span class="m-breadcrumb"><a href="dir_b2f33c71d4aa5e7af42a1ca61ff5af1b.html">source</a>/</span>MoveGeneratorMagicBitboards.cpp <span class="m-thin">file</span>
         </h1>
         <p><span></span></p>
         <div class="m-block m-default">
@@ -59,6 +59,8 @@
               Reference
               <ul>
                 <li><a href="#func-members">Functions</a></li>
+                <li><a href="#var-members">Variables</a></li>
+                <li><a href="#define-members">Defines</a></li>
               </ul>
             </li>
           </ul>
@@ -66,19 +68,35 @@
         <section id="func-members">
           <h2><a href="#func-members">Functions</a></h2>
           <dl class="m-doc">
-            <dt id="a3670980a60f2a35b129bb5758beea053">
-              <span class="m-doc-wrap-bumper">auto <a href="#a3670980a60f2a35b129bb5758beea053" class="m-doc-self">perft</a>(</span><span class="m-doc-wrap">class <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
-              int depth) -&gt; long</span>
+            <dt id="a316f72e1ee97db2903193908e9dbc7ff">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a316f72e1ee97db2903193908e9dbc7ff" class="m-doc-self">get_blockers_from_index</a>(</span><span class="m-doc-wrap">int index,
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> mask) -&gt; <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a50d0b85443cc902ebc6359ba89708703">
-              <span class="m-doc-wrap-bumper">auto <a href="#a50d0b85443cc902ebc6359ba89708703" class="m-doc-self">perft_fen</a>(</span><span class="m-doc-wrap">string fen,
-              int depth) -&gt; long</span>
+          </dl>
+        </section>
+        <section id="var-members">
+          <h2><a href="#var-members">Variables</a></h2>
+          <dl class="m-doc">
+            <dt id="a662d52572c3b3c094b0ddcdc8d322762">
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> <a href="#a662d52572c3b3c094b0ddcdc8d322762" class="m-doc-self">ROOK_MB_TABLE</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="af15b879952f4b9c01c4d0b6cc0bcf95c">
-              <span class="m-doc-wrap-bumper">void <a href="#af15b879952f4b9c01c4d0b6cc0bcf95c" class="m-doc-self">perft_benchmark</a>(</span><span class="m-doc-wrap">string fen,
-              int depth)</span>
+            <dt id="ada7bc1c620313148e55657dee272f788">
+              <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> <a href="#ada7bc1c620313148e55657dee272f788" class="m-doc-self">BISHOP_MB_TABLE</a>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
+        <section id="define-members">
+          <h2><a href="#define-members">Defines</a></h2>
+          <dl class="m-doc">
+            <dt id="ac5b8ce6dfbbdca788a3d542d263b9006">
+              <span class="m-doc-wrap-bumper">#define <a href="#ac5b8ce6dfbbdca788a3d542d263b9006" class="m-doc-self">ROOK_MB_TABLE_SIZE</a></span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="af2f4ad86890302dd06995344120cb80f">
+              <span class="m-doc-wrap-bumper">#define <a href="#af2f4ad86890302dd06995344120cb80f" class="m-doc-self">BISHOP_MB_TABLE_SIZE</a></span>
             </dt>
             <dd><span></span></dd>
           </dl>
