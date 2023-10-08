@@ -10,5 +10,6 @@
 
 using namespace std;
 vector<string> split(const string& s, const char delimiter);
+int str2int(const string& s);
 
 #endif  // CLI_UTILS_H

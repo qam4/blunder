@@ -6,6 +6,8 @@
 #ifndef BOARD_H
 #define BOARD_H
 
+#include <map>
+
 #include "Common.h"
 #include "Move.h"
 #include "Zobrist.h"
@@ -27,13 +29,16 @@ private:
 
     struct IrreversibleData
     {
-        U8 full_move_count;
-        U8 half_move_count;
+        int full_move_count;
+        int half_move_count;
         U8 castling_rights;
         U8 ep_square;
         U8 side_to_move;
         U64 board_hash;
     } irrev;
+
+    // Extended Position Description
+    map<string, string> epd;
 
     Zobrist zobrist;
     U64 hash_history[MAX_GAME_PLY];
@@ -75,8 +80,8 @@ public:
 
     U8 operator[](const int square) const; // return piece on that square
     U64 bitboard(const int type) const;
-    U8 half_move_count() const { return irrev.half_move_count; };
-    U8 full_move_count() const { return irrev.full_move_count; };
+    int half_move_count() const { return irrev.half_move_count; };
+    int full_move_count() const { return irrev.full_move_count; };
     U8 castling_rights() const { return irrev.castling_rights; };
     U8 ep_square()       const { return irrev.ep_square; };
     U8 side_to_move()    const { return irrev.side_to_move; };
@@ -84,8 +89,8 @@ public:
     void set_side_to_move(U8 side) { irrev.side_to_move = side; };
     void set_castling_rights(U8 rights) { irrev.castling_rights = rights; };
     void set_ep_square(U8 square) { irrev.ep_square = square; };
-    void set_half_move_count(U8 count) { irrev.half_move_count = count; };
-    void set_full_move_count(U8 count) { irrev.full_move_count = count; };
+    void set_half_move_count(int count) { irrev.half_move_count = count; };
+    void set_full_move_count(int count) { irrev.full_move_count = count; };
     void set_hash(U64 hash) { irrev.board_hash = hash; };
     int get_searched_moves() const { return searched_moves; };
     int get_total_searched_moves() const {return total_searched_moves; }
@@ -100,6 +105,10 @@ public:
     void store_pv_move(Move_t move);
     void print_pv();
     void sort_pv_move(class MoveList &list, Move_t best_move);
+
+    // EPD
+    void set_epd_op(const string& opcode, const string& operand) { epd[opcode] = operand; }
+    string& epd_op(const string& opcode) {return epd[opcode]; }
 };
 
 #endif /* BOARD_H */
