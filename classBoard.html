@@ -161,12 +161,12 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a5dd8339a7ed73a033a515cd662905dbb" class="m-doc-self">bitboard</a>(</span><span class="m-doc-wrap">const int type) const -&gt; <a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a0d657bac09111496e754d9732b22a7a1">
-              <span class="m-doc-wrap-bumper">auto <a href="#a0d657bac09111496e754d9732b22a7a1" class="m-doc-self">half_move_count</a>(</span><span class="m-doc-wrap">) const -&gt; <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a></span>
+            <dt id="adc4a070c70659dc830d254d7c5cdfb5f">
+              <span class="m-doc-wrap-bumper">auto <a href="#adc4a070c70659dc830d254d7c5cdfb5f" class="m-doc-self">half_move_count</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a864ea966c00903946eef56434895ce56">
-              <span class="m-doc-wrap-bumper">auto <a href="#a864ea966c00903946eef56434895ce56" class="m-doc-self">full_move_count</a>(</span><span class="m-doc-wrap">) const -&gt; <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a></span>
+            <dt id="adf97bb82579eecd002b0dfc22df35779">
+              <span class="m-doc-wrap-bumper">auto <a href="#adf97bb82579eecd002b0dfc22df35779" class="m-doc-self">full_move_count</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
             </dt>
             <dd><span></span></dd>
             <dt id="afeb2393f76c5a65b929733754b477626">
@@ -197,12 +197,12 @@
               <span class="m-doc-wrap-bumper">void <a href="#abb5d89400248bcbb4429519e6991f302" class="m-doc-self">set_ep_square</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> square)</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a4803ff0ca105a14b7f57a28a9fd86b83">
-              <span class="m-doc-wrap-bumper">void <a href="#a4803ff0ca105a14b7f57a28a9fd86b83" class="m-doc-self">set_half_move_count</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> count)</span>
+            <dt id="a9885756fa4deb344f5d304dcd1da2967">
+              <span class="m-doc-wrap-bumper">void <a href="#a9885756fa4deb344f5d304dcd1da2967" class="m-doc-self">set_half_move_count</a>(</span><span class="m-doc-wrap">int count)</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a7922929e41953fae1dbaa7a85242aaeb">
-              <span class="m-doc-wrap-bumper">void <a href="#a7922929e41953fae1dbaa7a85242aaeb" class="m-doc-self">set_full_move_count</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> count)</span>
+            <dt id="a887bb6bcc17bf079fe669494d74261f4">
+              <span class="m-doc-wrap-bumper">void <a href="#a887bb6bcc17bf079fe669494d74261f4" class="m-doc-self">set_full_move_count</a>(</span><span class="m-doc-wrap">int count)</span>
             </dt>
             <dd><span></span></dd>
             <dt id="a1839c56fbf30665be1c8d92e3c0d1cba">
@@ -258,6 +258,15 @@
             <dt id="a045aba0c567bdc49fe12dee1303bddab">
               <span class="m-doc-wrap-bumper">void <a href="#a045aba0c567bdc49fe12dee1303bddab" class="m-doc-self">sort_pv_move</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
               <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> best_move)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a34ec2f2485078f51a4eb2c0da37644ce">
+              <span class="m-doc-wrap-bumper">void <a href="#a34ec2f2485078f51a4eb2c0da37644ce" class="m-doc-self">set_epd_op</a>(</span><span class="m-doc-wrap">const string&amp; opcode,
+              const string&amp; operand)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a559388d6b4e2d61491dd500825a8698c">
+              <span class="m-doc-wrap-bumper">auto <a href="#a559388d6b4e2d61491dd500825a8698c" class="m-doc-self">epd_op</a>(</span><span class="m-doc-wrap">const string&amp; opcode) -&gt; string&amp;</span>
             </dt>
             <dd><span></span></dd>
           </dl>
