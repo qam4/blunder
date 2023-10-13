@@ -15,6 +15,7 @@ class Parser
 public:
     static class Board parse_fen(string fen);
     static class Board parse_epd(string epd);
+    static Move_t parse_san(string str, const Board &board);
     static U8 parse_piece(char piece);
     static U8 side(char c);
     static U8 castling_right(char c);

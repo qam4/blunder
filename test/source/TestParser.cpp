@@ -125,3 +125,95 @@ TEST_CASE("parser_can_parse_epd_2", "[parser]")
     REQUIRE(board.epd_op("c0")
             == "Aldiga (Brainfish 091016)-Knight-king (Komodo 10 64-bit), playchess.com 2016");
 }
+
+TEST_CASE("parser_can_parse_san_1", "[parser]")
+{
+    string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    Board board = Parser::parse_fen(fen);
+
+    string san;
+    Move_t move;
+
+    san = "f3";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_move(F2, F3));
+    san = "e4";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_pawn_double_push(E2, E4));
+    san = "Nc3";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_move(B1, C3));
+    san = "Nf3";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_move(G1, F3));
+
+    // non existent move
+    san = "Bc4";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == 0);
+}
+
+TEST_CASE("parser_can_parse_san_2", "[parser]")
+{
+    string fen = "3bk2r/2P5/6N1/4p3/1pN5/4p3/N1N2P2/R3K2R w KQkq - 0 1";
+    Board board = Parser::parse_fen(fen);
+
+    string san;
+    Move_t move;
+
+    // check 2 pieces on same file: Ngf3, Nef3, Ngxf3, Nexf3
+    san = "Naxb4";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_capture(A2, B4, BLACK_PAWN));
+    san = "Ncb4";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_capture(C2, B4, BLACK_PAWN));
+
+    // check 2 pieces on same rank: N5f3, N1f3, N5xf3, N1xf3
+    san = "N2xe3";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_capture(C2, E3, BLACK_PAWN));
+    san = "N4e3";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_capture(C4, E3, BLACK_PAWN));
+
+    // check 2 pieces different rank and file: Nhf3, Ndf3, Nhxf3, Ndxf3
+    san = "Ncxe5";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_capture(C4, E5, BLACK_PAWN));
+    san = "Nge5";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_capture(G6, E5, BLACK_PAWN));
+
+    // pawn capture: ed4, exd4
+    san = "fxe3";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_capture(F2, E3, BLACK_PAWN));
+    san = "fe3";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_capture(F2, E3, BLACK_PAWN));
+
+    // check castles
+    san = "O-O";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_castle(KING_CASTLE));
+    san = "O-O-O";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_castle(QUEEN_CASTLE));
+
+    // check promo
+    san = "c8Q";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_promotion(C7, C8, WHITE_QUEEN));
+    san = "cd8R";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_capture_promotion(C7, D8, BLACK_BISHOP, WHITE_ROOK));
+    san = "cxd8B";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_capture_promotion(C7, D8, BLACK_BISHOP, WHITE_BISHOP));
+
+    // check ignoring trailing +, ++, #, e.p.
+    san = "cxd8Q+";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_capture_promotion(C7, D8, BLACK_BISHOP, WHITE_QUEEN));
+}

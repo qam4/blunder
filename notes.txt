@@ -85,6 +85,10 @@ https://github.com/KierenP/Halogen/tree/master
   https://www.chessprogramming.org/Forsyth-Edwards_Notation
 - EPD (Extended Position Description) parser
   https://www.chessprogramming.org/Extended_Position_Description
+- PGN (Portable Game Notation)
+  https://www.chessprogramming.org/Portable_Game_Notation
+- SAN (Standard Algebraic Notation)
+  https://www.chessprogramming.org/Algebraic_Chess_Notation#SAN
 
 - Test positions
   https://www.chessprogramming.org/Test-Positions
