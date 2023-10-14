@@ -14,7 +14,7 @@ const int MATE_SCORE = 100000;
 const int DRAW_SCORE = 0;
 const int MAX_SEARCH_PLY = 64;
 
-const int MAX_SEARCH_TIME = 1000000;  // max search time in usec
+const int DEFAULT_SEARCH_TIME = 1000000;  // default search time in usec
 const int MAX_GAME_PLY = 1024;  // max number of moves in a chess game (theoretically 5949)
 
 const char* const DEFAULT_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
