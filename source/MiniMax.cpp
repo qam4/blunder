@@ -16,11 +16,11 @@ int Board::minimax(int depth, bool maximizing_player)
         {
             if (maximizing_player == true)
             {
-                return -MATE_SCORE + search_ply;
+                return -MATE_SCORE + search_ply_;
             }
             else
             {
-                return MATE_SCORE - search_ply;
+                return MATE_SCORE - search_ply_;
             }
         }
         else
@@ -44,7 +44,7 @@ int Board::minimax(int depth, bool maximizing_player)
 
         for (i = 0; i < n; i++)
         {
-            searched_moves++;
+            searched_moves_++;
             move = list[i];
             do_move(move);
             value = minimax(depth - 1, false);
@@ -62,7 +62,7 @@ int Board::minimax(int depth, bool maximizing_player)
 
         for (i = 0; i < n; i++)
         {
-            searched_moves++;
+            searched_moves_++;
             move = list[i];
             do_move(move);
             value = minimax(depth - 1, true);
@@ -81,7 +81,7 @@ Move_t Board::minimax_root(int depth, bool maximizing_player)
     Move_t move, bestmove = 0;
 
     // Reset searched_moves
-    searched_moves = 0;
+    searched_moves_ = 0;
 
     if (maximizing_player == true)
     {
@@ -93,7 +93,7 @@ Move_t Board::minimax_root(int depth, bool maximizing_player)
 
         for (i = 0; i < n; i++)
         {
-            searched_moves++;
+            searched_moves_++;
             move = list[i];
             do_move(move);
             value = minimax(depth - 1, false);
@@ -120,7 +120,7 @@ Move_t Board::minimax_root(int depth, bool maximizing_player)
 
         for (i = 0; i < n; i++)
         {
-            searched_moves++;
+            searched_moves_++;
             move = list[i];
             do_move(move);
             value = minimax(depth - 1, true);

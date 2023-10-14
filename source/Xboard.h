@@ -43,18 +43,18 @@ class Xboard
     int TakeBack(int n);
     void PrintResult(int stm, int score);
 
-    Board board;
+    Board board_;
 
-    int moveNr;              // part of game state; incremented by MakeMove
-    Move_t gameMove[MAXMOVES]; // holds the game history
+    int move_nr_;              // part of game state; incremented by MakeMove
+    Move_t game_move_[MAXMOVES]; // holds the game history
 
     // Some global variables that control your engine's behavior
-    int ponder;
-    int randomize;
-    int postThinking;
-    int resign;         // engine-defined option
-    int contemptFactor; // likewise
-    string setup_fen;
+    int ponder_;
+    int randomize_;
+    int post_thinking_;
+    int resign_;         // engine-defined option
+    int contempt_factor_; // likewise
+    string setup_fen_;
 };
 
 #endif  // XBOARD_H

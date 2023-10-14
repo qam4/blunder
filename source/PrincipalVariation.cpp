@@ -9,6 +9,7 @@
 #include "MoveList.h"
 #include "Output.h"
 
+// Global variables
 Move_t pv_table[MAX_SEARCH_PLY * MAX_SEARCH_PLY];
 int pv_length[MAX_SEARCH_PLY];
 
@@ -28,12 +29,12 @@ void Board::print_pv()
 {
     for (int i = 0; i < pv_length[0]; i++)
     {
-        if ((i == 0) || (game_ply & 1) == 0)
+        if ((i == 0) || (game_ply_ & 1) == 0)
         {
-            cout << (game_ply + 2) / 2 << ". ";
+            cout << (game_ply_ + 2) / 2 << ". ";
         }
 
-        if ((i == 0) && ((game_ply & 1) == 1))
+        if ((i == 0) && ((game_ply_ & 1) == 1))
         {
             cout << "... ";
         }
@@ -52,13 +53,13 @@ void Board::print_pv()
 // store PV move
 void Board::store_pv_move(Move_t move)
 {
-    pv_table[search_ply * MAX_SEARCH_PLY + search_ply] = move;
-    for (int next_ply = search_ply + 1; next_ply < pv_length[search_ply + 1]; next_ply++)
+    pv_table[search_ply_ * MAX_SEARCH_PLY + search_ply_] = move;
+    for (int next_ply = search_ply_ + 1; next_ply < pv_length[search_ply_ + 1]; next_ply++)
     {
-        pv_table[search_ply * MAX_SEARCH_PLY + next_ply] =
-            pv_table[(search_ply + 1) * MAX_SEARCH_PLY + next_ply];
+        pv_table[search_ply_ * MAX_SEARCH_PLY + next_ply] =
+            pv_table[(search_ply_ + 1) * MAX_SEARCH_PLY + next_ply];
     }
-    pv_length[search_ply] = pv_length[search_ply + 1];
+    pv_length[search_ply_] = pv_length[search_ply_ + 1];
 }
 
 // sort PV move
@@ -76,15 +77,15 @@ void Board::sort_pv_move(class MoveList& list, Move_t best_move)
     }
 
     // sort PV move
-    if (search_ply && follow_pv)
+    if (search_ply_ && follow_pv_)
     {
-        follow_pv = 0;
+        follow_pv_ = 0;
         for (int i = 0; i < list.length(); i++)
         {
             Move_t move = list[i];
-            if (move == pv_table[search_ply])
+            if (move == pv_table[search_ply_])
             {
-                follow_pv = 1;
+                follow_pv_ = 1;
                 move_add_score(&move, 64);
                 break;
             }

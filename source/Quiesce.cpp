@@ -10,10 +10,10 @@ int Board::quiesce(int alpha, int beta)
     int i, n, value;
     Move_t move;
 
-    pv_length[search_ply] = search_ply;
+    pv_length[search_ply_] = search_ply_;
 
     // Check time left every 2048 moves
-    if ((searched_moves & 2047) && is_search_time_over())
+    if ((searched_moves_ & 2047) && is_search_time_over())
     {
         return 0;
     }
@@ -27,7 +27,7 @@ int Board::quiesce(int alpha, int beta)
     int who2move = (side_to_move() == WHITE) ? 1 : -1;
     int stand_pat = who2move * evaluate();
 
-    if (search_ply > MAX_SEARCH_PLY - 1)
+    if (search_ply_ > MAX_SEARCH_PLY - 1)
     {
         return stand_pat;
     }
@@ -50,7 +50,7 @@ int Board::quiesce(int alpha, int beta)
 
     for (i = 0; i < n; i++)
     {
-        searched_moves++;
+        searched_moves_++;
         list.sort_moves(i);
         move = list[i];
         if (is_capture(move))
@@ -70,7 +70,7 @@ int Board::quiesce(int alpha, int beta)
     {
         if (MoveGenerator::in_check(*this, side_to_move()))
         {
-            return -MATE_SCORE + search_ply;
+            return -MATE_SCORE + search_ply_;
         }
         else
         {

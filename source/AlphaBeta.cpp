@@ -13,10 +13,10 @@ int Board::alphabeta(int alpha, int beta, int depth)
     int i, n, value;
     Move_t move, best_move = 0;
 
-    pv_length[search_ply] = search_ply;
+    pv_length[search_ply_] = search_ply_;
 
     // Check time left every 2048 moves
-    if ((searched_moves & 2047) && is_search_time_over())
+    if ((searched_moves_ & 2047) && is_search_time_over())
     {
         return 0;
     }
@@ -50,7 +50,7 @@ int Board::alphabeta(int alpha, int beta, int depth)
 
     for (i = 0; i < n; i++)
     {
-        searched_moves++;
+        searched_moves_++;
         list.sort_moves(i);
         move = list[i];
         do_move(move);
@@ -76,7 +76,7 @@ int Board::alphabeta(int alpha, int beta, int depth)
     {
         if (MoveGenerator::in_check(*this, side_to_move()))
         {
-            value = -MATE_SCORE + search_ply;
+            value = -MATE_SCORE + search_ply_;
         }
         else
         {

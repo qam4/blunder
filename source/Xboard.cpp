@@ -16,13 +16,13 @@ Xboard::Xboard() {}
 int Xboard::MakeMove(int stm, Move_t move)
 {
     (void)stm;
-    board.do_move(move);
-    return board.side_to_move();
+    board_.do_move(move);
+    return board_.side_to_move();
 }
 
 void Xboard::UnMake(Move_t move)
 {
-    board.undo_move(move);
+    board_.undo_move(move);
     return;
 }
 
@@ -30,10 +30,10 @@ int Xboard::Setup(const char* fen)
 {
     if (fen != NULL)
     {
-        setup_fen = fen;
+        setup_fen_ = fen;
     }
-    board = Parser::parse_fen(setup_fen);
-    return board.side_to_move();
+    board_ = Parser::parse_fen(setup_fen_);
+    return board_.side_to_move();
 }
 
 void Xboard::SetMemorySize(int n)
@@ -43,12 +43,12 @@ void Xboard::SetMemorySize(int n)
 
 string Xboard::MoveToText(Move_t move)
 {
-    return Output::move(move, board);
+    return Output::move(move, board_);
 }
 
 Move_t Xboard::ParseMove(const char* moveText)
 {
-    return Parser::move(moveText, board);
+    return Parser::move(moveText, board_);
 }
 
 int Xboard::SearchBestMove(int stm,
@@ -68,10 +68,10 @@ int Xboard::SearchBestMove(int stm,
     (void)timePerMove;
     (void)ponderMove;
 
-    Move_t best_move = board.search(MAX_SEARCH_PLY, MAX_SEARCH_TIME, true);
+    Move_t best_move = board_.search(MAX_SEARCH_PLY, MAX_SEARCH_TIME, true);
     *move = best_move;
 
-    return board.get_search_best_score();
+    return board_.get_search_best_score();
 }
 
 void Xboard::PonderUntilInput(int stm)
@@ -83,11 +83,11 @@ int Xboard::TakeBack(int n)
 {  // reset the game and then replay it to the desired point
     int last, stm;
     stm = Setup(NULL);
-    last = moveNr - n;
+    last = move_nr_ - n;
     if (last < 0)
         last = 0;
-    for (moveNr = 0; moveNr < last; moveNr++)
-        stm = MakeMove(stm, gameMove[moveNr]);
+    for (move_nr_ = 0; move_nr_ < last; move_nr_++)
+        stm = MakeMove(stm, game_move_[move_nr_]);
     return stm;
 }
 
@@ -121,7 +121,7 @@ void Xboard::run()
     while (1)
     {
         // infinite loop
-        cout << "# FEN: " << Output::board_to_fen(board) << endl;
+        cout << "# FEN: " << Output::board_to_fen(board_) << endl;
 
         fflush(stdout);  // make sure everything is printed
                          // before we do something that might take time
@@ -141,7 +141,7 @@ void Xboard::run()
             else
             {
                 stm = MakeMove(stm, move);  // assumes MakeMove returns new side to move
-                gameMove[moveNr++] = move;  // remember game
+                game_move_[move_nr_++] = move;  // remember game
                 cout << "move " << MoveToText(move) << endl;
             }
         }
@@ -154,7 +154,7 @@ void Xboard::run()
         {  // in analysis, we always ponder the position
             PonderUntilInput(stm);
         }
-        else if (engineSide != STM_NONE && ponder == ON && moveNr != 0)
+        else if (engineSide != STM_NONE && ponder_ == ON && move_nr_ != 0)
         {  // ponder while waiting for input
             if (ponderMove == INVALID_MOVE)
             {  // if we have no move to ponder on, ponder the position
@@ -247,9 +247,9 @@ void Xboard::run()
         }
         if (!strcmp(command, "option"))
         {  // setting of engine-define option; find out which
-            if (sscanf(inBuf + 7, "Resign=%d", &resign) == 1)
+            if (sscanf(inBuf + 7, "Resign=%d", &resign_) == 1)
                 continue;
-            if (sscanf(inBuf + 7, "Contempt=%d", &contemptFactor) == 1)
+            if (sscanf(inBuf + 7, "Contempt=%d", &contempt_factor_) == 1)
                 continue;
             continue;
         }
@@ -279,7 +279,7 @@ void Xboard::run()
             engineSide = BLACK;
             stm = Setup(DEFAULT_FEN);
             maxDepth = MAX_SEARCH_PLY;
-            randomize = OFF;
+            randomize_ = OFF;
             continue;
         }
         if (!strcmp(command, "setboard"))
@@ -290,12 +290,12 @@ void Xboard::run()
         }
         if (!strcmp(command, "easy"))
         {
-            ponder = OFF;
+            ponder_ = OFF;
             continue;
         }
         if (!strcmp(command, "hard"))
         {
-            ponder = ON;
+            ponder_ = ON;
             continue;
         }
         if (!strcmp(command, "undo"))
@@ -315,17 +315,17 @@ void Xboard::run()
         }
         if (!strcmp(command, "post"))
         {
-            postThinking = ON;
+            post_thinking_ = ON;
             continue;
         }
         if (!strcmp(command, "nopost"))
         {
-            postThinking = OFF;
+            post_thinking_ = OFF;
             continue;
         }
         if (!strcmp(command, "random"))
         {
-            randomize = ON;
+            randomize_ = ON;
             continue;
         }
         if (!strcmp(command, "hint"))
@@ -380,7 +380,7 @@ void Xboard::run()
             {
                 stm = MakeMove(stm, move);
                 ponderMove = INVALID_MOVE;
-                gameMove[moveNr++] = move;  // remember game
+                game_move_[move_nr_++] = move;  // remember game
             }
             continue;
         }

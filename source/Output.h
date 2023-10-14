@@ -24,11 +24,11 @@ public:
     static string piece(U8 piece);
     static string castling_rights(U8 castling_rights);
     static string board_to_fen(const class Board &board);
-    static void set_colors_enabled(bool enable) { colors_enabled = enable; }
-    static bool is_colors_enabled() { return colors_enabled == true; }
+    static void set_colors_enabled(bool enable) { colors_enabled_ = enable; }
+    static bool is_colors_enabled() { return colors_enabled_ == true; }
 
 private:
-    static bool colors_enabled;
+    static bool colors_enabled_;
 };
 
 #endif /* OUTPUT_H */

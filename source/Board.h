@@ -24,8 +24,8 @@ class Board
     friend class Tests;
 
 private:
-    U64 bitboards[14];
-    U8 board_array[64];
+    U64 bitboards_[14];
+    U8 board_array_[64];
 
     struct IrreversibleData
     {
@@ -35,27 +35,27 @@ private:
         U8 ep_square;
         U8 side_to_move;
         U64 board_hash;
-    } irrev;
+    } irrev_;
 
     // Extended Position Description
-    map<string, string> epd;
+    map<string, string> epd_;
 
-    Zobrist zobrist;
-    U64 hash_history[MAX_GAME_PLY];
+    Zobrist zobrist_;
+    U64 hash_history_[MAX_GAME_PLY];
 
-    int searched_moves;
-    int total_searched_moves;
-    int game_ply;
-    int search_ply;
-    int max_search_ply;
-    clock_t search_start_time;
-    Move_t search_best_move;
-    int search_best_score;
-    int search_time;       // search time in usec
+    int searched_moves_;
+    int total_searched_moves_;
+    int game_ply_;
+    int search_ply_;
+    int max_search_ply_;
+    clock_t search_start_time_;
+    Move_t search_best_move_;
+    int search_best_score_;
+    int search_time_;       // search time in usec
 
-    int follow_pv;
+    int follow_pv_;
 
-    struct IrreversibleData move_stack[MAX_SEARCH_PLY];
+    struct IrreversibleData move_stack_[MAX_SEARCH_PLY];
 
 public:
     Board();
@@ -80,23 +80,23 @@ public:
 
     U8 operator[](const int square) const; // return piece on that square
     U64 bitboard(const int type) const;
-    int half_move_count() const { return irrev.half_move_count; };
-    int full_move_count() const { return irrev.full_move_count; };
-    U8 castling_rights() const { return irrev.castling_rights; };
-    U8 ep_square()       const { return irrev.ep_square; };
-    U8 side_to_move()    const { return irrev.side_to_move; };
-    U64 get_hash()       const { return irrev.board_hash; };
-    void set_side_to_move(U8 side) { irrev.side_to_move = side; };
-    void set_castling_rights(U8 rights) { irrev.castling_rights = rights; };
-    void set_ep_square(U8 square) { irrev.ep_square = square; };
-    void set_half_move_count(int count) { irrev.half_move_count = count; };
-    void set_full_move_count(int count) { irrev.full_move_count = count; };
-    void set_hash(U64 hash) { irrev.board_hash = hash; };
-    int get_searched_moves() const { return searched_moves; };
-    int get_total_searched_moves() const {return total_searched_moves; }
-    int get_game_ply() const { return game_ply; };
-    int get_search_best_score() const { return search_best_score; }
-    U64 get_hash_history(const int i) const { return hash_history[i]; }
+    int half_move_count() const { return irrev_.half_move_count; };
+    int full_move_count() const { return irrev_.full_move_count; };
+    U8 castling_rights() const { return irrev_.castling_rights; };
+    U8 ep_square()       const { return irrev_.ep_square; };
+    U8 side_to_move()    const { return irrev_.side_to_move; };
+    U64 get_hash()       const { return irrev_.board_hash; };
+    void set_side_to_move(U8 side) { irrev_.side_to_move = side; };
+    void set_castling_rights(U8 rights) { irrev_.castling_rights = rights; };
+    void set_ep_square(U8 square) { irrev_.ep_square = square; };
+    void set_half_move_count(int count) { irrev_.half_move_count = count; };
+    void set_full_move_count(int count) { irrev_.full_move_count = count; };
+    void set_hash(U64 hash) { irrev_.board_hash = hash; };
+    int get_searched_moves() const { return searched_moves_; };
+    int get_total_searched_moves() const {return total_searched_moves_; }
+    int get_game_ply() const { return game_ply_; };
+    int get_search_best_score() const { return search_best_score_; }
+    U64 get_hash_history(const int i) const { return hash_history_[i]; }
 
     void update_hash();
     int probe_hash(int depth, int alpha, int beta, Move_t &best_move);
@@ -107,8 +107,8 @@ public:
     void sort_pv_move(class MoveList &list, Move_t best_move);
 
     // EPD
-    void set_epd_op(const string& opcode, const string& operand) { epd[opcode] = operand; }
-    string& epd_op(const string& opcode) {return epd[opcode]; }
+    void set_epd_op(const string& opcode, const string& operand) { epd_[opcode] = operand; }
+    string& epd_op(const string& opcode) {return epd_[opcode]; }
 };
 
 #endif /* BOARD_H */

@@ -14,7 +14,7 @@ int Board::negamax(int depth)
     {
         if (MoveGenerator::in_check(*this, side_to_move()))
         {
-            return -MATE_SCORE + search_ply;
+            return -MATE_SCORE + search_ply_;
         }
         else
         {
@@ -36,7 +36,7 @@ int Board::negamax(int depth)
 
     for (i = 0; i < n; i++)
     {
-        searched_moves++;
+        searched_moves_++;
         move = list[i];
         do_move(move);
         value = -negamax(depth - 1);
@@ -54,7 +54,7 @@ Move_t Board::negamax_root(int depth)
     Move_t move, bestmove = 0;
 
     // Reset searched_moves
-    searched_moves = 0;
+    searched_moves_ = 0;
 
     bestvalue = -MAX_SCORE;
 
@@ -64,7 +64,7 @@ Move_t Board::negamax_root(int depth)
 
     for (i = 0; i < n; i++)
     {
-        searched_moves++;
+        searched_moves_++;
         move = list[i];
         do_move(move);
         value = -negamax(depth - 1);

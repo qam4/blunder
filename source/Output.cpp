@@ -10,7 +10,7 @@
 #define MAX_ROW 7
 #define MAX_COL 7
 
-bool Output::colors_enabled { false };
+bool Output::colors_enabled_ { false };
 
 string Output::board(const class Board& board)
 {
