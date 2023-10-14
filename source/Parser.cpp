@@ -243,6 +243,7 @@ class Board Parser::parse_epd(string epd)
 // https://cfajohnson.com/chess/SAN/
 Move_t Parser::parse_san(string str, const Board& board)
 {
+    // cout << Output::board(board) << endl;
     Move_t move_found = 0;
     size_t len = str.length();
 
@@ -348,6 +349,7 @@ Move_t Parser::parse_san(string str, const Board& board)
     for (int i = 0; i < n; i++)
     {
         Move_t move = list[i];
+        // cout << Output::move(move, board) << endl;
         // check if same "to" square
         if (move_to(move) != to)
         {
@@ -355,7 +357,7 @@ Move_t Parser::parse_san(string str, const Board& board)
         }
         // check if same piece moved
         U8 from = move_from(move);
-        if (board[from] != piece)
+        if ((board[from] & (0xFEU)) != piece)
         {
             continue;
         }

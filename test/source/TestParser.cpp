@@ -217,3 +217,12 @@ TEST_CASE("parser_can_parse_san_2", "[parser]")
     move = Parser::parse_san(san, board);
     REQUIRE(move == build_capture_promotion(C7, D8, BLACK_BISHOP, WHITE_QUEEN));
 }
+
+TEST_CASE("parser_can_parse_san_3", "[parser]")
+{
+    // Black side to move
+    string epd = "8/7p/5k2/5p2/p1p2P2/Pr1pPK2/1P1R3P/8 b - - bm Rxb2;";
+    Board board = Parser::parse_epd(epd);
+    Move_t best_move = Parser::parse_san(board.epd_op("bm"), board);
+    REQUIRE(best_move != 0);
+}
