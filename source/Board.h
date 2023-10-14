@@ -52,6 +52,7 @@ private:
     Move_t search_best_move_;
     int search_best_score_;
     int search_time_;       // search time in usec
+    int max_searched_moves_;
 
     int follow_pv_;
 
@@ -69,7 +70,7 @@ public:
     bool is_game_over();
     bool is_draw();
     // Algos
-    Move_t search(int depth, int searchtime=MAX_SEARCH_TIME, bool xboard=false);
+    Move_t search(int depth, int search_time=DEFAULT_SEARCH_TIME, int max_searched_moves=-1, bool xboard=false);
     int minimax(int depth, bool maximizing_player);
     Move_t minimax_root(int depth, bool maximizing_player);
     int negamax(int depth);

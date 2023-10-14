@@ -68,7 +68,7 @@ int Xboard::SearchBestMove(int stm,
     (void)timePerMove;
     (void)ponderMove;
 
-    Move_t best_move = board_.search(MAX_SEARCH_PLY, MAX_SEARCH_TIME, true);
+    Move_t best_move = board_.search(MAX_SEARCH_PLY, DEFAULT_SEARCH_TIME, -1, true);
     *move = best_move;
 
     return board_.get_search_best_score();
@@ -140,7 +140,7 @@ void Xboard::run()
             }
             else
             {
-                stm = MakeMove(stm, move);  // assumes MakeMove returns new side to move
+                stm = MakeMove(stm, move);      // assumes MakeMove returns new side to move
                 game_move_[move_nr_++] = move;  // remember game
                 cout << "move " << MoveToText(move) << endl;
             }

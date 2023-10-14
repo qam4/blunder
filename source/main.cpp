@@ -16,6 +16,7 @@
 #include "Output.h"
 #include "Parser.h"
 #include "Perft.h"
+#include "TestPositions.h"
 #include "ValidateMove.h"
 #include "Xboard.h"
 
@@ -51,6 +52,20 @@ int main(int argc, char** argv)
     {
         Xboard xboard;
         xboard.run();
+        return 0;
+    }
+
+    if (cmd_line_args.cmd_option_exists("--test-positions"))
+    {
+        string epd_path = cmd_line_args.get_cmd_option("--test-positions");
+        if (epd_path.empty())
+        {
+            cout << "Error: path to EPD file required " << endl;
+            return 1;
+        }
+
+        test_positions(epd_path);
+
         return 0;
     }
 
@@ -166,8 +181,9 @@ void usage(const string& prog_name)
     cout << prog_name
          << "\n"
             "Options:\n"
-            "-h|--help           Print this help\n"
-            "--gen-lookup-tables Generate lookup tables\n"
-            "--perft             Run perft benchmark\n"
-            "--xboard            xboard interface\n";
+            "-h|--help                        Print this help\n"
+            "--gen-lookup-tables              Generate lookup tables\n"
+            "--perft                          Run perft benchmark\n"
+            "--xboard                         xboard interface\n"
+            "--test-positions path-to-epd     Run test positions\n";
 }

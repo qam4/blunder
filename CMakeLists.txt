@@ -37,6 +37,7 @@ add_library(
     source/Hash.cpp
     source/PrincipalVariation.cpp
     source/Perft.cpp
+    source/TestPositions.cpp
     source/Xboard.cpp
 )
 

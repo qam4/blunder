@@ -93,8 +93,8 @@ https://github.com/KierenP/Halogen/tree/master
 - Test positions
   https://www.chessprogramming.org/Test-Positions
   - https://github.com/fsmosca/chess-tests
+  - https://github.com/fsmosca/STS-Rating
   - https://github.com/ChrisWhittington/Chess-EPDs
-
 
 - Profiling
   - perf
@@ -107,6 +107,9 @@ https://github.com/brendangregg/FlameGraph
 # install FlameGraph
 $ cd ~/src
 $ git clone https://github.com/brendangregg/FlameGraph
+$ perf record --call-graph dwarf ./build/profile/blunder --perft
+$ perf report --stdio | c++filt > ./perf-report.out
+$ perf script -i ./perf.data | c++filt | ~/src/FlameGraph/stackcollapse-perf.pl | ~/src/FlameGraph/flamegraph.pl > ./perf.svg
 
 To run profiling
 add to your config presets:
@@ -122,8 +125,6 @@ and to your build presets:
       "configuration": "Profile",
       "jobs": 12
     }
-
-
 
 $ cmake --preset=dev-prof
 $ cmake --build --preset=dev-prof
