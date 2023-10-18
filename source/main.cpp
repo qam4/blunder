@@ -108,7 +108,7 @@ int main(int argc, char** argv)
             cout << "searched moves per second: "
                  << int(board.get_total_searched_moves() / elapsed_secs) << endl;
 
-            cout << "Computer move: " << Output::move(move, board) << endl;
+            cout << "Computer move: " << Output::move_san(move, board) << endl;
             board.do_move(move);
             continue;
         }

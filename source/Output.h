@@ -19,6 +19,7 @@ public:
     static string board(const class Board &board);
     static string bitboard(U64 bb);
     static string move(Move_t move, const class Board &board);
+    static string move_san(Move_t move, class Board &board);
     static string movelist(const class MoveList &list, const class Board &board);
     static string square(U8 square);
     static string piece(U8 piece);

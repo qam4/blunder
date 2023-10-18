@@ -5,6 +5,7 @@
 
 #include "Output.h"
 
+#include "MoveGenerator.h"
 #include "MoveList.h"
 
 #define MAX_ROW 7
@@ -237,4 +238,109 @@ string Output::board_to_fen(const class Board& board)
     fen << int(board.full_move_count());
 
     return fen.str();
+}
+
+string Output::move_san(Move_t move, class Board& board)
+{
+    const string ROWS = "12345678";
+    const string FILES = "abcdefgh";
+    stringstream ss;
+    if (is_castle(move))
+    {
+        if (move == build_castle(KING_CASTLE))
+            ss << "O-O";
+        else
+            ss << "O-O-O";
+        return ss.str();
+    }
+    U8 from = move_from(move);
+    U8 to = move_to(move);
+    U8 piece = board[from] & (0xFEU);
+
+    bool pawn_capture = false;
+    if (piece == PAWN)
+    {
+        // check if it's a capture, then from file is required
+        if (is_capture(move))
+        {
+            pawn_capture = true;
+        }
+    }
+    else
+    {
+        ss << PIECE_CHARS[piece];
+    }
+
+    // optional from file/rank
+    U8 from_file = from & 7;
+    int same_from_file_count = 0;
+    U8 from_rank = static_cast<U8>(from >> 3);
+    int same_from_rank_count = 0;
+
+    MoveList list;
+    MoveGenerator::add_all_moves(list, board, board.side_to_move());
+    int n = list.length();
+    for (int i = 0; i < n; i++)
+    {
+        Move_t move_ = list[i];
+        if (move_to(move_) != to)
+        {
+            continue;
+        }
+        if ((board[move_from(move_)] & (0xFEU)) != piece)
+        {
+            continue;
+        }
+        U8 from_ = move_from(move_);
+        if ((from_ & 7) == from_file)
+        {
+            // same file
+            same_from_file_count++;
+        }
+        if ((from_ >> 3) == from_rank)
+        {
+            // same rank
+            same_from_rank_count++;
+        }
+    }
+    if ((same_from_file_count > 1) || (pawn_capture))
+    {
+        ss << FILES[from_file];
+    }
+    if (same_from_rank_count > 1)
+    {
+        ss << ROWS[from_rank];
+    }
+
+    if (is_capture(move))
+    {
+        ss << 'x';
+    }
+
+    ss << Output::square(to);
+
+    if (is_ep_capture(move))
+    {
+        ss << " e.p.";
+    }
+    if (is_promotion(move))
+    {
+        ss << Output::piece(move_promote_to(move) & (0xFEU));
+    }
+
+    board.do_move(move);
+    if (MoveGenerator::in_check(board, board.side_to_move()))
+    {
+        ss << '+';
+
+        list.reset();
+        MoveGenerator::add_all_moves(list, board, board.side_to_move());
+        if (list.length() == 0)
+        {
+            ss << '+';
+        }
+    }
+    board.undo_move(move);
+
+    return ss.str();
 }

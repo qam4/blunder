@@ -27,20 +27,27 @@ void reset_pv_table()
 
 void Board::print_pv()
 {
+    int adjust = 0;
+    if ((side_to_move() == BLACK) && ((game_ply_ & 1) == 0))
+    {
+        // adjust game_ply if BLACK to play and game ply is even
+        adjust = 1;
+    }
     for (int i = 0; i < pv_length[0]; i++)
     {
-        if ((i == 0) || (game_ply_ & 1) == 0)
+        int game_ply = game_ply_ + adjust;
+        if ((i == 0) || (game_ply & 1) == 0)
         {
-            cout << (game_ply_ + 2) / 2 << ". ";
+            cout << (game_ply + 2) / 2 << ". ";
         }
 
-        if ((i == 0) && ((game_ply_ & 1) == 1))
+        if ((i == 0) && ((game_ply & 1) == 1))
         {
             cout << "... ";
         }
 
         Move_t move = pv_table[i];
-        cout << Output::move(move, *this) << " ";
+        cout << Output::move_san(move, *this) << " ";
         do_move(move);
     }
     for (int i = pv_length[0] - 1; i >= 0; i--)
