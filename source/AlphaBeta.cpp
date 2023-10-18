@@ -12,6 +12,7 @@ int Board::alphabeta(int alpha, int beta, int depth)
     MoveList list;
     int i, n, value;
     Move_t move, best_move = 0;
+    int mate_value = MATE_SCORE - search_ply_;  // will be used in mate distance pruning
 
     pv_length[search_ply_] = search_ply_;
 
@@ -41,6 +42,20 @@ int Board::alphabeta(int alpha, int beta, int depth)
         return value;
     }
 
+    // mate distance pruning
+    if (alpha < -mate_value)
+    {
+        alpha = -mate_value;
+    }
+    if (beta > mate_value - 1)
+    {
+        beta = mate_value - 1;
+    }
+    if (alpha >= beta)
+    {
+        return alpha;
+    }
+
     MoveGenerator::add_all_moves(list, *this, side_to_move());
     MoveGenerator::score_moves(list, *this);
     n = list.length();
@@ -56,18 +71,19 @@ int Board::alphabeta(int alpha, int beta, int depth)
         do_move(move);
         value = -alphabeta(-beta, -alpha, depth - 1);
         undo_move(move);
-        if (value >= beta)
-        {
-            // store hash entry with the score equal to beta
-            record_hash(depth, beta, HASH_BETA, best_move);
-            return beta;  // fail hard beta-cutoff
-        }
         if (value > alpha)
         {
             hash_flag = HASH_EXACT;
             best_move = move;
             alpha = value;
             store_pv_move(move);
+
+            if (value >= beta)
+            {
+                // store hash entry with the score equal to beta
+                record_hash(depth, beta, HASH_BETA, best_move);
+                return beta;  // fail hard beta-cutoff
+            }
         }
     }
 

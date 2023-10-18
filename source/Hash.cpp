@@ -28,6 +28,9 @@ int Board::probe_hash(int depth, int alpha, int beta, Move_t& best_move)
 
     if (phashe->key == hash)
     {
+        // best move is expected to be good even if the depth is not sufficient
+        best_move = phashe->best_move;
+
         if (phashe->depth >= depth)
         {
             if (phashe->flags == HASH_EXACT)
@@ -43,9 +46,6 @@ int Board::probe_hash(int depth, int alpha, int beta, Move_t& best_move)
                 return beta;
             }
         }
-
-        // RememberBestMove();
-        best_move = phashe->best_move;
     }
 
     return UNKNOWN_SCORE;
