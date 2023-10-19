@@ -45,8 +45,12 @@ Move_t inline build_pawn_double_push(U8 from, U8 to) { return static_cast<U32>(f
 Move_t inline build_castle(U32 flags) { return flags; }
 
 Move_t inline build_move_all(U8 from, U8 to, U8 capture, U32 flags) { return static_cast<U32>(from | (to << TO_SHIFT) | (capture << CAPTURE_SHIFT)) | flags; }
-void inline move_add_score(Move_t *move, U8 score) { *move = *move | static_cast<U32>(score << SCORE_SHIFT); }
-void inline move_remove_score(Move_t *move) { *move = *move & ~SCORE_MASK; }
+void inline move_reset_score(Move_t *move) { *move = *move & ~SCORE_MASK; }
+void inline move_set_score(Move_t *move, U8 score)
+{
+    move_reset_score(move);
+    *move = *move | static_cast<U32>(score << SCORE_SHIFT);
+}
 
 bool inline is_capture(Move_t move) { return move & CAPTURE_MASK; }
 bool inline is_promotion(Move_t move) { return move & PROMOTE_TO_MASK; }
