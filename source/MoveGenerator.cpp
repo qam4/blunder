@@ -935,7 +935,7 @@ void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
         {
             score = MVVLVA[PAWN >> 1][PAWN >> 1];
         }
-        move_add_score(&move, score);
+        move_set_score(&move, score);
         list.set_move(i, move);
     }
 }

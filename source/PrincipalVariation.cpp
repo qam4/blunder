@@ -76,9 +76,10 @@ void Board::sort_pv_move(class MoveList& list, Move_t best_move)
     for (int i = 0; i < list.length(); i++)
     {
         Move_t move = list[i];
-        if (list[i] == best_move)
+        if (move == best_move)
         {
-            move_add_score(&move, 128);
+            move_set_score(&move, 128);
+            list.set_move(i, move);
             return;
         }
     }
@@ -93,8 +94,8 @@ void Board::sort_pv_move(class MoveList& list, Move_t best_move)
             if (move == pv_table[search_ply_])
             {
                 follow_pv_ = 1;
-                move_add_score(&move, 64);
-                break;
+                move_set_score(&move, 64);
+                list.set_move(i, move);
             }
         }
     }

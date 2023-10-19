@@ -557,7 +557,7 @@ Move_t Board::search(int depth,
         search_best_score_ = value;
     }
 
-    move_remove_score(&last_best_move);
+    move_reset_score(&last_best_move);
     return last_best_move;
 }
 
