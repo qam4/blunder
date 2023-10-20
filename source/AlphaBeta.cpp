@@ -7,12 +7,30 @@
 // http://www.seanet.com/~brucemo/topics/alphabeta.htm
 // alpha: best score that can be forced by some means
 // beta: worst-case scenario for the opponent
+// How it works ?
+// We maintain both a lower bound and an upper bound (called Alpha and Beta.)
+// At every round, you pick the move that maximizes the lower bound
+// At every round, your opponent picks the move that minimizes the upper bound
+// Example: the higher the score, the better for you.
+// At the parent node, the opponent found a move of score 5 (alpha=0, beta=5)
+// Your turn, you are trying to find the max score.
+// 3: 3 > alpha, you can use that as your new lower bound for the next nodes
+// 8: you would score at least 8 if the opponent plays that move
+// But he won't play it, since he already found a better move to play (5)
+// So if you find a score higher than beta, you return beta and don't look at the next nodes.
+//     MIN
+//    /   \
+//   5   MAX
+//      / | \
+//     3  8  4
+
 int Board::alphabeta(int alpha, int beta, int depth)
 {
     MoveList list;
     int i, n, value;
     Move_t move, best_move = 0;
     int mate_value = MATE_SCORE - search_ply_;  // will be used in mate distance pruning
+    int found_pv = 0;
 
     pv_length[search_ply_] = search_ply_;
 
@@ -69,10 +87,29 @@ int Board::alphabeta(int alpha, int beta, int depth)
         list.sort_moves(i);
         move = list[i];
         do_move(move);
-        value = -alphabeta(-beta, -alpha, depth - 1);
+        if (found_pv)
+        {
+            // Principal Variation Search
+            // https://web.archive.org/web/20040427015506/brucemo.com/compchess/programming/pvs.htm
+            // Wait until a move is found that improves alpha, and then searches every move after
+            // that with a zero window around alpha The idea is that if the move ordering is good,
+            // the 1st move that raises alpha (left most) should be the best. So, we try to test
+            // that by doing a search on the other nodes that just checks if the node raises alpha
+            // or not.
+            value = -alphabeta(-alpha - 1, -alpha, depth - 1);
+            if ((value > alpha) && (value < beta))  // Check for failure.
+            {
+                value = -alphabeta(-beta, -alpha, depth - 1);
+            }
+        }
+        else
+        {
+            value = -alphabeta(-beta, -alpha, depth - 1);
+        }
         undo_move(move);
         if (value > alpha)
         {
+            found_pv = 1;
             hash_flag = HASH_EXACT;
             best_move = move;
             alpha = value;
