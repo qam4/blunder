@@ -19,19 +19,23 @@
     8: you would score at least 8 if the opponent plays that move
     But he won't play it, since he already found a better move to play (5)
     So if you find a score higher than beta, you return beta and don't look at the next nodes.
+    If you do not find a node that raises alpha,
+    It means you'd not play that because you found a better move earlier
+    In this case, you return alpha, the earlier found lower bound
         MIN
        /   \
       5   MAX
          / | \
         3  8  4
 */
-int Board::alphabeta(int alpha, int beta, int depth, int is_pv)
+int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
 {
     MoveList list;
     int i, n, value;
     Move_t move, best_move = 0;
     int mate_value = MATE_SCORE - search_ply_;  // will be used in mate distance pruning
     int found_pv = 0;
+    int in_check = 0;
 
     pv_length[search_ply_] = search_ply_;
 
@@ -75,6 +79,24 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv)
         return alpha;
     }
 
+    // Are we in check?
+    in_check = MoveGenerator::in_check(*this, side_to_move());
+
+    // NULL move pruning
+    // https://web.archive.org/web/20040427014629/http://brucemo.com/compchess/programming/nullmove.htm
+    if ((can_null) && (depth > 2) && !is_pv && !in_check)
+    {
+        int R = 2;
+        do_null_move();
+        value = -alphabeta(-beta, -beta + 1, depth - 1 - R, NO_PV, NO_NULL);
+        undo_null_move();
+
+        if (value >= beta)
+        {
+            return beta;
+        }
+    }
+
     MoveGenerator::add_all_moves(list, *this, side_to_move());
     MoveGenerator::score_moves(list, *this);
     n = list.length();
@@ -97,15 +119,15 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv)
             // the 1st move that raises alpha (left most) should be the best. So, we try to test
             // that by doing a search on the other nodes that just checks if the node raises alpha
             // or not.
-            value = -alphabeta(-alpha - 1, -alpha, depth - 1, NO_PV);
+            value = -alphabeta(-alpha - 1, -alpha, depth - 1, NO_PV, DO_NULL);
             if ((value > alpha) && (value < beta))  // Check for failure.
             {
-                value = -alphabeta(-beta, -alpha, depth - 1, IS_PV);
+                value = -alphabeta(-beta, -alpha, depth - 1, IS_PV, DO_NULL);
             }
         }
         else
         {
-            value = -alphabeta(-beta, -alpha, depth - 1, is_pv);
+            value = -alphabeta(-beta, -alpha, depth - 1, is_pv, DO_NULL);
         }
         undo_move(move);
         if (value > alpha)
@@ -128,7 +150,7 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv)
     // checkmate or stalemate
     if (n == 0)
     {
-        if (MoveGenerator::in_check(*this, side_to_move()))
+        if (in_check)
         {
             value = -MATE_SCORE + search_ply_;
         }

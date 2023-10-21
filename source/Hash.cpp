@@ -35,14 +35,17 @@ int Board::probe_hash(int depth, int alpha, int beta, Move_t& best_move)
         {
             if (phashe->flags == HASH_EXACT)
             {
+                // node_value = hash_value
                 return phashe->value;
             }
             if ((phashe->flags == HASH_ALPHA) && (phashe->value <= alpha))
             {
+                // node_value <= hash_value <= alpha
                 return alpha;
             }
             if ((phashe->flags == HASH_BETA) && (phashe->value >= beta))
             {
+                // node_value >= hash_value >= beta
                 return beta;
             }
         }

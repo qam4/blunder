@@ -330,6 +330,46 @@ void Board::undo_move(Move_t move)
     irrev_.board_hash = hash;
 }
 
+void Board::do_null_move()
+{
+    // Save irreversible state
+    move_stack_[search_ply_] = irrev_;
+
+    if (irrev_.ep_square != NULL_SQUARE)
+    {
+        irrev_.board_hash ^= zobrist_.get_ep_square(irrev_.ep_square);
+    }
+    irrev_.ep_square = NULL_SQUARE;
+
+    irrev_.half_move_count++;
+    if (irrev_.side_to_move == BLACK)
+    {
+        irrev_.full_move_count++;
+    }
+
+    // update side_to_move
+    irrev_.side_to_move ^= 1;
+    irrev_.board_hash ^= zobrist_.get_side();
+
+    game_ply_++;
+    search_ply_++;
+    max_search_ply_ = max(max_search_ply_, search_ply_);
+#ifndef NDEBUG
+    assert(game_ply_ < MAX_GAME_PLY);
+    assert(irrev_.board_hash == zobrist_.get_zobrist_key(*this));
+#endif
+    hash_history_[game_ply_] = irrev_.board_hash;
+}
+
+void Board::undo_null_move()
+{
+    game_ply_--;
+    search_ply_--;
+
+    // update irreversible state
+    irrev_ = move_stack_[search_ply_];
+}
+
 // clang-format off
 const int PIECE_SQUARE[NUM_PIECES / 2][64] = {
     {
@@ -513,7 +553,7 @@ Move_t Board::search(int depth,
         searched_moves_ = 0;
 
 #if 1
-        int value = alphabeta(-MAX_SCORE, MAX_SCORE, current_depth, IS_PV);
+        int value = alphabeta(-MAX_SCORE, MAX_SCORE, current_depth, IS_PV, DO_NULL);
 #    ifndef NDEBUG
         assert(value <= MAX_SCORE);
         assert(value >= -MAX_SCORE);

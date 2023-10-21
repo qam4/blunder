@@ -13,8 +13,10 @@
 #include "Zobrist.h"
 #include "Hash.h"
 
-#define NO_PV 0
+#define NO_PV 0  // Not a PV node
 #define IS_PV 1
+#define NO_NULL 0  // avoid doing null move twice in a row
+#define DO_NULL 1
 
 
 int pop_count(U64 x);
@@ -70,6 +72,8 @@ public:
     void reset();
     void do_move(Move_t move);
     void undo_move(Move_t move);
+    void do_null_move();
+    void undo_null_move();
     int evaluate();
     bool is_game_over();
     bool is_draw();
@@ -79,7 +83,7 @@ public:
     Move_t minimax_root(int depth, bool maximizing_player);
     int negamax(int depth);
     Move_t negamax_root(int depth);
-    int alphabeta(int alpha, int beta, int depth, int is_pv);
+    int alphabeta(int alpha, int beta, int depth, int is_pv, int can_null);
     int quiesce(int alpha, int beta);
     bool is_search_time_over();
 
