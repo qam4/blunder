@@ -513,7 +513,7 @@ Move_t Board::search(int depth,
         searched_moves_ = 0;
 
 #if 1
-        int value = alphabeta(-MAX_SCORE, MAX_SCORE, current_depth);
+        int value = alphabeta(-MAX_SCORE, MAX_SCORE, current_depth, IS_PV);
 #    ifndef NDEBUG
         assert(value <= MAX_SCORE);
         assert(value >= -MAX_SCORE);

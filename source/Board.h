@@ -13,6 +13,10 @@
 #include "Zobrist.h"
 #include "Hash.h"
 
+#define NO_PV 0
+#define IS_PV 1
+
+
 int pop_count(U64 x);
 bool inline is_valid_piece(U8 piece) { return (piece >= WHITE_PAWN) && (piece <= BLACK_KING); }
 bool inline is_valid_square(int square) { return (square >= 0) && (square <= 64); }
@@ -75,7 +79,7 @@ public:
     Move_t minimax_root(int depth, bool maximizing_player);
     int negamax(int depth);
     Move_t negamax_root(int depth);
-    int alphabeta(int alpha, int beta, int depth);
+    int alphabeta(int alpha, int beta, int depth, int is_pv);
     int quiesce(int alpha, int beta);
     bool is_search_time_over();
 
