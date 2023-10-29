@@ -11,6 +11,7 @@
 const int UNKNOWN_SCORE = 500000;
 const int MAX_SCORE = 200000;
 const int MATE_SCORE = 100000;
+const int ASPIRATION_WINDOW = 50;
 const int DRAW_SCORE = 0;
 const int MAX_SEARCH_PLY = 64;
 

@@ -53,6 +53,10 @@ https://web.archive.org/web/20060107101829/http://chess.verhelst.org/1997/03/10/
   http://web.archive.org/web/20070809015843/http://www.seanet.com/~brucemo/topics/hashing.htm
   http://mediocrechess.blogspot.com/2007/01/guide-zobrist-keys.html?m=1
 
+  - Aspiration window
+    - https://www.chessprogramming.org/Aspiration_Windows
+    - http://web.archive.org/web/20070705134903/www.seanet.com/%7Ebrucemo/topics/aspiration.htm
+
 
 - Misc blogs on game engines
 http://web.archive.org/web/20080216031116/http://www.seanet.com/~brucemo/topics/topics.htm

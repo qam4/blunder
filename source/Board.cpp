@@ -546,6 +546,9 @@ Move_t Board::search(int depth,
     Move_t last_best_move = 0;
     total_searched_moves_ = 0;
 
+    int alpha = -MAX_SCORE;
+    int beta = MAX_SCORE;
+
     for (int current_depth = 1; current_depth <= depth; current_depth++)
     {
         follow_pv_ = 1;
@@ -553,7 +556,20 @@ Move_t Board::search(int depth,
         searched_moves_ = 0;
 
 #if 1
-        int value = alphabeta(-MAX_SCORE, MAX_SCORE, current_depth, IS_PV, DO_NULL);
+        int value = alphabeta(alpha, beta, current_depth, IS_PV, DO_NULL);
+
+        // Aspiration window
+        if ((value <= alpha) || (value >= beta))
+        {
+            alpha = -MAX_SCORE;  // We fell outside the window, so try again with a
+            beta = MAX_SCORE;    //  full-width window (and the same depth).
+            value = alphabeta(alpha, beta, current_depth, IS_PV, DO_NULL);
+        }
+        else
+        {
+            alpha = value - ASPIRATION_WINDOW;  // Set up the window for the next iteration.
+            beta = value + ASPIRATION_WINDOW;
+        }
 #    ifndef NDEBUG
         assert(value <= MAX_SCORE);
         assert(value >= -MAX_SCORE);

@@ -20,7 +20,7 @@ TEST_CASE("test_positions_WAC", "[test-positions][.]")  // disabled
     // Win at Chess
     // https://www.chessprogramming.org/Win_at_Chess
     double score = test_positions(test_positions_dir + "WAC.epd");
-    REQUIRE(score >= (148.0 / 300));
+    REQUIRE(score >= (157.0 / 300));
 }
 
 TEST_CASE("test_positions_STS-Rating", "[test-positions][.]")  // disabled
@@ -28,5 +28,5 @@ TEST_CASE("test_positions_STS-Rating", "[test-positions][.]")  // disabled
     // Strategic Test Suite Rating
     // https://github.com/fsmosca/STS-Rating
     double score = test_positions(test_positions_dir + "STS1-STS15_LAN_v6.epd");
-    REQUIRE(score >= (64291.0 / 118800));  // ELO=2166
+    REQUIRE(score >= (64248.0 / 118800));  // ELO=2164
 }
