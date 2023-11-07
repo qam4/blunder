@@ -12,7 +12,7 @@
 // Test positions
 // https://www.chessprogramming.org/Test-Positions
 
-const int TEST_POSITIONS_MAX_SEARCH_MOVES = 1000000;
+const int TEST_POSITIONS_MAX_NODES_VISITED = 1000000;
 
 double test_positions(string path_to_epd)
 {
@@ -107,7 +107,7 @@ double test_positions(string path_to_epd)
         }
 
         // Search with max depth, infinite time, max 1000000 moves searched
-        Move_t move = board.search(MAX_SEARCH_PLY, -1, TEST_POSITIONS_MAX_SEARCH_MOVES);
+        Move_t move = board.search(MAX_SEARCH_PLY, -1, TEST_POSITIONS_MAX_NODES_VISITED);
         for (auto best_move : best_moves)
         {
             if (move == std::get<0>(best_move))

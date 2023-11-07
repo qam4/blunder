@@ -36,11 +36,12 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     int mate_value = MATE_SCORE - search_ply_;  // will be used in mate distance pruning
     int found_pv = 0;
     int in_check = 0;
+    nodes_visited_++;
 
     pv_length[search_ply_] = search_ply_;
 
-    // Check time left every 2048 moves
-    if ((searched_moves_ & 2047) && is_search_time_over())
+    // Check time left every 2048 nodes
+    if (((nodes_visited_ & 2047) == 0) && is_search_time_over())
     {
         return 0;
     }
@@ -101,12 +102,11 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     MoveGenerator::score_moves(list, *this);
     n = list.length();
 
-    // sort PV move
-    sort_pv_move(list, best_move);
+    // score PV move
+    score_pv_move(list, best_move);
 
     for (i = 0; i < n; i++)
     {
-        searched_moves_++;
         list.sort_moves(i);
         move = list[i];
         do_move(move);
@@ -130,6 +130,7 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
             value = -alphabeta(-beta, -alpha, depth - 1, is_pv, DO_NULL);
         }
         undo_move(move);
+        searched_moves_++;
         if (value > alpha)
         {
             found_pv = 1;

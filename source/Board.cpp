@@ -532,11 +532,11 @@ bool Board::is_draw()
 
 Move_t Board::search(int depth,
                      int search_time /*=DEFAULT_SEARCH_TIME*/,
-                     int max_searched_moves /*=-1*/,
+                     int max_nodes_visited /*=-1*/,
                      bool xboard /*=false*/)
 {
     search_time_ = search_time;
-    max_searched_moves_ = max_searched_moves;
+    max_nodes_visited_ = max_nodes_visited;
     search_start_time_ = clock();
     search_ply_ = 0;
     reset_hash_table();
@@ -544,7 +544,8 @@ Move_t Board::search(int depth,
 
     // Iterative deepening
     Move_t last_best_move = 0;
-    total_searched_moves_ = 0;
+    searched_moves_ = 0;
+    nodes_visited_ = 0;
 
     int alpha = -MAX_SCORE;
     int beta = MAX_SCORE;
@@ -553,7 +554,6 @@ Move_t Board::search(int depth,
     {
         follow_pv_ = 1;
         max_search_ply_ = 0;
-        searched_moves_ = 0;
 
 #if 1
         int value = alphabeta(alpha, beta, current_depth, IS_PV, DO_NULL);
@@ -586,10 +586,10 @@ Move_t Board::search(int depth,
                 int((100 * double(current_time - search_start_time_)) / CLOCKS_PER_SEC);
 
             // DEPTH SCORE TIME NODES PV
-            cout << current_depth << " ";    // search depth
-            cout << value << " ";            // score in centi-Pawn
-            cout << elapsed_csecs << " ";    // time searched in centi-seconds
-            cout << searched_moves_ << " ";  // node searched
+            cout << current_depth << " ";   // search depth
+            cout << value << " ";           // score in centi-Pawn
+            cout << elapsed_csecs << " ";   // time searched in centi-seconds
+            cout << nodes_visited_ << " ";  // node visited
             print_pv();
             cout << endl;
         }
@@ -607,8 +607,6 @@ Move_t Board::search(int depth,
         {
             break;
         }
-        total_searched_moves_ += searched_moves_;
-        searched_moves_ = 0;
         last_best_move = search_best_move_;
         search_best_score_ = value;
     }
@@ -619,10 +617,11 @@ Move_t Board::search(int depth,
 
 bool Board::is_search_time_over()
 {
-    // Check if max number of moves searched is reached
-    if ((max_searched_moves_ != -1)
-        && ((total_searched_moves_ + searched_moves_) > max_searched_moves_))
+    // Check if max number of nodes visited is reached
+    if ((max_nodes_visited_ != -1) && (nodes_visited_ > max_nodes_visited_))
+    {
         return true;
+    }
 
     // Special case to allow infinite search time
     if (search_time_ == -1)

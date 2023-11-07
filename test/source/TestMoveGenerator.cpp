@@ -680,7 +680,7 @@ TEST_CASE("move_generator_can_add_all_moves", "[move generator]")
     list.reset();
 
     // En-passant discovered check
-    fen = "8/8/8/8/k2Pp2Q/8/8/3K4 b   d3 0 1";
+    fen = "8/8/8/8/k2Pp2Q/8/8/3K4 b d3 0 1";
     board = Parser::parse_fen(fen);
     MoveGenerator::add_all_moves(list, board, BLACK);
     REQUIRE(list.length() == 6);
@@ -693,6 +693,90 @@ TEST_CASE("move_generator_can_add_all_moves", "[move generator]")
     REQUIRE(list.contains_valid_moves(board));
     REQUIRE(!list.contains_duplicates());
     list.reset();
+}
+
+TEST_CASE("move_generator_can_add_all_moves_1", "[move generator]")
+{
+    Board board;
+    MoveList list;
+    string fen;
+
+    fen = "r6r/1b2k1bq/8/8/7B/8/8/R3K2R b QK - 3 2";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_all_moves(list, board, board.side_to_move());
+    REQUIRE(list.length() == 8);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+}
+
+TEST_CASE("move_generator_can_add_all_moves_2", "[move generator]")
+{
+    Board board;
+    MoveList list;
+    string fen;
+
+    fen = "8/8/8/2k5/2pP4/8/B7/4K3 b - d3 5 3";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_all_moves(list, board, board.side_to_move());
+    REQUIRE(list.length() == 8);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+}
+
+TEST_CASE("move_generator_can_add_all_moves_3", "[move generator]")
+{
+    Board board;
+    MoveList list;
+    string fen;
+
+    fen = "r1bqkbnr/pppppppp/n7/8/8/P7/1PPPPPPP/RNBQKBNR w QqKk - 2 2";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_all_moves(list, board, board.side_to_move());
+    REQUIRE(list.length() == 19);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+}
+
+TEST_CASE("move_generator_can_add_loud_moves_1", "[move generator]")
+{
+    Board board;
+    MoveList list;
+    string fen;
+
+    fen = "8/8/8/6k1/4Pp2/8/8/K1B5 b - e3 0 1";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_loud_moves(list, board, board.side_to_move());
+    REQUIRE(list.length() == 1);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+}
+
+TEST_CASE("move_generator_can_add_loud_moves_2", "[move generator]")
+{
+    Board board;
+    MoveList list;
+    string fen;
+
+    fen = "rnbqkbnr/pppppppp/8/2N5/8/8/PPP1PPPP/R1BQKBNR w KQkq - 0 1";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_loud_moves(list, board, board.side_to_move());
+    REQUIRE(list.length() == 3);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
+}
+
+TEST_CASE("move_generator_can_add_loud_moves_3", "[move generator]")
+{
+    Board board;
+    MoveList list;
+    string fen;
+
+    fen = "8/8/8/8/R3Ppk1/8/8/K7 b - e3 0 1";
+    board = Parser::parse_fen(fen);
+    MoveGenerator::add_loud_moves(list, board, board.side_to_move());
+    REQUIRE(list.length() == 0);
+    REQUIRE(list.contains_valid_moves(board));
+    REQUIRE(!list.contains_duplicates());
 }
 
 TEST_CASE("move_generator_can_add_pawn_pin_ray_moves", "[move generator]")

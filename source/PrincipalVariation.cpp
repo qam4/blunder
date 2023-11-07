@@ -69,22 +69,23 @@ void Board::store_pv_move(Move_t move)
     pv_length[search_ply_] = pv_length[search_ply_ + 1];
 }
 
-// sort PV move
-void Board::sort_pv_move(class MoveList& list, Move_t best_move)
+// score PV and best move
+void Board::score_pv_move(class MoveList& list, Move_t best_move)
 {
-    // sort hash table move
+    // score hash table move
     for (int i = 0; i < list.length(); i++)
     {
         Move_t move = list[i];
         if (move == best_move)
         {
+            assert(move != 0);
             move_set_score(&move, 128);
             list.set_move(i, move);
             return;
         }
     }
 
-    // sort PV move
+    // score PV move
     if (search_ply_ && follow_pv_)
     {
         follow_pv_ = 0;

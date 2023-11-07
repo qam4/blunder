@@ -50,7 +50,7 @@ private:
     U64 hash_history_[MAX_GAME_PLY];
 
     int searched_moves_;
-    int total_searched_moves_;
+    int nodes_visited_;
     int game_ply_;
     int search_ply_;
     int max_search_ply_;
@@ -58,7 +58,7 @@ private:
     Move_t search_best_move_;
     int search_best_score_;
     int search_time_;       // search time in usec
-    int max_searched_moves_;
+    int max_nodes_visited_;
 
     int follow_pv_;
 
@@ -78,7 +78,7 @@ public:
     bool is_game_over();
     bool is_draw();
     // Algos
-    Move_t search(int depth, int search_time=DEFAULT_SEARCH_TIME, int max_searched_moves=-1, bool xboard=false);
+    Move_t search(int depth, int search_time=DEFAULT_SEARCH_TIME, int max_nodes_visited=-1, bool xboard=false);
     int minimax(int depth, bool maximizing_player);
     Move_t minimax_root(int depth, bool maximizing_player);
     int negamax(int depth);
@@ -102,7 +102,6 @@ public:
     void set_full_move_count(int count) { irrev_.full_move_count = count; };
     void set_hash(U64 hash) { irrev_.board_hash = hash; };
     int get_searched_moves() const { return searched_moves_; };
-    int get_total_searched_moves() const {return total_searched_moves_; }
     int get_game_ply() const { return game_ply_; };
     int get_search_best_score() const { return search_best_score_; }
     U64 get_hash_history(const int i) const { return hash_history_[i]; }
@@ -113,7 +112,7 @@ public:
 
     void store_pv_move(Move_t move);
     void print_pv();
-    void sort_pv_move(class MoveList &list, Move_t best_move);
+    void score_pv_move(class MoveList &list, Move_t best_move);
 
     // EPD
     void set_epd_op(const string& opcode, const string& operand) { epd_[opcode] = operand; }

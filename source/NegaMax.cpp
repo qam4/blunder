@@ -9,6 +9,7 @@ int Board::negamax(int depth)
     MoveList list;
     int i, n, bestvalue, value;
     Move_t move;
+    nodes_visited_++;
 
     if (is_game_over())
     {
@@ -36,11 +37,11 @@ int Board::negamax(int depth)
 
     for (i = 0; i < n; i++)
     {
-        searched_moves_++;
         move = list[i];
         do_move(move);
         value = -negamax(depth - 1);
         undo_move(move);
+        searched_moves_++;
         bestvalue = max(value, bestvalue);
     }
     return bestvalue;
@@ -55,6 +56,7 @@ Move_t Board::negamax_root(int depth)
 
     // Reset searched_moves
     searched_moves_ = 0;
+    nodes_visited_ = 0;
 
     bestvalue = -MAX_SCORE;
 
@@ -64,11 +66,11 @@ Move_t Board::negamax_root(int depth)
 
     for (i = 0; i < n; i++)
     {
-        searched_moves_++;
         move = list[i];
         do_move(move);
         value = -negamax(depth - 1);
         undo_move(move);
+        searched_moves_++;
         cout << Output::move(move, *this) << " (" << dec << value << "), ";
         if ((i % 4 == 3) || (i == n - 1))
         {

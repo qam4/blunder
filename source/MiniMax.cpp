@@ -9,6 +9,7 @@ int Board::minimax(int depth, bool maximizing_player)
     MoveList list;
     int i, n, bestvalue, value;
     Move_t move;
+    nodes_visited_++;
 
     if (is_game_over())
     {
@@ -44,11 +45,11 @@ int Board::minimax(int depth, bool maximizing_player)
 
         for (i = 0; i < n; i++)
         {
-            searched_moves_++;
             move = list[i];
             do_move(move);
             value = minimax(depth - 1, false);
             undo_move(move);
+            searched_moves_++;
             bestvalue = max(value, bestvalue);
         }
         return bestvalue;
@@ -62,11 +63,11 @@ int Board::minimax(int depth, bool maximizing_player)
 
         for (i = 0; i < n; i++)
         {
-            searched_moves_++;
             move = list[i];
             do_move(move);
             value = minimax(depth - 1, true);
             undo_move(move);
+            searched_moves_++;
             bestvalue = min(value, bestvalue);
         }
         return bestvalue;
@@ -82,6 +83,7 @@ Move_t Board::minimax_root(int depth, bool maximizing_player)
 
     // Reset searched_moves
     searched_moves_ = 0;
+    nodes_visited_ = 0;
 
     if (maximizing_player == true)
     {
@@ -93,11 +95,11 @@ Move_t Board::minimax_root(int depth, bool maximizing_player)
 
         for (i = 0; i < n; i++)
         {
-            searched_moves_++;
             move = list[i];
             do_move(move);
             value = minimax(depth - 1, false);
             undo_move(move);
+            searched_moves_++;
             cout << Output::move(move, *this) << " (" << dec << value << "), ";
             if ((i % 4 == 3) || (i == n - 1))
             {
@@ -120,11 +122,11 @@ Move_t Board::minimax_root(int depth, bool maximizing_player)
 
         for (i = 0; i < n; i++)
         {
-            searched_moves_++;
             move = list[i];
             do_move(move);
             value = minimax(depth - 1, true);
             undo_move(move);
+            searched_moves_++;
             cout << Output::move(move, *this) << " (" << dec << value << "), ";
             if ((i % 4 == 3) || (i == n - 1))
             {
