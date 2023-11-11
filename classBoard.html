@@ -102,6 +102,14 @@
               <span class="m-doc-wrap-bumper">void <a href="#a9fe508405b79d5952ca1d8bf1abfff08" class="m-doc-self">undo_move</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move)</span>
             </dt>
             <dd><span></span></dd>
+            <dt id="aeac76a32081f0ce6926021b4d8fc7414">
+              <span class="m-doc-wrap-bumper">void <a href="#aeac76a32081f0ce6926021b4d8fc7414" class="m-doc-self">do_null_move</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a474d131402f45d240d9f9438895d12a5">
+              <span class="m-doc-wrap-bumper">void <a href="#a474d131402f45d240d9f9438895d12a5" class="m-doc-self">undo_null_move</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd><span></span></dd>
             <dt id="a3669aa7482204b35711b2040be2aff31">
               <span class="m-doc-wrap-bumper">auto <a href="#a3669aa7482204b35711b2040be2aff31" class="m-doc-self">evaluate</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
             </dt>
@@ -114,10 +122,10 @@
               <span class="m-doc-wrap-bumper">auto <a href="#afbdda3d36866e1f5f706ff97546b588e" class="m-doc-self">is_draw</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a63f608e9727559c3d5f7f4bc219120bb">
-              <span class="m-doc-wrap-bumper">auto <a href="#a63f608e9727559c3d5f7f4bc219120bb" class="m-doc-self">search</a>(</span><span class="m-doc-wrap">int depth,
+            <dt id="a55e23ae05b346501c2fc39fd3140d433">
+              <span class="m-doc-wrap-bumper">auto <a href="#a55e23ae05b346501c2fc39fd3140d433" class="m-doc-self">search</a>(</span><span class="m-doc-wrap">int depth,
               int search_time = <a href="Constants_8h.html#a870ea5214a0bf14be6314ddbdcc7c178" class="m-doc">DEFAULT_<wbr />SEARCH_<wbr />TIME</a>,
-              int max_searched_moves = -1,
+              int max_nodes_visited = -1,
               bool xboard = false) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
             </dt>
             <dd><span></span></dd>
@@ -139,10 +147,12 @@
               <span class="m-doc-wrap-bumper">auto <a href="#abb7b321cd1ae83e4fd9e3c1aa57fa4bb" class="m-doc-self">negamax_root</a>(</span><span class="m-doc-wrap">int depth) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a2632214a908436ca2c5382efa7bf3652">
-              <span class="m-doc-wrap-bumper">auto <a href="#a2632214a908436ca2c5382efa7bf3652" class="m-doc-self">alphabeta</a>(</span><span class="m-doc-wrap">int alpha,
+            <dt id="ac6db07fd5184c45c48a1d99dafefdfb4">
+              <span class="m-doc-wrap-bumper">auto <a href="#ac6db07fd5184c45c48a1d99dafefdfb4" class="m-doc-self">alphabeta</a>(</span><span class="m-doc-wrap">int alpha,
               int beta,
-              int depth) -&gt; int</span>
+              int depth,
+              int is_pv,
+              int can_null) -&gt; int</span>
             </dt>
             <dd><span></span></dd>
             <dt id="a8c3c0c411cb2c285ed64053e2fbfd0f7">
@@ -214,10 +224,6 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a050c5993a6cb372766d5fbb800259f94" class="m-doc-self">get_searched_moves</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="ae39fc9ff4a5831ef4dbf0fe7ebaca653">
-              <span class="m-doc-wrap-bumper">auto <a href="#ae39fc9ff4a5831ef4dbf0fe7ebaca653" class="m-doc-self">get_total_searched_moves</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
-            </dt>
-            <dd><span></span></dd>
             <dt id="af8da7e0f20297cfdc5357928ccfb4ca7">
               <span class="m-doc-wrap-bumper">auto <a href="#af8da7e0f20297cfdc5357928ccfb4ca7" class="m-doc-self">get_game_ply</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
             </dt>
@@ -256,8 +262,8 @@
               <span class="m-doc-wrap-bumper">void <a href="#afa13e0838ca17f3b77e20049352000f5" class="m-doc-self">print_pv</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a045aba0c567bdc49fe12dee1303bddab">
-              <span class="m-doc-wrap-bumper">void <a href="#a045aba0c567bdc49fe12dee1303bddab" class="m-doc-self">sort_pv_move</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
+            <dt id="a0772a4b328c11b90fe7273b100924a16">
+              <span class="m-doc-wrap-bumper">void <a href="#a0772a4b328c11b90fe7273b100924a16" class="m-doc-self">score_pv_move</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
               <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> best_move)</span>
             </dt>
             <dd><span></span></dd>
