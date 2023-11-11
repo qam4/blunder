@@ -13,18 +13,22 @@ FetchContent_Declare(
 )
 
 # Edit flags for catch2
-set(CMAKE_CXX_FLAGS_OLD "${CMAKE_CXX_FLAGS}")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-conversion -Wno-sign-conversion -Wno-double-promotion")
-
+if (LINUX)
+  set(CMAKE_CXX_FLAGS_OLD "${CMAKE_CXX_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-conversion -Wno-sign-conversion -Wno-double-promotion")
+endif()
 if(DEFINED CMAKE_CXX_CPPCHECK)
-    set(CMAKE_CXX_CPPCHECK_OLD "${CMAKE_CXX_CPPCHECK}")
+  set(CMAKE_CXX_CPPCHECK_OLD "${CMAKE_CXX_CPPCHECK}")
   set(CMAKE_CXX_CPPCHECK "${CMAKE_CXX_CPPCHECK};--suppress=missingReturn")
 endif()
+
 
 FetchContent_MakeAvailable(Catch2)
 
 # restore flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_OLD}")
+if (LINUX)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_OLD}")
+endif()
 if(DEFINED CMAKE_CXX_CPPCHECK)
   set(CMAKE_CXX_CPPCHECK "${CMAKE_CXX_CPPCHECK_OLD}")
 endif()
