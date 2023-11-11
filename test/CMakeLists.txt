@@ -16,14 +16,18 @@ FetchContent_Declare(
 set(CMAKE_CXX_FLAGS_OLD "${CMAKE_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-conversion -Wno-sign-conversion -Wno-double-promotion")
 
-set(CMAKE_CXX_CPPCHECK_OLD "${CMAKE_CXX_CPPCHECK}")
-set(CMAKE_CXX_CPPCHECK "${CMAKE_CXX_CPPCHECK};--suppress=missingReturn")
+if(DEFINED CMAKE_CXX_CPPCHECK)
+    set(CMAKE_CXX_CPPCHECK_OLD "${CMAKE_CXX_CPPCHECK}")
+  set(CMAKE_CXX_CPPCHECK "${CMAKE_CXX_CPPCHECK};--suppress=missingReturn")
+endif()
 
 FetchContent_MakeAvailable(Catch2)
 
 # restore flags
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_OLD}")
-set(CMAKE_CXX_CPPCHECK "${CMAKE_CXX_CPPCHECK_OLD}")
+if(DEFINED CMAKE_CXX_CPPCHECK)
+  set(CMAKE_CXX_CPPCHECK "${CMAKE_CXX_CPPCHECK_OLD}")
+endif()
 
 project(blunderTests LANGUAGES CXX)
 
