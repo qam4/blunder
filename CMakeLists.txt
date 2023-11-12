@@ -39,6 +39,7 @@ add_library(
     source/Perft.cpp
     source/TestPositions.cpp
     source/Xboard.cpp
+    source/See.cpp
 )
 
 target_include_directories(

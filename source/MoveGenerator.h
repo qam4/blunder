@@ -28,14 +28,24 @@ const U8 MVVLVA[NUM_PIECES / 2][NUM_PIECES / 2] =
 
 // https://www.chessprogramming.org/BitScan
 const U8 index64[64] = {
-   63,  0, 58,  1, 59, 47, 53,  2,
-   60, 39, 48, 27, 54, 33, 42,  3,
-   61, 51, 37, 40, 49, 18, 28, 20,
-   55, 30, 34, 11, 43, 14, 22,  4,
-   62, 57, 46, 52, 38, 26, 32, 41,
-   50, 36, 17, 19, 29, 10, 13, 21,
-   56, 45, 25, 31, 35, 16,  9, 12,
-   44, 24, 15,  8, 23,  7,  6,  5
+    63,  0, 58,  1, 59, 47, 53,  2,
+    60, 39, 48, 27, 54, 33, 42,  3,
+    61, 51, 37, 40, 49, 18, 28, 20,
+    55, 30, 34, 11, 43, 14, 22,  4,
+    62, 57, 46, 52, 38, 26, 32, 41,
+    50, 36, 17, 19, 29, 10, 13, 21,
+    56, 45, 25, 31, 35, 16,  9, 12,
+    44, 24, 15,  8, 23,  7,  6,  5
+};
+
+const U8 piece_value[NUM_PIECES / 2] = {
+    0,
+    1, // PAWN
+    4, // KNIGHT
+    3, // BISHOP
+    5, // ROOK
+    9, // QUEEN
+    20, // KING
 };
 
 /**
@@ -203,6 +213,8 @@ public:
     static U64 get_checkers(const class Board &board, const U8 side);
     static MoveGenPreprocessing get_checkers_and_pinned(const class Board &board, const U8 side);
     static U64 get_king_danger_squares(const class Board& board, const U8 side, U64 king);
+    static U64 get_least_valuable_piece(const class Board& board, U64 attadef, const U8 side, U8 &piece);
+    static int see(const class Board& board, U8 from, U8 to, U8 side);
     static void add_rook_moves(class MoveList &list, const class Board &board, const U8 side);
     static void add_bishop_moves(class MoveList &list, const class Board &board, const U8 side);
     static void add_pawn_pushes(class MoveList &list, const class Board &board, const U8 side);
@@ -279,6 +291,9 @@ private:
     static void init_bishop_magic_table();
     static U64 rook_attacks_magic(U64 occ, int sq);
     static U64 bishop_attacks_magic(U64 occ, int sq);
+
+    static U64 attacks_to(const class Board& board, U64 occupied, U8 to);
+    static U64 consider_xrays(U64 occupied, U8 from, U8 to);
 };
 
 #endif /* MOVEGENERATOR_H */
