@@ -38,10 +38,10 @@ const U8 index64[64] = {
     44, 24, 15,  8, 23,  7,  6,  5
 };
 
-const U8 piece_value[NUM_PIECES / 2] = {
+const int piece_value[NUM_PIECES / 2] = {
     0,
     1, // PAWN
-    4, // KNIGHT
+    3, // KNIGHT
     3, // BISHOP
     5, // ROOK
     9, // QUEEN
@@ -214,7 +214,7 @@ public:
     static MoveGenPreprocessing get_checkers_and_pinned(const class Board &board, const U8 side);
     static U64 get_king_danger_squares(const class Board& board, const U8 side, U64 king);
     static U64 get_least_valuable_piece(const class Board& board, U64 attadef, const U8 side, U8 &piece);
-    static int see(const class Board& board, U8 from, U8 to, U8 side);
+    static int see(const class Board& board, Move_t move);
     static void add_rook_moves(class MoveList &list, const class Board &board, const U8 side);
     static void add_bishop_moves(class MoveList &list, const class Board &board, const U8 side);
     static void add_pawn_pushes(class MoveList &list, const class Board &board, const U8 side);
@@ -293,7 +293,7 @@ private:
     static U64 bishop_attacks_magic(U64 occ, int sq);
 
     static U64 attacks_to(const class Board& board, U64 occupied, U8 to);
-    static U64 consider_xrays(U64 occupied, U8 from, U8 to);
+    static U64 consider_xrays(const class Board& board, U64 occupied, U8 to);
 };
 
 #endif /* MOVEGENERATOR_H */

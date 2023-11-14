@@ -165,7 +165,7 @@ class Board Parser::parse_epd(string epd)
     U8 rights = 0;
     while (epd[pos] != ' ')
     {
-        rights |= Parser::castling_right(epd[pos++]);
+        rights = rights | Parser::castling_right(epd[pos++]);
     }
     board.set_castling_rights(rights);
 

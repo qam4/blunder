@@ -1169,6 +1169,7 @@ void MoveGenerator::add_loud_moves(class MoveList& list, const class Board& boar
 #endif
 }
 
+#ifdef MVVLVA
 void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
 {
     int n = list.length();
@@ -1192,6 +1193,31 @@ void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
         list.set_move(i, move);
     }
 }
+#else
+int const MAX_SEE_SCORE = 32;
+void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
+{
+    int n = list.length();
+    U8 score = MAX_SEE_SCORE;
+
+    for (int i = 0; i < n; i++)
+    {
+        Move_t move = list[i];
+
+        if (is_capture(move))
+        {
+            int see_score = MoveGenerator::see(board, move);
+#    ifndef NDEBUG
+            assert(see_score < MAX_SEE_SCORE);
+            assert(see_score > -MAX_SEE_SCORE);
+#    endif
+            score = static_cast<U8>(score + see_score);
+        }
+        move_set_score(&move, score);
+        list.set_move(i, move);
+    }
+}
+#endif
 
 U64 MoveGenerator::get_checkers(const class Board& board, const U8 side)
 {
