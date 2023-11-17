@@ -64,7 +64,7 @@ int main(int argc, char** argv)
             return 1;
         }
 
-        test_positions(epd_path);
+        test_positions_benchmark(epd_path);
 
         return 0;
     }

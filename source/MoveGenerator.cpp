@@ -1194,25 +1194,44 @@ void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
     }
 }
 #else
-int const MAX_SEE_SCORE = 32;
 void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
 {
     int n = list.length();
-    U8 score = MAX_SEE_SCORE;
 
     for (int i = 0; i < n; i++)
     {
         Move_t move = list[i];
+        U8 score = 0;
 
         if (is_capture(move))
         {
-            int see_score = MoveGenerator::see(board, move);
-#    ifndef NDEBUG
-            assert(see_score < MAX_SEE_SCORE);
-            assert(see_score > -MAX_SEE_SCORE);
-#    endif
-            score = static_cast<U8>(score + see_score);
+            U8 from = move_from(move);
+            U8 to = move_to(move);
+            U8 piece = board[from];
+            U8 captured = board[to];
+            score = MVVLVA[captured >> 1][piece >> 1];
+            if (is_ep_capture(move))
+            {
+                score = MVVLVA[PAWN >> 1][PAWN >> 1];
+            }
+            if ((SEE_PIECE_VALUE[piece >> 1] - SEE_PIECE_VALUE[captured >> 1]) >= 0)
+            {
+                if (MoveGenerator::see(board, move) < 0)
+                {
+                    // Bad capture
+                    score = 0;
+                }
+            }
         }
+        else
+        {
+            score = 5;
+        }
+        if (is_promotion(move))
+        {
+            score = static_cast<U8>(score + 70);
+        }
+
         move_set_score(&move, score);
         list.set_move(i, move);
     }

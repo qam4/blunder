@@ -17,13 +17,13 @@
 // Move valuable victim, least valuable attacker
 const U8 MVVLVA[NUM_PIECES / 2][NUM_PIECES / 2] =
 {
-    {0, 0, 0, 0, 0, 0, 0},        // victim = None, attacker None, P, K, B, R, Q, K
-    {0, 15, 14, 13, 12, 11, 10},  // victim = pawn, attacker None, P, K, B, R, Q, K
-    {0, 25, 24, 23, 22, 21, 20},  // victim = knight, attacker None, P, K, B, R, Q, K
-    {0, 35, 34, 33, 32, 31, 30},  // victim = bishop, attacker None, P, K, B, R, Q, K
-    {0, 45, 44, 43, 42, 41, 40},  // victim = rook, attacker None, P, K, B, R, Q, K
-    {0, 55, 54, 53, 52, 51, 50},  // victim = queen, attacker None, P, K, B, R, Q, K
-    {0, 65, 64, 63, 62, 61, 60},  // victim = king, attacker None, P, K, B, R, Q, K
+    {0, 0, 0, 0, 0, 0, 0},        // victim = None, attacker None, P, N, B, R, Q, K
+    {0, 15, 14, 13, 12, 11, 10},  // victim = pawn, attacker None, P, N, B, R, Q, K
+    {0, 25, 24, 23, 22, 21, 20},  // victim = knight, attacker None, P, N, B, R, Q, K
+    {0, 35, 34, 33, 32, 31, 30},  // victim = bishop, attacker None, P, N, B, R, Q, K
+    {0, 45, 44, 43, 42, 41, 40},  // victim = rook, attacker None, P, N, B, R, Q, K
+    {0, 55, 54, 53, 52, 51, 50},  // victim = queen, attacker None, P, N, B, R, Q, K
+    {0, 65, 64, 63, 62, 61, 60},  // victim = king, attacker None, P, N, B, R, Q, K
 };
 
 // https://www.chessprogramming.org/BitScan
@@ -38,14 +38,14 @@ const U8 index64[64] = {
     44, 24, 15,  8, 23,  7,  6,  5
 };
 
-const int piece_value[NUM_PIECES / 2] = {
+const int SEE_PIECE_VALUE[NUM_PIECES / 2] = {
     0,
-    1, // PAWN
-    3, // KNIGHT
-    3, // BISHOP
-    5, // ROOK
-    9, // QUEEN
-    20, // KING
+    100, // PAWN
+    320, // KNIGHT
+    330, // BISHOP
+    500, // ROOK
+    900, // QUEEN
+    20000, // KING
 };
 
 /**

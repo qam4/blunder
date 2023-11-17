@@ -126,3 +126,14 @@ double test_positions(string path_to_epd)
     cout << "ELO=" << int(elo_estimate) << endl;
     return double(score) / max_score;
 }
+
+double test_positions_benchmark(string path_to_epd)
+{
+    clock_t tic = clock();
+    double score = test_positions(path_to_epd);
+    clock_t toc = clock();
+
+    long double elapsed_secs = static_cast<long double>(toc - tic) / CLOCKS_PER_SEC;
+    cout << "time: " << elapsed_secs << "s" << endl;
+    return score;
+}

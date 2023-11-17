@@ -11,5 +11,6 @@
 #include "Board.h"
 
 double test_positions(string path_to_epd);
+double test_positions_benchmark(string path_to_epd);
 
 #endif /* TEST_POSITIONS_H */
