@@ -9,7 +9,6 @@ int Board::quiesce(int alpha, int beta)
     MoveList list;
     int i, n, value;
     Move_t move;
-    nodes_visited_++;
 
     pv_length[search_ply_] = search_ply_;
 
@@ -18,6 +17,7 @@ int Board::quiesce(int alpha, int beta)
     {
         return 0;
     }
+    nodes_visited_++;
 
     // Check for draw
     if (is_draw())

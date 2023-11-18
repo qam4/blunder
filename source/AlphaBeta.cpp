@@ -36,7 +36,6 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     int mate_value = MATE_SCORE - search_ply_;  // will be used in mate distance pruning
     int found_pv = 0;
     int in_check = 0;
-    nodes_visited_++;
 
     pv_length[search_ply_] = search_ply_;
 
@@ -45,6 +44,7 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     {
         return 0;
     }
+    nodes_visited_++;
 
     // Check for draw
     if (is_draw())
