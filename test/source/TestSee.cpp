@@ -81,8 +81,8 @@ TEST_CASE("move_generator_see_3", "[move generator see]")
                 SEE_PIECE_VALUE[PAWN >> 1]),
         SeeData("6r1/4kq2/b2p1p2/p1pPb3/p1P2B1Q/2P4P/2B1R1P1/6K1 w - -", "Bxe5", 0),
         // en-passant
-        // SeeData("3q2nk/pb1r1p2/np6/3P2Pp/2p1P3/2R4B/PQ3P1P/3R2K1 w - h6", "gxh6", 0),
-        // SeeData("3q2nk/pb1r1p2/np6/3P2Pp/2p1P3/2R1B2B/PQ3P1P/3R2K1 w - h6", "gxh6", SEE_PIECE_VALUE[PAWN >> 1]),
+        SeeData("3q2nk/pb1r1p2/np6/3P2Pp/2p1P3/2R4B/PQ3P1P/3R2K1 w - h6", "gxh6", 0),
+        SeeData("3q2nk/pb1r1p2/np6/3P2Pp/2p1P3/2R1B2B/PQ3P1P/3R2K1 w - h6", "gxh6", SEE_PIECE_VALUE[PAWN >> 1]),
         SeeData("2r4r/1P4pk/p2p1b1p/7n/BB3p2/2R2p2/P1P2P2/4RK2 w - -",
                 "Rxc8",
                 SEE_PIECE_VALUE[ROOK >> 1]),

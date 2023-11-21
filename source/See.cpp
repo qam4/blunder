@@ -103,9 +103,18 @@ int MoveGenerator::see(const class Board& board, Move_t move)
     U64 from_bb = 1ULL << from;
     U8 piece = board[from];
     U8 capture = board[to];
-    cout << Output::piece(piece) << "x" << Output::piece(capture) << endl;
-
     U64 occupied = (board.bitboards_[WHITE] | board.bitboards_[BLACK]);
+    if (is_ep_capture(move))
+    {
+        // along_row_with_col
+        // returns a square at the same row as "from", and the same col as "to"
+        U8 captured_sq = (from & 56) | (to & 7);
+        capture = board[captured_sq];
+        U64 captured_sq_bb = 1ULL << captured_sq;
+        occupied ^= captured_sq_bb;
+    }
+
+    cout << Output::piece(piece) << "x" << Output::piece(capture) << endl;
     U8 attacker_side = board.side_to_move();
     U64 attadef = attacks_to(board, occupied, to);  // attackers and defenders
     cout << "attadef:\n" << Output::bitboard(attadef) << endl;
