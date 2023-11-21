@@ -26,15 +26,13 @@ TEST_CASE("move_generator_see_2", "[move generator see]")
             == SEE_PIECE_VALUE[PAWN >> 1] - SEE_PIECE_VALUE[KNIGHT >> 1]);
 }
 
-// TEST_CASE("move_generator_see_debug", "[move generator see]")
-// {
-//     // https://www.chessprogramming.org/SEE_-_The_Swap_Algorithm#Position_2
-//     string fen = "2r5/1P4pk/p2p1b1p/5b1n/BB3p2/2R2p2/P1P2P2/4RK2 w - -";
-//     Board board = Parser::parse_fen(fen);
-//     Move_t move = Parser::parse_san("Rxc8", board);
-//     REQUIRE(MoveGenerator::see(board, move) == SEE_PIECE_VALUE[KNIGHT >> 1] -
-//     SEE_PIECE_VALUE[BISHOP >> 1]);
-// }
+TEST_CASE("move_generator_see_debug", "[move generator see]")
+{
+    string fen = "3q2nk/pb1r1p2/np6/3P2Pp/2p1P3/2R4B/PQ3P1P/3R2K1 w - h6";
+    Board board = Parser::parse_fen(fen);
+    Move_t move = Parser::parse_san("gxh6", board);
+    REQUIRE(MoveGenerator::see(board, move) == 0);
+}
 
 TEST_CASE("move_generator_see_3", "[move generator see]")
 {
@@ -67,16 +65,14 @@ TEST_CASE("move_generator_see_3", "[move generator see]")
         SeeData("7r/5qpk/2Qp1b1p/1N1r3n/BB3p2/5p2/P1P2P2/4RK1R w - -",
                 "Re8",
                 -SEE_PIECE_VALUE[ROOK >> 1]),
-        // SeeData("6RR/4bP2/8/8/5r2/3K4/5p2/4k3 w - -", "f8=Q", SEE_PIECE_VALUE[BISHOP >>
-        // 1]-SEE_PIECE_VALUE[PAWN >> 1]), // promo SeeData("6RR/4bP2/8/8/5r2/3K4/5p2/4k3 w - -",
-        // "f8=N", SEE_PIECE_VALUE[KNIGHT >> 1]-SEE_PIECE_VALUE[PAWN >> 1]), // promo
-        // SeeData("7R/5P2/8/8/8/3K2r1/5p2/4k3 w - -", "f8=Q", SEE_PIECE_VALUE[QUEEN >>
-        // 1]-SEE_PIECE_VALUE[PAWN >> 1]), // promo SeeData("7R/5P2/8/8/8/3K2r1/5p2/4k3 w - -",
-        // "f8=B", SEE_PIECE_VALUE[BISHOP >> 1]-SEE_PIECE_VALUE[PAWN >> 1]), // promo
-        // SeeData("7R/4bP2/8/8/1q6/3K4/5p2/4k3 w - -", "f8=R", -SEE_PIECE_VALUE[PAWN >> 1]), //
-        // promo
+        // promotions
+        // SeeData("6RR/4bP2/8/8/5r2/3K4/5p2/4k3 w - -", "f8=Q", SEE_PIECE_VALUE[BISHOP >> 1]-SEE_PIECE_VALUE[PAWN >> 1]),
+        // SeeData("6RR/4bP2/8/8/5r2/3K4/5p2/4k3 w - -", "f8=N", SEE_PIECE_VALUE[KNIGHT >> 1]-SEE_PIECE_VALUE[PAWN >> 1]),
+        // SeeData("7R/5P2/8/8/8/3K2r1/5p2/4k3 w - -", "f8=Q", SEE_PIECE_VALUE[QUEEN >> 1]-SEE_PIECE_VALUE[PAWN >> 1]),
+        // SeeData("7R/5P2/8/8/8/3K2r1/5p2/4k3 w - -", "f8=B", SEE_PIECE_VALUE[BISHOP >> 1]-SEE_PIECE_VALUE[PAWN >> 1]),
+        // SeeData("7R/4bP2/8/8/1q6/3K4/5p2/4k3 w - -", "f8=R", -SEE_PIECE_VALUE[PAWN >> 1]),
         SeeData("8/4kp2/2npp3/1Nn5/1p2PQP1/7q/1PP1B3/4KR1r b - -", "Rxf1+", 0),
-        // SeeData("8/4kp2/2npp3/1Nn5/1p2P1P1/7q/1PP1B3/4KR1r b - -", "Rxf1+", 0),
+        SeeData("8/4kp2/2npp3/1Nn5/1p2P1P1/7q/1PP1B3/4KR1r b - -", "Rxf1+", 0),
         SeeData("2r2r1k/6bp/p7/2q2p1Q/3PpP2/1B6/P5PP/2RR3K b - -",
                 "Qxc1",
                 2 * SEE_PIECE_VALUE[ROOK >> 1] - SEE_PIECE_VALUE[QUEEN >> 1]),
@@ -84,14 +80,14 @@ TEST_CASE("move_generator_see_3", "[move generator see]")
                 "Nxe5",
                 SEE_PIECE_VALUE[PAWN >> 1]),
         SeeData("6r1/4kq2/b2p1p2/p1pPb3/p1P2B1Q/2P4P/2B1R1P1/6K1 w - -", "Bxe5", 0),
-        // SeeData("3q2nk/pb1r1p2/np6/3P2Pp/2p1P3/2R4B/PQ3P1P/3R2K1 w - h6", "gxh6", 0), //
-        // en-passant SeeData("3q2nk/pb1r1p2/np6/3P2Pp/2p1P3/2R1B2B/PQ3P1P/3R2K1 w - h6", "gxh6",
-        // SEE_PIECE_VALUE[PAWN >> 1]), // en-passant
+        // en-passant
+        // SeeData("3q2nk/pb1r1p2/np6/3P2Pp/2p1P3/2R4B/PQ3P1P/3R2K1 w - h6", "gxh6", 0),
+        // SeeData("3q2nk/pb1r1p2/np6/3P2Pp/2p1P3/2R1B2B/PQ3P1P/3R2K1 w - h6", "gxh6", SEE_PIECE_VALUE[PAWN >> 1]),
         SeeData("2r4r/1P4pk/p2p1b1p/7n/BB3p2/2R2p2/P1P2P2/4RK2 w - -",
                 "Rxc8",
                 SEE_PIECE_VALUE[ROOK >> 1]),
-        // SeeData("2r5/1P4pk/p2p1b1p/5b1n/BB3p2/2R2p2/P1P2P2/4RK2 w - -", "Rxc8",
-        // SEE_PIECE_VALUE[ROOK >> 1]), // promo capture
+        // promotion+capture
+        // SeeData("2r5/1P4pk/p2p1b1p/5b1n/BB3p2/2R2p2/P1P2P2/4RK2 w - -", "Rxc8", SEE_PIECE_VALUE[ROOK >> 1]),
         SeeData("2r4k/2r4p/p7/2b2p1b/4pP2/1BR5/P1R3PP/2Q4K w - -",
                 "Rxc5",
                 SEE_PIECE_VALUE[BISHOP >> 1]),
@@ -109,13 +105,10 @@ TEST_CASE("move_generator_see_3", "[move generator see]")
     size_t len = sizeof(test_data) / sizeof(SeeData);
     for (size_t i = 0; i < len; i++)
     {
+        cout << "see test " << i << endl;
         SeeData data = test_data[i];
         Board board = Parser::parse_fen(data.fen);
         Move_t move = Parser::parse_san(data.move, board);
-        // if (MoveGenerator::see(board, move) == data.see)
-        // {
-        //     cout << i << endl;
-        // }
         REQUIRE(MoveGenerator::see(board, move) == data.see);
     }
 }
