@@ -89,8 +89,10 @@ U64 MoveGenerator::consider_xrays(const class Board& board, U64 occupied, U8 to)
 // TODO: handle promotions
 int MoveGenerator::see(const class Board& board, Move_t move)
 {
+    assert(move != 0);
     int gain[MAX_GAINS_LENGTH], d = 0;
-    cout << Output::board(board);
+    // cout << Output::board(board);
+    // cout << Output::move(move, board) << endl;
 
     U64 pawns = board.bitboards_[WHITE_PAWN] | board.bitboards_[BLACK_PAWN];
     U64 queens = board.bitboards_[WHITE_QUEEN] | board.bitboards_[BLACK_QUEEN];
@@ -100,6 +102,7 @@ int MoveGenerator::see(const class Board& board, Move_t move)
     U64 may_xray = pawns | queens | rooks | bishops;
     U8 to = move_to(move);
     U8 from = move_from(move);
+    U64 to_bb = 1ULL << to;
     U64 from_bb = 1ULL << from;
     U8 piece = board[from];
     U8 capture = board[to];
@@ -114,21 +117,43 @@ int MoveGenerator::see(const class Board& board, Move_t move)
         occupied ^= captured_sq_bb;
     }
 
-    cout << Output::piece(piece) << "x" << Output::piece(capture) << endl;
+    // cout << Output::piece(piece) << "x" << Output::piece(capture) << endl;
     U8 attacker_side = board.side_to_move();
     U64 attadef = attacks_to(board, occupied, to);  // attackers and defenders
-    cout << "attadef:\n" << Output::bitboard(attadef) << endl;
+    // so it works even for non-captures
+    attadef |= from_bb;
+
+    // cout << "attadef:\n" << Output::bitboard(attadef) << endl;
     gain[d] = SEE_PIECE_VALUE[capture >> 1];
-    cout << "gain[" << d << "]=" << gain[d] << endl;
+
+    int count = 0;
     do
     {
+        if (((piece & (~1)) == PAWN) && ((to_bb & ROW_8) || (to_bb & ROW_1)))
+        {
+            U8 promote_to;
+            if (count == 0)
+            {
+                promote_to = move_promote_to(move);
+            }
+            else
+            {
+                // Assume queen promotion
+                promote_to = QUEEN;
+            }
+            gain[d] += SEE_PIECE_VALUE[promote_to >> 1] - SEE_PIECE_VALUE[PAWN >> 1];
+            piece = promote_to;
+            // cout << "Promote to: " << Output::piece(piece) << endl;
+        }
+        count++;
+        // cout << "gain[" << d << "]=" << gain[d] << endl;
         d++;  // next depth and side
 #ifndef NDEBUG
         assert(d < MAX_GAINS_LENGTH);
 #endif
         gain[d] = SEE_PIECE_VALUE[piece >> 1] - gain[d - 1];  // speculative store, if defended
-        cout << Output::piece(piece) << "x" << endl;
-        cout << "gain[" << d << "]=" << gain[d] << endl;
+        // cout << Output::piece(piece) << "x" << endl;
+        // cout << "gain[" << d << "]=" << gain[d] << endl;
         attacker_side ^= 1;
         if (max(-gain[d - 1], gain[d]) < 0)
         {
@@ -140,14 +165,14 @@ int MoveGenerator::see(const class Board& board, Move_t move)
         {
             attadef |= consider_xrays(board, occupied, to);
         }
-        cout << "attadef:\n" << Output::bitboard(attadef) << endl;
+        // cout << "attadef:\n" << Output::bitboard(attadef) << endl;
         from_bb = get_least_valuable_piece(board, attadef, attacker_side, piece);
     } while (from_bb);
     while (--d)
     {
         gain[d - 1] = -max(-gain[d - 1], gain[d]);
-        cout << "gain_[" << d << "]=" << gain[d] << endl;
+        // cout << "gain_[" << d << "]=" << gain[d] << endl;
     }
-    cout << "gain_[" << d << "]=" << gain[d] << endl;
+    // cout << "gain_[" << d << "]=" << gain[d] << endl;
     return gain[0];
 }

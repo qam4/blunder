@@ -241,6 +241,7 @@ class Board Parser::parse_epd(string epd)
 
 // SAN
 // https://cfajohnson.com/chess/SAN/
+// TODO: better error handling
 Move_t Parser::parse_san(string str, const Board& board)
 {
     // cout << Output::board(board) << endl;
@@ -334,6 +335,12 @@ Move_t Parser::parse_san(string str, const Board& board)
     U8 promo = 0;
     if (pos++ < len)
     {
+        // optional '='
+        if (str[pos] == '=')
+        {
+            if (pos++ >= len)
+                return move_found;
+        }
         c = str[pos];
         if (c == 'Q' || c == 'N' || c == 'B' || c == 'R')
         {
