@@ -19,9 +19,10 @@ U64 MoveGenerator::get_least_valuable_piece(const class Board& board,
          piece = static_cast<U8>(piece + 2))
     {
         U64 subset = attadef & board.bitboards_[piece];
+        U64 neg_subset = (0 - subset);
         if (subset)
         {
-            return subset & -subset;  // the lowest set bit in subset
+            return subset & neg_subset;  // the lowest set bit in subset
         }
     }
     return 0;  // empty set
