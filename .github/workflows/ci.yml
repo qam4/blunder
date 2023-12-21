@@ -153,7 +153,11 @@ jobs:
       working-directory: build
       run: ctest --output-on-failure --no-tests=error -C Release -j 2
 
+    - name: Create release artifact (windows)
+      if: matrix.target.runs-on == 'windows-2022'
+      run: Compress-Archive -Path release/* -Destination blunder-${{ matrix.target.arch }}.zip
     - name: Create release artifact
+      if: matrix.target.runs-on != 'windows-2022'
       run: cd release && zip -r ../blunder-${{ matrix.target.arch }}.zip .
 
     - name: Upload release artifact
