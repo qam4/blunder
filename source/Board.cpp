@@ -630,7 +630,7 @@ bool Board::is_search_time_over()
     }
 
     clock_t current_time = clock();
-    clock_t elapsed_time = current_time - search_start_time_;
+    int elapsed_time = int((1000000 * double(current_time - search_start_time_)) / CLOCKS_PER_SEC);
 
     return (elapsed_time > search_time_);
 }

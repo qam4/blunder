@@ -48,7 +48,7 @@ void perft_benchmark(string fen, int depth)
     long move_count = perft(board, depth);
     clock_t toc = clock();
 
-    long double elapsed_secs = static_cast<long double>(toc - tic) / CLOCKS_PER_SEC;
+    int elapsed_secs = int(double(toc - tic) / CLOCKS_PER_SEC);
     cout << "time: " << elapsed_secs << "s" << endl;
     cout << "moves: " << move_count << endl;
     cout << "moves per second: " << int(move_count / elapsed_secs) << endl;
