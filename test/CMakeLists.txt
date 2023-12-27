@@ -12,12 +12,18 @@ FetchContent_Declare(
   GIT_TAG        v3.4.0
 )
 
+if(UNIX AND NOT APPLE)
+  set(LINUX TRUE)
+endif()
+
 # Edit flags for catch2
 if (LINUX)
+  message("Changing catch2 cxx flags")
   set(CMAKE_CXX_FLAGS_OLD "${CMAKE_CXX_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-conversion -Wno-sign-conversion -Wno-double-promotion")
 endif()
 if(DEFINED CMAKE_CXX_CPPCHECK)
+  message("Changing catch2 cppcheck flags")
   set(CMAKE_CXX_CPPCHECK_OLD "${CMAKE_CXX_CPPCHECK}")
   set(CMAKE_CXX_CPPCHECK "${CMAKE_CXX_CPPCHECK};--suppress=missingReturn")
 endif()

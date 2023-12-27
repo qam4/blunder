@@ -17,7 +17,7 @@ void reset_hash_table()
         hash_table[i].depth = 0;
         hash_table[i].flags = 0;
         hash_table[i].value = 0;
-        hash_table[i].best_move = 0;
+        hash_table[i].best_move = 0U;
     }
 }
 

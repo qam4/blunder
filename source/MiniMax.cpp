@@ -79,7 +79,7 @@ Move_t Board::minimax_root(int depth, bool maximizing_player)
 {
     MoveList list;
     int i, n, bestvalue, value;
-    Move_t move, bestmove = 0;
+    Move_t move, bestmove = 0U;
 
     // Reset searched_moves
     searched_moves_ = 0;

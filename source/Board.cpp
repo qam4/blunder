@@ -543,7 +543,7 @@ Move_t Board::search(int depth,
     reset_pv_table();
 
     // Iterative deepening
-    Move_t last_best_move = 0;
+    Move_t last_best_move = 0U;
     searched_moves_ = 0;
     nodes_visited_ = 0;
 
@@ -579,12 +579,11 @@ Move_t Board::search(int depth,
         search_best_move = negamax_root(current_depth);
         int value = 0;
 #endif
+        clock_t current_time = clock();
+        int elapsed_csecs = int((100 * double(current_time - search_start_time_)) / CLOCKS_PER_SEC);
+
         if (xboard)
         {
-            clock_t current_time = clock();
-            int elapsed_csecs =
-                int((100 * double(current_time - search_start_time_)) / CLOCKS_PER_SEC);
-
             // DEPTH SCORE TIME NODES PV
             cout << current_depth << " ";   // search depth
             cout << value << " ";           // score in centi-Pawn
@@ -598,12 +597,13 @@ Move_t Board::search(int depth,
             cout << "depth=" << current_depth;
             cout << ", search ply=" << max_search_ply_;
             cout << ", searched moves=" << searched_moves_;
+            cout << ", time=" << double(elapsed_csecs / 100.0) << "s";
             cout << ", score=" << value;
             cout << ", pv=";
             print_pv();
             cout << endl;
         }
-        if (is_search_time_over())
+        if (should_stop_search())
         {
             break;
         }
@@ -633,6 +633,29 @@ bool Board::is_search_time_over()
     int elapsed_time = int((1000000 * double(current_time - search_start_time_)) / CLOCKS_PER_SEC);
 
     return (elapsed_time > search_time_);
+}
+
+bool Board::should_stop_search()
+{
+    // Check if max number of nodes visited is reached
+    if ((max_nodes_visited_ != -1) && (nodes_visited_ > max_nodes_visited_))
+    {
+        return true;
+    }
+
+    // Special case to allow infinite search time
+    if (search_time_ == -1)
+    {
+        return false;
+    }
+
+    clock_t current_time = clock();
+    clock_t elapsed_time = current_time - search_start_time_;
+
+    // https://mediocrechess.blogspot.com/2007/01/guide-time-management.html
+    // check to see if we have enough time left to search
+    // for 2 times the last depth's time
+    return (2 * elapsed_time > search_time_);
 }
 
 void Board::update_hash()

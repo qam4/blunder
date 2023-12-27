@@ -32,7 +32,7 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
 {
     MoveList list;
     int i, n, value;
-    Move_t move, best_move = 0;
+    Move_t move, best_move = 0U;
     int mate_value = MATE_SCORE - search_ply_;  // will be used in mate distance pruning
     int found_pv = 0;
     int in_check = 0;

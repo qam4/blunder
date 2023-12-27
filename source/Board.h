@@ -86,6 +86,7 @@ public:
     int alphabeta(int alpha, int beta, int depth, int is_pv, int can_null);
     int quiesce(int alpha, int beta);
     bool is_search_time_over();
+    bool should_stop_search();
 
     U8 operator[](const int square) const; // return piece on that square
     U64 bitboard(const int type) const;

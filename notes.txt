@@ -151,6 +151,14 @@ $ callgrind_annotate --threshold=100 callgrind.out.# > results.#.txt
 - Mate puzzles
   - wtharvey.com
 
+- Testing
+  - SPRT - Sequential Probability Ratio Test
+    - https://rustic-chess.org/progress/sprt_testing.html
+    - cutechess: https://github.com/cutechess/cutechess
+  - https://chess-tuning-tools.readthedocs.io/en/latest/index.html
+  - Opening books
+    - https://github.com/Ernisius/Picochess-NonDGT_PI/tree/master/books
+
 - CMAKE
 https://github.com/friendlyanon/cmake-init
 

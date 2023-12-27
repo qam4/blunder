@@ -15,7 +15,7 @@ TEST_CASE("zobrist", "[zobrist]")
     Board board = Board();
     Zobrist zobrist;
     U64 key = zobrist.get_zobrist_key(board);
-    REQUIRE(key != 0);
+    REQUIRE(key != 0ULL);
 
     board.set_side_to_move(BLACK);
     REQUIRE(key != zobrist.get_zobrist_key(board));

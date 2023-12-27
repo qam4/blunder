@@ -88,7 +88,7 @@ double test_positions(string path_to_epd)
                     max_score += best_move_score;
                 }
                 Move_t best_move = Parser::parse_san(move_str, board);
-                assert(best_move != 0);
+                assert(best_move != 0U);
                 best_moves.push_back({ best_move, best_move_score });
             }
         }
@@ -96,7 +96,7 @@ double test_positions(string path_to_epd)
         {
             // Get best move (opcode "bm")
             Move_t best_move = Parser::parse_san(bm, board);
-            assert(best_move != 0);
+            assert(best_move != 0U);
             best_moves.push_back({ best_move, 1 });
             max_score++;
         }

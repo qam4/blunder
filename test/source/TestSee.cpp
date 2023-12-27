@@ -11,7 +11,7 @@ static int seeTest(string fen, string move_str)
 {
     Board board = Parser::parse_fen(fen);
     Move_t move = Parser::parse_san(move_str, board);
-    CHECK(move != 0);
+    CHECK(move != 0U);
     return MoveGenerator::see(board, move);
 }
 
@@ -21,7 +21,7 @@ TEST_CASE("move_generator_see_1", "[move generator see]")
     string fen = "1k1r4/1pp4p/p7/4p3/8/P5P1/1PP4P/2K1R3 w - - ; Rxe5?";
     Board board = Parser::parse_fen(fen);
     Move_t move = Parser::parse_san("Rxe5", board);
-    CHECK(move != 0);
+    CHECK(move != 0U);
     REQUIRE(MoveGenerator::see(board, move) == SEE_PIECE_VALUE[PAWN >> 1]);
 }
 
@@ -31,7 +31,7 @@ TEST_CASE("move_generator_see_2", "[move generator see]")
     string fen = "1k1r3q/1ppn3p/p4b2/4p3/8/P2N2P1/1PP1R1BP/2K1Q3 w - - ; Nxe5?";
     Board board = Parser::parse_fen(fen);
     Move_t move = Parser::parse_san("Nxe5", board);
-    CHECK(move != 0);
+    CHECK(move != 0U);
     REQUIRE(MoveGenerator::see(board, move)
             == SEE_PIECE_VALUE[PAWN >> 1] - SEE_PIECE_VALUE[KNIGHT >> 1]);
 }

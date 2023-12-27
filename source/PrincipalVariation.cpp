@@ -78,8 +78,8 @@ void Board::score_pv_move(class MoveList& list, Move_t best_move)
         Move_t move = list[i];
         if (move == best_move)
         {
-            assert(move != 0);
-            move_set_score(&move, 255);
+            assert(move != 0U);
+            move_set_score(&move, 255U);
             list.set_move(i, move);
             return;
         }

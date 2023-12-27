@@ -90,7 +90,7 @@ U64 MoveGenerator::consider_xrays(const class Board& board, U64 occupied, U8 to)
 // TODO: handle promotions
 int MoveGenerator::see(const class Board& board, Move_t move)
 {
-    assert(move != 0);
+    assert(move != 0U);
     int gain[MAX_GAINS_LENGTH], d = 0;
     // cout << Output::board(board);
     // cout << Output::move(move, board) << endl;

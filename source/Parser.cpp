@@ -369,7 +369,7 @@ Move_t Parser::parse_san(string str, const Board& board)
             continue;
         }
         // check promotion
-        if (promo && move_promote_to(move) != promo)
+        if (promo && ((move_promote_to(move) & (0xFEU)) != promo))
         {
             continue;
         }
@@ -431,70 +431,71 @@ U8 Parser::square(char sq[])
 
 Move_t Parser::move(string str, const Board& board)
 {
-    U8 side, from, to, piece, capture;
-    Move_t move = 0;
-    side = board.side_to_move();
+    // cout << Output::board(board) << endl;
+    Move_t move_found = 0;
+    size_t len = str.length();
 
-    // Remove trailing new line
-    if (!str.empty() && str[str.length() - 1] == '\n')
-    {
-        str.erase(str.length() - 1);
-    }
-    if ((str.compare("O-O") == 0) || ((side == WHITE) && (str.compare("e1g1") == 0))
-        || ((side == BLACK) && (str.compare("e8g8") == 0)))
+    if ((str.compare("0-0") == 0) || (str.compare("O-O") == 0))
     {
         return build_castle(KING_CASTLE);
     }
-    if ((str.compare("O-O-O") == 0) || ((side == WHITE) && (str.compare("e1c1") == 0))
-        || ((side == BLACK) && (str.compare("e8c8") == 0)))
+    if ((str.compare("0-0-0") == 0) || (str.compare("O-O-O") == 0))
     {
         return build_castle(QUEEN_CASTLE);
     }
 
-    from = square(&str[0]);
-    to = square(&str[2]);
-    piece = board[from];
-    capture = board[to];
-    if ((from == NULL_SQUARE) || (to == NULL_SQUARE))
-        return 0;
+    U8 side = board.side_to_move();
+    U8 from = square(&str[0]);
+    U8 to = square(&str[2]);
+    U8 piece = board[from];
 
-    if (piece == PAWN)
+    if (((side == WHITE) && (piece == WHITE_KING) && (str.compare("e1g1") == 0))
+        || ((side == BLACK) && (piece == BLACK_KING) && (str.compare("e8g8") == 0)))
     {
-        // Promotion
-        // e7e8q
-        if (((side == WHITE) && ((from & 56) == 6 * 8) && ((to & 56) == 7 * 8))
-            || ((side == BLACK) && ((from & 56) == 1 * 8) && ((to & 56) == 0 * 8)))
-        {
-            U8 promo = Parser::parse_piece(str[4]) & (0xFEU);
-            if (capture != EMPTY)
-            {
-                return build_capture_promotion(from, to, capture, promo | side);
-            }
-            else
-            {
-                return build_promotion(from, to, promo | side);
-            }
-        }
-
-        // Double push
-        if (((side == WHITE) && ((from & 56) == 1 * 8) && ((to & 56) == 3 * 8)
-             && ((to - from) == 16))
-            || ((side == BLACK) && ((from & 56) == 6 * 8) && ((to & 56) == 5 * 8)
-                && ((from - to) == 16)))
-        {
-            return build_pawn_double_push(from, to);
-        }
-
-        // EP capture
-        if (((side == WHITE) && ((from & 56) == 4 * 8) && ((to & 56) == 5 * 8)
-             && (((to - from) == 7) || ((to - from) == 9)))
-            || ((side == BLACK) && ((from & 56) == 3 * 8) && ((to & 56) == 2 * 8)
-                && (((from - to) == 7) || ((from - to) == 9))))
-        {
-            return build_ep_capture(from, to, PAWN | !side);
-        }
+        return build_castle(KING_CASTLE);
+    }
+    if (((side == WHITE) && (piece == WHITE_KING) && (str.compare("e1c1") == 0))
+        || ((side == BLACK) && (piece == BLACK_KING) && (str.compare("e8c8") == 0)))
+    {
+        return build_castle(QUEEN_CASTLE);
     }
 
-    move |= build_move_all(from, to, capture, NO_FLAGS);
-    return move;
+    U8 promo = 0;
+    if (len >= 5)
+    {
+        char c = str[4];
+        if (c == 'q' || c == 'n' || c == 'b' || c == 'r')
+        {
+            promo = Parser::parse_piece(c) & (0xFEU);
+        }
+    }
+    // ignore the rest of the string
+
+    MoveList list;
+    MoveGenerator::add_all_moves(list, board, board.side_to_move());
+    int n = list.length();
+
+    for (int i = 0; i < n; i++)
+    {
+        Move_t move = list[i];
+        // cout << Output::move(move, board) << endl;
+        // check if same "to" square
+        if (move_to(move) != to)
+        {
+            continue;
+        }
+        // check if same "from" square
+        if (move_from(move) != from)
+        {
+            continue;
+        }
+        // check promotion
+        if (promo && ((move_promote_to(move) & (0xFEU)) != promo))
+        {
+            continue;
+        }
+        move_found = move;
+        break;
+    }
+    return move_found;
 }

@@ -150,7 +150,7 @@ TEST_CASE("parser_can_parse_san_1", "[parser]")
     // non existent move
     san = "Bc4";
     move = Parser::parse_san(san, board);
-    REQUIRE(move == 0);
+    REQUIRE(move == 0U);
 }
 
 TEST_CASE("parser_can_parse_san_2", "[parser]")
@@ -224,5 +224,46 @@ TEST_CASE("parser_can_parse_san_3", "[parser]")
     string epd = "8/7p/5k2/5p2/p1p2P2/Pr1pPK2/1P1R3P/8 b - - bm Rxb2;";
     Board board = Parser::parse_epd(epd);
     Move_t best_move = Parser::parse_san(board.epd_op("bm"), board);
-    REQUIRE(best_move != 0);
+    REQUIRE(best_move != 0U);
+}
+
+TEST_CASE("parser_can_parse_san_black_side", "[parser]")
+{
+    string fen = "8/pp4p1/2pk2p1/2b5/8/8/4p3/K7 b - - 1 52";
+    Board board = Parser::parse_fen(fen);
+
+    string san;
+    Move_t move;
+
+    // check promo
+    san = "e1Q";
+    move = Parser::parse_san(san, board);
+    REQUIRE(move == build_promotion(E2, E1, BLACK_QUEEN));
+}
+
+static Move_t moveParseTest(string fen, string move_str)
+{
+    Board board = Parser::parse_fen(fen);
+    cout << Output::board(board);
+    Move_t move = Parser::move(move_str, board);
+    cout << "move=" << Output::move(move, board) << endl;
+    cout << "san=" << Output::move_san(move, board) << endl;
+    CHECK(move != 0U);
+    return move;
+}
+
+TEST_CASE("parser_can_parse_move", "[parser]")
+{
+    REQUIRE(
+        moveParseTest("2rqkb1r/1pp1pppp/p4n2/4P3/3p1Bb1/2N5/PPP1PPPP/R2QKB1R w KQk - 0 9", "e5f6")
+        == build_capture(E5, F6, BLACK_KNIGHT));
+    REQUIRE(moveParseTest("8/pp4p1/2pk2p1/2b5/8/8/4p3/K7 b - - 1 52", "e2e1q")
+            == build_promotion(E2, E1, BLACK_QUEEN));
+    REQUIRE(moveParseTest("4r3/5ppp/p2k4/1p4R1/2rP2P1/PRPK4/5P1P/8 b - - 8 32", "e8g8")
+            == build_move(E8, G8));
+    REQUIRE(moveParseTest("2r5/5ppp/p2k4/1p4R1/2rP2P1/PRPK4/5P1P/8 b - - 4 30", "c8g8")
+            == build_move(C8, G8));
+    REQUIRE(
+        moveParseTest("rnbqk2r/pppp1ppp/4pn2/8/1bP5/2N2N2/PPQPPPPP/R1B1KB1R b KQkq - 3 4", "e8g8")
+        == build_castle(KING_CASTLE));
 }
