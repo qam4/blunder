@@ -95,7 +95,7 @@ void Board::score_pv_move(class MoveList& list, Move_t best_move)
             if (move == pv_table[search_ply_])
             {
                 follow_pv_ = 1;
-                move_set_score(&move, 128);
+                move_set_score(&move, 128U);
                 list.set_move(i, move);
             }
         }
