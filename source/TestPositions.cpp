@@ -133,7 +133,7 @@ double test_positions_benchmark(string path_to_epd)
     double score = test_positions(path_to_epd);
     clock_t toc = clock();
 
-    int elapsed_secs = int(double(toc - tic) / CLOCKS_PER_SEC);
+    long double elapsed_secs = static_cast<long double>(toc - tic) / CLOCKS_PER_SEC;
     cout << "time: " << elapsed_secs << "s" << endl;
     return score;
 }
