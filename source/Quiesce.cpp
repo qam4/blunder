@@ -8,7 +8,7 @@ int Board::quiesce(int alpha, int beta)
 {
     MoveList list;
     int i, n, value;
-    Move_t move;
+    Move_t move, best_move = 0U;
 
     pv_length[search_ply_] = search_ply_;
 
@@ -24,6 +24,15 @@ int Board::quiesce(int alpha, int beta)
     {
         return DRAW_SCORE;
     }
+
+    int hash_flag = HASH_ALPHA;
+#if TRANSPOSITION_TABLE_ENABLED
+    int depth = 0;
+    if ((value = probe_hash(depth, alpha, beta, best_move)) != UNKNOWN_SCORE)
+    {
+        return value;
+    }
+#endif  // TRANSPOSITION_TABLE_ENABLED
 
     int who2move = (side_to_move() == WHITE) ? 1 : -1;
     int stand_pat = who2move * evaluate();
@@ -53,23 +62,34 @@ int Board::quiesce(int alpha, int beta)
     {
         list.sort_moves(i);
         move = list[i];
-        if (is_capture(move))
+        if (!is_capture(move))
         {
-            do_move(move);
-            value = -quiesce(-beta, -alpha);
-            undo_move(move);
-            searched_moves_++;
-            if (value > alpha)
+            continue;
+        }
+        do_move(move);
+        value = -quiesce(-beta, -alpha);
+        undo_move(move);
+        searched_moves_++;
+        if (value > alpha)
+        {
+            hash_flag = HASH_EXACT;
+            best_move = move;
+            alpha = value;
+            store_pv_move(move);
+            if (value >= beta)
             {
-                alpha = value;
-                store_pv_move(move);
-                if (value >= beta)
-                {
-                    return beta;
-                }
+#if TRANSPOSITION_TABLE_ENABLED
+                // store hash entry with the score equal to beta
+                record_hash(depth, beta, HASH_BETA, best_move);
+#endif
+                return beta;
             }
         }
     }
 
+#if TRANSPOSITION_TABLE_ENABLED
+    // store hash entry with the score equal to alpha
+    record_hash(depth, alpha, hash_flag, best_move);
+#endif  // TRANSPOSITION_TABLE_ENABLED
     return alpha;
 }

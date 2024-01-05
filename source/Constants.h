@@ -8,6 +8,14 @@
 
 #include "Common.h"
 
+#define ASPIRATION_WINDOW_ENABLED true
+#define NULL_MOVE_PRUNING_ENABLED true
+#define PV_SEARCH_ENABLED true
+#define TRANSPOSITION_TABLE_ENABLED true
+// #define MOVE_SCORING_MVVLVA
+#define MOVE_SCORING_SEE
+
+
 const int UNKNOWN_SCORE = 500000;
 const int MAX_SCORE = 200000;
 const int MATE_SCORE = 100000;  // As defined in xboard protocol
@@ -25,6 +33,7 @@ const U8 EMPTY = 0;
 
 const U8 WHITE = 0;
 const U8 BLACK = 1;
+const int NUM_SIDES = 2;
 
 const U8 PAWN = 2;
 const U8 KNIGHT = 4;
@@ -160,5 +169,10 @@ const U64 ROW_5 = 0xFFULL << (4 * 8);
 const U64 ROW_6 = 0xFFULL << (5 * 8);
 const U64 ROW_7 = 0xFFULL << (6 * 8);
 const U64 ROW_8 = 0xFFULL << (7 * 8);
+
+// Macros
+
+#define file_of(square) ((square) & 7)
+#define rank_of(square) ((square) >> 3)
 
 #endif /* CONSTANTS_H */

@@ -40,6 +40,7 @@ add_library(
     source/TestPositions.cpp
     source/Xboard.cpp
     source/See.cpp
+    source/Evaluation.cpp
 )
 
 target_include_directories(

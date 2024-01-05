@@ -9,7 +9,26 @@
 #include "MoveList.h"
 #include "PrincipalVariation.h"
 
+//#define BITCOUNT_SWAR_64
+//#define BITCOUNT_SWAR_32
+#define BITCOUNT_LOOP
+
 // Count number of bits set to 1 in 64 bit word
+#if defined(BITCOUNT_SWAR_64)
+int pop_count(U64 x)
+{
+    const U64 k1 = C64(0x5555555555555555); /*  -1/3   */
+    const U64 k2 = C64(0x3333333333333333); /*  -1/5   */
+    const U64 k4 = C64(0x0f0f0f0f0f0f0f0f); /*  -1/17  */
+    const U64 kf = C64(0x0101010101010101); /*  -1/255 */
+    x = x - ((x >> 1) & k1);                /* put count of each 2 bits into those 2 bits */
+    x = (x & k2) + ((x >> 2) & k2);         /* put count of each 4 bits into those 4 bits */
+    x = (x + (x >> 4)) & k4;                /* put count of each 8 bits into those 8 bits */
+    x = (x * kf)
+        >> 56; /* returns 8 most significant bits of x + (x<<8) + (x<<16) + (x<<24) + ...  */
+    return int(x);
+}
+#elif defined(BITCOUNT_LOOP)
 int pop_count(U64 x)
 {
     int count = 0;
@@ -20,6 +39,7 @@ int pop_count(U64 x)
     }
     return count;
 }
+#endif
 
 Board::Board()
 {
@@ -42,6 +62,7 @@ void Board::add_piece(U8 piece, int square)
     U64 bitboard = 1ULL << square;
     bitboards_[piece & 1] |= bitboard;
     bitboards_[piece] |= bitboard;
+    // material_[piece & 1] += PIECE_VALUE[piece >> 1];
     irrev_.board_hash ^= zobrist_.get_pieces(piece, square);
 }
 
@@ -56,6 +77,7 @@ void Board::remove_piece(int square)
     U64 bitboard = ~(1ULL << square);
     bitboards_[piece & 1] &= bitboard;
     bitboards_[piece] &= bitboard;
+    // material_[piece & 1] -= PIECE_VALUE[piece >> 1];
     irrev_.board_hash ^= zobrist_.get_pieces(piece, square);
 }
 
@@ -63,6 +85,7 @@ void Board::reset()
 {
     MoveGenerator::init_magic_tables();
     zobrist_ = Zobrist();
+    psqt_init();
     for (int i = 0; i < 64; i++)
     {
         board_array_[i] = EMPTY;
@@ -330,6 +353,7 @@ void Board::undo_move(Move_t move)
     irrev_.board_hash = hash;
 }
 
+#if NULL_MOVE_PRUNING_ENABLED
 void Board::do_null_move()
 {
     // Save irreversible state
@@ -354,10 +378,10 @@ void Board::do_null_move()
     game_ply_++;
     search_ply_++;
     max_search_ply_ = max(max_search_ply_, search_ply_);
-#ifndef NDEBUG
+#    ifndef NDEBUG
     assert(game_ply_ < MAX_GAME_PLY);
     assert(irrev_.board_hash == zobrist_.get_zobrist_key(*this));
-#endif
+#    endif
     hash_history_[game_ply_] = irrev_.board_hash;
 }
 
@@ -369,129 +393,7 @@ void Board::undo_null_move()
     // update irreversible state
     irrev_ = move_stack_[search_ply_];
 }
-
-// clang-format off
-const int PIECE_SQUARE[NUM_PIECES / 2][64] = {
-    {
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0,
-        0,  0,  0,  0,  0,  0,  0,  0  // a1-h1
-    },
-    // pawn
-    {
-        0,  0,  0,  0,  0,  0,  0,  0,
-        50, 50, 50, 50, 50, 50, 50, 50,
-        10, 10, 20, 30, 30, 20, 10, 10,
-        5,  5, 10, 25, 25, 10,  5,  5,
-        0,  0,  0, 20, 20,  0,  0,  0,
-        5, -5,-10,  0,  0,-10, -5,  5,
-        5, 10, 10,-20,-20, 10, 10,  5,
-        0,  0,  0,  0,  0,  0,  0,  0
-    },
-    // knight
-    {
-        -50,-40,-30,-30,-30,-30,-40,-50,
-        -40,-20,  0,  0,  0,  0,-20,-40,
-        -30,  0, 10, 15, 15, 10,  0,-30,
-        -30,  5, 15, 20, 20, 15,  5,-30,
-        -30,  0, 15, 20, 20, 15,  0,-30,
-        -30,  5, 10, 15, 15, 10,  5,-30,
-        -40,-20,  0,  5,  5,  0,-20,-40,
-        -50,-40,-30,-30,-30,-30,-40,-50
-    },
-    // bishop
-    {
-        -20,-10,-10,-10,-10,-10,-10,-20,
-        -10,  0,  0,  0,  0,  0,  0,-10,
-        -10,  0,  5, 10, 10,  5,  0,-10,
-        -10,  5,  5, 10, 10,  5,  5,-10,
-        -10,  0, 10, 10, 10, 10,  0,-10,
-        -10, 10, 10, 10, 10, 10, 10,-10,
-        -10,  5,  0,  0,  0,  0,  5,-10,
-        -20,-10,-10,-10,-10,-10,-10,-20
-    },
-    // rook
-    {
-         0,  0,  0,  0,  0,  0,  0,  0,
-         5, 10, 10, 10, 10, 10, 10,  5,
-        -5,  0,  0,  0,  0,  0,  0, -5,
-        -5,  0,  0,  0,  0,  0,  0, -5,
-        -5,  0,  0,  0,  0,  0,  0, -5,
-        -5,  0,  0,  0,  0,  0,  0, -5,
-        -5,  0,  0,  0,  0,  0,  0, -5,
-         0,  0,  0,  5,  5,  0,  0,  0
-    },
-    // queen
-    {
-        -20,-10,-10, -5, -5,-10,-10,-20,
-        -10,  0,  0,  0,  0,  0,  0,-10,
-        -10,  0,  5,  5,  5,  5,  0,-10,
-         -5,  0,  5,  5,  5,  5,  0, -5,
-          0,  0,  5,  5,  5,  5,  0, -5,
-        -10,  5,  5,  5,  5,  5,  0,-10,
-        -10,  0,  5,  0,  0,  0,  0,-10,
-        -20,-10,-10, -5, -5,-10,-10,-20
-    },
-    // king
-    {
-        -50,-40,-30,-20,-20,-30,-40,-50,
-        -30,-20,-10,  0,  0,-10,-20,-30,
-        -30,-10, 20, 30, 30, 20,-10,-30,
-        -30,-10, 30, 40, 40, 30,-10,-30,
-        -30,-10, 30, 40, 40, 30,-10,-30,
-        -30,-10, 20, 30, 30, 20,-10,-30,
-        -30,-30,  0,  0,  0,  0,-30,-30,
-        -50,-30,-30,-30,-30,-30,-30,-50
-    }
-};
-// clang-format on
-
-int Board::evaluate()
-{
-    /*
-    https://www.chessprogramming.org/Evaluation
-    https://www.chessprogramming.org/Simplified_Evaluation_Function
-    f(p) = 200(K-K')
-           + 9(Q-Q')
-           + 5(R-R')
-           + 3(B-B' + N-N')
-           + 1(P-P')
-           - 0.5(D-D' + S-S' + I-I')
-           + 0.1(M-M') + ...
-
-    KQRBNP = number of kings, queens, rooks, bishops, knights and pawns
-    D,S,I = doubled, blocked and isolated pawns
-    M = Mobility (the number of legal moves)
-    */
-    int result = 0;
-    result = 20000 * (pop_count(bitboards_[WHITE_KING]) - pop_count(bitboards_[BLACK_KING]))
-        + 900 * (pop_count(bitboards_[WHITE_QUEEN]) - pop_count(bitboards_[BLACK_QUEEN]))
-        + 500 * (pop_count(bitboards_[WHITE_ROOK]) - pop_count(bitboards_[BLACK_ROOK]))
-        + 330 * (pop_count(bitboards_[WHITE_BISHOP]) - pop_count(bitboards_[BLACK_BISHOP]))
-        + 320 * (pop_count(bitboards_[WHITE_KNIGHT]) - pop_count(bitboards_[BLACK_KNIGHT]))
-        + 100 * (pop_count(bitboards_[WHITE_PAWN]) - pop_count(bitboards_[BLACK_PAWN]));
-
-    for (int square = 0; square < 64; square++)
-    {
-        U8 piece = board_array_[square];
-        if (piece & BLACK)
-        {
-            result -= PIECE_SQUARE[piece >> 1][square];
-        }
-        else
-        {
-            result += PIECE_SQUARE[piece >> 1][square ^ 56];  // vertical flipping
-        }
-    }
-
-    // cout << "evaluate=" << result << endl;
-    return result;
-}
+#endif  // NULL_MOVE_PRUNING_ENABLED
 
 // is_game_over(): return 1 if game is over.
 bool Board::is_game_over()
@@ -507,14 +409,18 @@ bool Board::is_game_over()
     return is_draw();
 }
 
-bool Board::is_draw()
+bool Board::is_draw_by_fifty_moves_rule()
 {
     // fifty-move rule: https://www.chessprogramming.org/Fifty-move_Rule
     if (irrev_.half_move_count >= 100)
     {
         return true;
     }
+    return false;
+}
 
+bool Board::is_draw_by_threefold_repetition()
+{
     // threefold repetition rule
     // https://en.wikipedia.org/wiki/Threefold_repetition
     // https://www.chessprogramming.org/Repetitions
@@ -528,6 +434,11 @@ bool Board::is_draw()
         }
     }
     return (repetition_count > 1) ? true : false;
+}
+
+bool Board::is_draw()
+{
+    return (is_draw_by_fifty_moves_rule() || is_draw_by_threefold_repetition());
 }
 
 Move_t Board::search(int depth,
@@ -558,6 +469,7 @@ Move_t Board::search(int depth,
 #if 1
         int value = alphabeta(alpha, beta, current_depth, IS_PV, DO_NULL);
 
+#    if ASPIRATION_WINDOW_ENABLED
         // Aspiration window
         if ((value <= alpha) || (value >= beta))
         {
@@ -570,6 +482,7 @@ Move_t Board::search(int depth,
             alpha = value - ASPIRATION_WINDOW;  // Set up the window for the next iteration.
             beta = value + ASPIRATION_WINDOW;
         }
+#    endif  // ASPIRATION_WINDOW_ENABLED
 #    ifndef NDEBUG
         assert(value <= MAX_SCORE);
         assert(value >= -MAX_SCORE);

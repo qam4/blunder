@@ -8,6 +8,7 @@
 
 #include "Xboard.h"
 
+#include "MoveGenerator.h"
 #include "Output.h"
 #include "Parser.h"
 #include "ValidateMove.h"
@@ -183,6 +184,31 @@ void Xboard::run()
                 assert(move_nr_ < MAXMOVES);
                 game_move_[move_nr_++] = move;  // remember game
                 cout << "move " << move_to_text(move) << endl;
+
+                if (board_.is_game_over())
+                {
+                    if (board_.is_draw_by_fifty_moves_rule())
+                    {
+                        cout << "# Draw by fifty moves rule" << endl;
+                    }
+                    else if (board_.is_draw_by_threefold_repetition())
+                    {
+                        cout << "# Draw by 3-fold repetition" << endl;
+                    }
+                    else if (!MoveGenerator::in_check(board_, board_.side_to_move()))
+                    {
+                        cout << "# Draw by stalemate" << endl;
+                    }
+                    else if (board_.side_to_move() == WHITE)
+                    {
+                        cout << "# Black player won" << endl;
+                    }
+                    else
+                    {
+                        cout << "# White player won" << endl;
+                    }
+                    break;
+                }
             }
         }
 

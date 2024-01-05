@@ -1169,7 +1169,7 @@ void MoveGenerator::add_loud_moves(class MoveList& list, const class Board& boar
 #endif
 }
 
-#ifdef MVVLVA
+#if defined(MOVE_SCORING_MVVLVA)
 void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
 {
     int n = list.length();
@@ -1193,7 +1193,7 @@ void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
         list.set_move(i, move);
     }
 }
-#else
+#elif defined(MOVE_SCORING_SEE)
 void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
 {
     int n = list.length();

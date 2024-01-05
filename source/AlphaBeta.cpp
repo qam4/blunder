@@ -49,15 +49,16 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     // Check for draw
     if (is_draw())
     {
-        value = DRAW_SCORE;
-        return value;
+        return DRAW_SCORE;
     }
 
     int hash_flag = HASH_ALPHA;
+#if TRANSPOSITION_TABLE_ENABLED
     if ((value = probe_hash(depth, alpha, beta, best_move)) != UNKNOWN_SCORE)
     {
         return value;
     }
+#endif  // TRANSPOSITION_TABLE_ENABLED
 
     // Leaf node
     if (depth == 0)
@@ -83,6 +84,7 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     // Are we in check?
     in_check = MoveGenerator::in_check(*this, side_to_move());
 
+#if NULL_MOVE_PRUNING_ENABLED
     // NULL move pruning
     // https://web.archive.org/web/20040427014629/http://brucemo.com/compchess/programming/nullmove.htm
     if ((can_null) && (depth > 2) && !is_pv && !in_check)
@@ -97,6 +99,9 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
             return beta;
         }
     }
+#else
+    (void)can_null;
+#endif
 
     MoveGenerator::add_all_moves(list, *this, side_to_move());
     MoveGenerator::score_moves(list, *this);
@@ -110,6 +115,7 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
         list.sort_moves(i);
         move = list[i];
         do_move(move);
+#if PV_SEARCH_ENABLED
         if (found_pv)
         {
             // Principal Variation Search
@@ -126,6 +132,7 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
             }
         }
         else
+#endif  // PV_SEARCH_ENABLED
         {
             value = -alphabeta(-beta, -alpha, depth - 1, is_pv, DO_NULL);
         }
@@ -141,8 +148,10 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
 
             if (value >= beta)
             {
+#if TRANSPOSITION_TABLE_ENABLED
                 // store hash entry with the score equal to beta
                 record_hash(depth, beta, HASH_BETA, best_move);
+#endif
                 return beta;  // fail hard beta-cutoff
             }
         }
@@ -162,7 +171,9 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
         return value;
     }
 
+#if TRANSPOSITION_TABLE_ENABLED
     // store hash entry with the score equal to alpha
     record_hash(depth, alpha, hash_flag, best_move);
+#endif  // TRANSPOSITION_TABLE_ENABLED
     return alpha;
 }

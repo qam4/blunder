@@ -18,6 +18,11 @@
 #define NO_NULL 0  // avoid doing null move twice in a row
 #define DO_NULL 1
 
+// PHASES
+const int MG = 0;  // midgame
+const int EG = 1;  // endgame
+const int NUM_PHASES = 2;
+
 
 int pop_count(U64 x);
 bool inline is_valid_piece(U8 piece) { return (piece >= WHITE_PAWN) && (piece <= BLACK_KING); }
@@ -30,8 +35,8 @@ class Board
     friend class Tests;
 
 private:
-    U64 bitboards_[14];
-    U8 board_array_[64];
+    U64 bitboards_[NUM_PIECES];
+    U8 board_array_[NUM_SQUARES];
 
     struct IrreversibleData
     {
@@ -61,8 +66,12 @@ private:
     int max_nodes_visited_;
 
     int follow_pv_;
+    int material_[NUM_SIDES];
 
     struct IrreversibleData move_stack_[MAX_SEARCH_PLY];
+
+    // Piece square table
+    int piece_square_table_[NUM_PHASES][NUM_PIECES][NUM_SQUARES];
 
 public:
     Board();
@@ -72,11 +81,15 @@ public:
     void reset();
     void do_move(Move_t move);
     void undo_move(Move_t move);
+#if NULL_MOVE_PRUNING_ENABLED
     void do_null_move();
     void undo_null_move();
+#endif // NULL_MOVE_PRUNING_ENABLED
     int evaluate();
     bool is_game_over();
     bool is_draw();
+    bool is_draw_by_fifty_moves_rule();
+    bool is_draw_by_threefold_repetition();
     // Algos
     Move_t search(int depth, int search_time=DEFAULT_SEARCH_TIME, int max_nodes_visited=-1, bool xboard=false);
     int minimax(int depth, bool maximizing_player);
@@ -118,6 +131,14 @@ public:
     // EPD
     void set_epd_op(const string& opcode, const string& operand) { epd_[opcode] = operand; }
     string& epd_op(const string& opcode) {return epd_[opcode]; }
+
+private:
+    void psqt_init();
+    int psqt(int phase);
+    int material_diff(int phase);
+    int non_pawn_material();
+    int evaluation(int phase);
+    int phase();
 };
 
 #endif /* BOARD_H */
