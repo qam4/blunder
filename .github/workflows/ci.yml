@@ -163,7 +163,7 @@ jobs:
     - name: Upload release artifact
       uses: actions/upload-artifact@v4
       with:
-        name: release-artifacts # NOTE: same artifact name for all release artifacts
+        name: release-artifacts-${{ matrix.target.arch }}
         path: blunder-${{ matrix.target.arch }}.zip
 
   docs:
