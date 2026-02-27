@@ -161,7 +161,7 @@ jobs:
       run: cd release && zip -r ../blunder-${{ matrix.target.arch }}.zip .
 
     - name: Upload release artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: release-artifacts # NOTE: same artifact name for all release artifacts
         path: blunder-${{ matrix.target.arch }}.zip
