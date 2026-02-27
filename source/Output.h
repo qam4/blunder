@@ -27,9 +27,12 @@ public:
     static string board_to_fen(const class Board &board);
     static void set_colors_enabled(bool enable) { colors_enabled_ = enable; }
     static bool is_colors_enabled() { return colors_enabled_ == true; }
+    static void set_unicode_enabled(bool enable) { unicode_enabled_ = enable; }
+    static bool is_unicode_enabled() { return unicode_enabled_ == true; }
 
 private:
     static bool colors_enabled_;
+    static bool unicode_enabled_;
 };
 
 #endif /* OUTPUT_H */

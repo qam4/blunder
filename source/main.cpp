@@ -8,6 +8,10 @@
 #include <iostream>
 #include <string>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include "Board.h"
 #include "CLIUtils.h"
 #include "CmdLineArgs.h"
@@ -27,6 +31,9 @@ static void usage(const string& prog_name);
 
 int main(int argc, char** argv)
 {
+#ifdef _WIN32
+    SetConsoleOutputCP(CP_UTF8);
+#endif
     CmdLineArgs cmd_line_args(argc, argv);
     if (cmd_line_args.cmd_option_exists("-h") || cmd_line_args.cmd_option_exists("--help"))
     {
@@ -118,6 +125,7 @@ int main(int argc, char** argv)
         getline(cin, line);
 
         vector<string> tokens = split(line, ' ');
+        if (tokens.empty()) { continue; }
         if (tokens[0] == "quit")
         {
             break;
@@ -128,6 +136,7 @@ int main(int argc, char** argv)
         }
         else if (tokens[0] == "move")
         {
+            if (tokens.size() < 2) { cout << "Usage: move <move>" << endl; continue; }
             Move_t move = Parser::move(tokens[1], board);
             if (is_valid_move(move, board, true))
             {
@@ -136,6 +145,7 @@ int main(int argc, char** argv)
         }
         else if (tokens[0] == "play")
         {
+            if (tokens.size() < 2) { cout << "Usage: play <white|black>" << endl; continue; }
             if (tokens[1] == "white")
             {
                 computer_plays[WHITE] = true;
@@ -153,6 +163,7 @@ int main(int argc, char** argv)
         }
         else if (tokens[0] == "colors")
         {
+            if (tokens.size() < 2) { cout << "Usage: colors <on|off>" << endl; continue; }
             if (tokens[1] == "on")
             {
                 Output::set_colors_enabled(true);
@@ -160,6 +171,18 @@ int main(int argc, char** argv)
             else if (tokens[1] == "off")
             {
                 Output::set_colors_enabled(false);
+            }
+        }
+        else if (tokens[0] == "unicode")
+        {
+            if (tokens.size() < 2) { cout << "Usage: unicode <on|off>" << endl; continue; }
+            if (tokens[1] == "on")
+            {
+                Output::set_unicode_enabled(true);
+            }
+            else if (tokens[1] == "off")
+            {
+                Output::set_unicode_enabled(false);
             }
         }
     }
@@ -173,7 +196,8 @@ void print_help()
             "  help                      Display this screen\n"
             "  move <move>               Play <move> on the board\n"
             "  play <color>              Let computer play <color>\n"
-            "  colors <on|off>\n";
+            "  colors <on|off>\n"
+            "  unicode <on|off>          Use unicode chess pieces\n";
 }
 
 void usage(const string& prog_name)

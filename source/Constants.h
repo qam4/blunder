@@ -49,6 +49,18 @@ const int NUM_PIECES = 14;
 
 const string PIECE_CHARS = "_EPpNnBbRrQqKk";
 
+// Unicode chess piece characters (indexed same as PIECE_CHARS)
+// Index: 0=EMPTY, 1=EMPTY, 2=WHITE_PAWN, 3=BLACK_PAWN, 4=WHITE_KNIGHT, ...
+const char* const PIECE_UNICODE[] = {
+    " ", " ",
+    "\xe2\x99\x99", "\xe2\x99\x9f",  // WHITE_PAWN, BLACK_PAWN
+    "\xe2\x99\x98", "\xe2\x99\x9e",  // WHITE_KNIGHT, BLACK_KNIGHT
+    "\xe2\x99\x97", "\xe2\x99\x9d",  // WHITE_BISHOP, BLACK_BISHOP
+    "\xe2\x99\x96", "\xe2\x99\x9c",  // WHITE_ROOK, BLACK_ROOK
+    "\xe2\x99\x95", "\xe2\x99\x9b",  // WHITE_QUEEN, BLACK_QUEEN
+    "\xe2\x99\x94", "\xe2\x99\x9a",  // WHITE_KING, BLACK_KING
+};
+
 // CASTLING RIGHTS
 
 const U8 WHITE_KING_SIDE = 1;

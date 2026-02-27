@@ -12,22 +12,47 @@
 #define MAX_COL 7
 
 bool Output::colors_enabled_ { false };
+bool Output::unicode_enabled_ { false };
 
 string Output::board(const class Board& board)
 {
     stringstream ss;
-    ss << "  ABCDEFGH " << endl;
-    for (int row = MAX_ROW; row >= 0; row--)
+    if (Output::is_unicode_enabled())
     {
-        ss << row + 1 << "|";
-        for (int col = 0; col <= MAX_COL; col++)
+        ss << "   A B C D E F G H " << endl;
+        for (int row = MAX_ROW; row >= 0; row--)
         {
-            int square = (row * 8) + col;
-            ss << Output::piece(board[square]);
+            ss << row + 1 << " |";
+            for (int col = 0; col <= MAX_COL; col++)
+            {
+                int square = (row * 8) + col;
+                bool light_square = ((row + col) % 2) != 0;
+                if (light_square)
+                    ss << "\033[107m";  // bright white background
+                else
+                    ss << "\033[40m";   // black background
+                ss << Output::piece(board[square]) << ' ';
+                ss << "\033[0m";
+            }
+            ss << '|' << row + 1 << endl;
         }
-        ss << '|' << row + 1 << endl;
+        ss << "   A B C D E F G H  " << endl;
     }
-    ss << "  ABCDEFGH  " << endl;
+    else
+    {
+        ss << "  ABCDEFGH " << endl;
+        for (int row = MAX_ROW; row >= 0; row--)
+        {
+            ss << row + 1 << "|";
+            for (int col = 0; col <= MAX_COL; col++)
+            {
+                int square = (row * 8) + col;
+                ss << Output::piece(board[square]);
+            }
+            ss << '|' << row + 1 << endl;
+        }
+        ss << "  ABCDEFGH  " << endl;
+    }
     ss << "side to move: " << ((board.side_to_move() == WHITE) ? "WHITE" : "BLACK") << endl;
     ss << "castling rights: " << Output::castling_rights(board.castling_rights()) << endl;
     ss << "en-passant: "
@@ -69,7 +94,19 @@ string Output::bitboard(U64 bb)
 string Output::piece(U8 piece)
 {
     stringstream ss;
-    if (Output::is_colors_enabled())
+    if (Output::is_unicode_enabled())
+    {
+        if (piece & BLACK)
+        {
+            ss << "\033[30m";  // Black text
+        }
+        else if (piece)
+        {
+            ss << "\033[93m";  // Bright yellow for white pieces
+        }
+        ss << PIECE_UNICODE[piece];
+    }
+    else if (Output::is_colors_enabled())
     {
         if (piece & BLACK)
         {
