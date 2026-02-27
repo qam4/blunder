@@ -30,7 +30,7 @@ string Output::board(const class Board& board)
                 if (light_square)
                     ss << "\033[107m";  // bright white background
                 else
-                    ss << "\033[40m";   // black background
+                    ss << "\033[40m";  // black background
                 ss << Output::piece(board[square]) << ' ';
                 ss << "\033[0m";
             }

@@ -9,7 +9,7 @@
 #include <string>
 
 #ifdef _WIN32
-#include <windows.h>
+#    include <windows.h>
 #endif
 
 #include "Board.h"
@@ -125,7 +125,10 @@ int main(int argc, char** argv)
         getline(cin, line);
 
         vector<string> tokens = split(line, ' ');
-        if (tokens.empty()) { continue; }
+        if (tokens.empty())
+        {
+            continue;
+        }
         if (tokens[0] == "quit")
         {
             break;
@@ -136,7 +139,11 @@ int main(int argc, char** argv)
         }
         else if (tokens[0] == "move")
         {
-            if (tokens.size() < 2) { cout << "Usage: move <move>" << endl; continue; }
+            if (tokens.size() < 2)
+            {
+                cout << "Usage: move <move>" << endl;
+                continue;
+            }
             Move_t move = Parser::move(tokens[1], board);
             if (is_valid_move(move, board, true))
             {
@@ -145,7 +152,11 @@ int main(int argc, char** argv)
         }
         else if (tokens[0] == "play")
         {
-            if (tokens.size() < 2) { cout << "Usage: play <white|black>" << endl; continue; }
+            if (tokens.size() < 2)
+            {
+                cout << "Usage: play <white|black>" << endl;
+                continue;
+            }
             if (tokens[1] == "white")
             {
                 computer_plays[WHITE] = true;
@@ -163,7 +174,11 @@ int main(int argc, char** argv)
         }
         else if (tokens[0] == "colors")
         {
-            if (tokens.size() < 2) { cout << "Usage: colors <on|off>" << endl; continue; }
+            if (tokens.size() < 2)
+            {
+                cout << "Usage: colors <on|off>" << endl;
+                continue;
+            }
             if (tokens[1] == "on")
             {
                 Output::set_colors_enabled(true);
@@ -175,7 +190,11 @@ int main(int argc, char** argv)
         }
         else if (tokens[0] == "unicode")
         {
-            if (tokens.size() < 2) { cout << "Usage: unicode <on|off>" << endl; continue; }
+            if (tokens.size() < 2)
+            {
+                cout << "Usage: unicode <on|off>" << endl;
+                continue;
+            }
             if (tokens[1] == "on")
             {
                 Output::set_unicode_enabled(true);
