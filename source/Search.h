@@ -45,6 +45,9 @@ public:
     PrincipalVariation& get_pv() { return pv_; }
     TimeManager& get_tm() { return tm_; }
 
+    // Killer move accessors (for move scoring)
+    Move_t get_killer(int ply, int slot) const { return killers_[ply][slot]; }
+
 private:
     // Hash helpers (delegate to TT)
     int probe_hash(int depth, int alpha, int beta, Move_t& best_move);
@@ -62,6 +65,15 @@ private:
     Move_t search_best_move_ = 0;
     int search_best_score_ = 0;
     int follow_pv_ = 0;
+
+    // Killer move table: two killer slots per ply
+    Move_t killers_[MAX_SEARCH_PLY][2] = {};
+
+    // History heuristic table: [side][from][to]
+    int history_[2][64][64] = {};
+
+    void store_killer(int ply, Move_t move);
+    void score_killers(MoveList& list, int ply);
 };
 
 #endif /* SEARCH_H */

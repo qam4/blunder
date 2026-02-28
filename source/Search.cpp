@@ -6,6 +6,7 @@
  */
 
 #include <algorithm>
+#include <cstring>
 
 #include "Search.h"
 
@@ -35,6 +36,48 @@ void Search::record_hash(int depth, int val, int flags, Move_t best_move)
     tt_.record(board_.get_hash(), depth, val, flags, best_move);
 }
 
+void Search::store_killer(int ply, Move_t move)
+{
+    // Don't store if it's already killer[0]
+    if (killers_[ply][0] != move)
+    {
+        killers_[ply][1] = killers_[ply][0];
+        killers_[ply][0] = move;
+    }
+}
+
+void Search::score_killers(MoveList& list, int ply)
+{
+    int n = list.length();
+    int side = board_.side_to_move();
+    for (int i = 0; i < n; i++)
+    {
+        Move_t move = list[i];
+        if (!is_capture(move) && !is_promotion(move))
+        {
+            if (move == killers_[ply][0])
+            {
+                list.set_score(i, 90);
+            }
+            else if (move == killers_[ply][1])
+            {
+                list.set_score(i, 80);
+            }
+            else
+            {
+                // History tiebreaker for quiet moves: scale into 6..79 range
+                int h = history_[side][move_from(move)][move_to(move)];
+                if (h > 0)
+                {
+                    // Map history to 6..79 (above default quiet=5, below killer=80)
+                    int bonus = 6 + (h * 73) / (h + 1000);
+                    list.set_score(i, static_cast<U16>(bonus));
+                }
+            }
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Iterative deepening search
 // ---------------------------------------------------------------------------
@@ -46,6 +89,8 @@ Move_t Search::search(int depth,
     tm_.start(search_time, max_nodes_visited);
     board_.set_search_ply(0);
     pv_.reset();
+    std::memset(killers_, 0, sizeof(killers_));
+    std::memset(history_, 0, sizeof(history_));
 
     Move_t last_best_move = 0U;
     searched_moves_ = 0;
@@ -199,6 +244,7 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
 
     MoveGenerator::add_all_moves(list, board_, board_.side_to_move());
     MoveGenerator::score_moves(list, board_);
+    score_killers(list, search_ply);
     n = list.length();
 
     // score PV move
@@ -208,18 +254,48 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     {
         list.sort_moves(i);
         move = list[i];
+        bool is_quiet = !is_capture(move) && !is_promotion(move);
+        bool is_killer_move =
+            (move == killers_[search_ply][0]) || (move == killers_[search_ply][1]);
+
         board_.do_move(move);
+
+        // Late Move Reductions
+        bool do_lmr = (i >= 3) && (depth >= 3) && is_quiet && !in_check && !is_killer_move;
+
         if (found_pv)
         {
-            value = -alphabeta(-alpha - 1, -alpha, depth - 1, NO_PV, DO_NULL);
-            if ((value > alpha) && (value < beta))
+            if (do_lmr)
             {
-                value = -alphabeta(-beta, -alpha, depth - 1, IS_PV, DO_NULL);
+                value = -alphabeta(-alpha - 1, -alpha, depth - 2, NO_PV, DO_NULL);
+            }
+            else
+            {
+                value = alpha + 1;  // ensure full-depth ZWS runs
+            }
+            if (value > alpha)
+            {
+                value = -alphabeta(-alpha - 1, -alpha, depth - 1, NO_PV, DO_NULL);
+                if ((value > alpha) && (value < beta))
+                {
+                    value = -alphabeta(-beta, -alpha, depth - 1, IS_PV, DO_NULL);
+                }
             }
         }
         else
         {
-            value = -alphabeta(-beta, -alpha, depth - 1, is_pv, DO_NULL);
+            if (do_lmr)
+            {
+                value = -alphabeta(-alpha - 1, -alpha, depth - 2, NO_PV, DO_NULL);
+                if (value > alpha)
+                {
+                    value = -alphabeta(-beta, -alpha, depth - 1, is_pv, DO_NULL);
+                }
+            }
+            else
+            {
+                value = -alphabeta(-beta, -alpha, depth - 1, is_pv, DO_NULL);
+            }
         }
         board_.undo_move(move);
         searched_moves_++;
@@ -233,6 +309,12 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
 
             if (value >= beta)
             {
+                if (!is_capture(move))
+                {
+                    store_killer(search_ply, move);
+                    int side = board_.side_to_move();
+                    history_[side][move_from(move)][move_to(move)] += depth * depth;
+                }
                 record_hash(depth, beta, HASH_BETA, best_move);
                 return beta;
             }
@@ -341,6 +423,12 @@ int Search::negamax(int depth)
     int search_ply = board_.get_search_ply();
     nodes_visited_++;
 
+    // Leaf node — return static eval without generating moves
+    if (depth == 0)
+    {
+        return evaluator_.side_relative_eval(board_);
+    }
+
     if (board_.is_game_over())
     {
         if (MoveGenerator::in_check(board_, board_.side_to_move()))
@@ -351,12 +439,6 @@ int Search::negamax(int depth)
         {
             return DRAW_SCORE;
         }
-    }
-
-    // Leaf node
-    if (depth == 0)
-    {
-        return evaluator_.side_relative_eval(board_);
     }
 
     bestvalue = -MAX_SCORE;
@@ -423,6 +505,12 @@ int Search::minimax(int depth, bool maximizing_player)
     int search_ply = board_.get_search_ply();
     nodes_visited_++;
 
+    // Leaf node — return static eval without generating moves
+    if (depth == 0)
+    {
+        return evaluator_.evaluate(board_);
+    }
+
     if (board_.is_game_over())
     {
         if (MoveGenerator::in_check(board_, board_.side_to_move()))
@@ -440,12 +528,6 @@ int Search::minimax(int depth, bool maximizing_player)
         {
             return DRAW_SCORE;
         }
-    }
-
-    // Leaf node
-    if (depth == 0)
-    {
-        return evaluator_.evaluate(board_);
     }
 
     if (maximizing_player == true)

@@ -201,42 +201,42 @@
     - **Property 13: parse(serialize(parse(fen))) == parse(fen) for all valid FEN strings**
     - **Validates: Requirements 11.1, 11.2, 11.3**
 
-- [-] 25. Checkpoint — Verify Phase 3 tests pass
+- [x] 25. Checkpoint — Verify Phase 3 tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Phase 4: Performance & Efficiency
 
-- [ ] 26. Optimize leaf node move generation (Req 20)
-  - [ ] 26.1 In source/MiniMax.cpp and source/NegaMax.cpp, move the `depth == 0` check before `is_game_over()` so leaf nodes return evaluation without generating moves
+- [x] 26. Optimize leaf node move generation (Req 20)
+  - [x] 26.1 In source/MiniMax.cpp and source/NegaMax.cpp, move the `depth == 0` check before `is_game_over()` so leaf nodes return evaluation without generating moves
     - _Requirements: 20.1, 20.2_
   - [ ]* 26.2 Write a benchmark test comparing node throughput before and after the optimization
     - **Validates: Requirement 20.2**
 
-- [ ] 27. Implement killer move heuristic (Req 21)
-  - [ ] 27.1 Add a `Move_t killers_[MAX_SEARCH_PLY][2]` table to the Search class in source/Search.h
+- [x] 27. Implement killer move heuristic (Req 21)
+  - [x] 27.1 Add a `Move_t killers_[MAX_SEARCH_PLY][2]` table to the Search class in source/Search.h
     - _Requirements: 21.1_
-  - [ ] 27.2 On beta cutoff of a quiet move in AlphaBeta, store the move as a killer for the current ply
+  - [x] 27.2 On beta cutoff of a quiet move in AlphaBeta, store the move as a killer for the current ply
     - _Requirements: 21.1_
-  - [ ] 27.3 During move scoring, give killer moves a score between captures and quiet moves
+  - [x] 27.3 During move scoring, give killer moves a score between captures and quiet moves
     - _Requirements: 21.1, 21.3_
 
-- [ ] 28. Implement history heuristic (Req 21)
-  - [ ] 28.1 Add a `int history_[2][64][64]` table to the Search class in source/Search.h
+- [x] 28. Implement history heuristic (Req 21)
+  - [x] 28.1 Add a `int history_[2][64][64]` table to the Search class in source/Search.h
     - _Requirements: 21.2_
-  - [ ] 28.2 Increment history on beta cutoff for quiet moves; use history score as tiebreaker in move ordering
+  - [x] 28.2 Increment history on beta cutoff for quiet moves; use history score as tiebreaker in move ordering
     - _Requirements: 21.2, 21.3_
-  - [ ] 28.3 Clear history table at the start of each search
+  - [x] 28.3 Clear history table at the start of each search
     - _Requirements: 21.2_
 
-- [ ] 29. Implement Late Move Reductions (Req 22)
-  - [ ] 29.1 In AlphaBeta, after the first 3-4 moves at depth >= 3, reduce search depth by 1 for non-capture, non-promotion, non-killer quiet moves
+- [x] 29. Implement Late Move Reductions (Req 22)
+  - [x] 29.1 In AlphaBeta, after the first 3-4 moves at depth >= 3, reduce search depth by 1 for non-capture, non-promotion, non-killer quiet moves
     - _Requirements: 22.1_
-  - [ ] 29.2 If the reduced-depth search returns a score above alpha, re-search at full depth
+  - [x] 29.2 If the reduced-depth search returns a score above alpha, re-search at full depth
     - _Requirements: 22.2_
   - [ ]* 29.3 Write a benchmark test comparing search depth reached in a fixed time budget with and without LMR
     - **Validates: Requirement 22.3**
 
-- [ ] 30. Checkpoint — Verify Phase 4 optimizations
+- [-] 30. Checkpoint — Verify Phase 4 optimizations
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Phase 5: Debugging & Observability

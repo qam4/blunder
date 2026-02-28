@@ -2,6 +2,11 @@
 
 This is the blunder project.
 
+# Architecture
+
+See the [ARCHITECTURE](docs/ARCHITECTURE.md) document for a description of the
+search algorithms, move ordering, and evaluation used in the engine.
+
 # Building and installing
 
 See the [BUILDING](BUILDING.md) document.
