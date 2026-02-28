@@ -103,12 +103,12 @@
   - [x] 14.5 Verify the engine builds in both Debug and Release configurations after all modernization changes
     - _Requirements: 36.1, 36.2, 36.3, 36.4, 36.5, 36.6, 36.7_
 
-- [ ] 15. Refactor Xboard command loop (Req 37)
-  - [ ] 15.1 Replace the if/strcmp chain in source/Xboard.cpp with a `std::unordered_map<std::string, Handler>` dispatch table; each command handler becomes a separate method or lambda
+- [x] 15. Refactor Xboard command loop (Req 37)
+  - [x] 15.1 Replace the if/strcmp chain in source/Xboard.cpp with a `std::unordered_map<std::string, Handler>` dispatch table; each command handler becomes a separate method or lambda
     - _Requirements: 37.1, 37.4_
-  - [ ] 15.2 Eliminate `goto no_ponder` with structured control flow (bool flag)
+  - [x] 15.2 Eliminate `goto no_ponder` with structured control flow (bool flag)
     - _Requirements: 37.2_
-  - [ ] 15.3 Replace raw char arrays, sscanf, and `#define _CRT_SECURE_NO_WARNINGS` with `std::string`, `std::getline`, and `std::istringstream`
+  - [x] 15.3 Replace raw char arrays, sscanf, and `#define _CRT_SECURE_NO_WARNINGS` with `std::string`, `std::getline`, and `std::istringstream`
     - _Requirements: 37.3, 36.5_
 
 - [ ] 16. Refactor Move encoding (Req 38)

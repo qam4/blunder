@@ -5,25 +5,27 @@
 #ifndef XBOARD_H
 #define XBOARD_H
 
+#include <functional>
+#include <string>
+#include <unordered_map>
+
 #include "Board.h"
 #include "Common.h"
 #include "Move.h"
 #include "Search.h"
 
-// four different constants, with values for WHITE and BLACK that suit your engine
-#define STM_WHITE    0
-#define STM_BLACK    1
-#define STM_NONE     2
-#define STM_ANALYZE  3
+// Side-to-move constants for the Xboard protocol loop
+constexpr int STM_WHITE = 0;
+constexpr int STM_BLACK = 1;
+constexpr int STM_NONE = 2;
+constexpr int STM_ANALYZE = 3;
 
-// some value that cannot occur as a valid move
-#define INVALID_MOVE 0x9999
+constexpr Move_t INVALID_MOVE = 0x9999;
 
-// some parameter of your engine
-#define MAXMOVES 500  /* maximum game length  */
+constexpr int MAXMOVES = 500;
 
-#define OFF 0
-#define ON  1
+constexpr int OFF = 0;
+constexpr int ON = 1;
 
 class Xboard
 {
@@ -32,31 +34,61 @@ class Xboard
     void run();
 
   private:
-    // Some routines your engine should have to do the various essential things
-    int  make_move(int stm, Move_t move);      // performs move, and returns new side to move
-    void un_make(Move_t move);                 // unmakes the move;
-    int  setup(const char *fen);               // sets up the position from the given FEN, and returns the new side to move
-    void set_memory_size(int n);               // if n is different from last time, resize all tables to make memory usage below n MB
-    std::string move_to_text(Move_t move);          // converts the move from your internal format to text like e2e2, e1g1, a7a8q.
-    Move_t parse_move(const char *move_text);  // converts a long-algebraic text move to your internal move format
-    int  search_best_move(int stm, int time_left, int mps, int time_control, float inc, int time_per_move, int max_depth, Move_t *move, Move_t *ponder_move);
-    void ponder_until_input(int stm);          // Search current position for stm, deepening forever until there is input.
+    // Mutable state shared across command handlers during the main loop
+    struct RunState
+    {
+        int stm = 0;
+        int engine_side = STM_NONE;
+        int time_left = 0;
+        int mps = 0;
+        int time_control = 0;
+        int time_per_move = -1;
+        float inc = 0;
+        int max_depth = MAX_SEARCH_PLY;
+        Move_t move = INVALID_MOVE;
+        Move_t ponder_move = INVALID_MOVE;
+        bool quit = false;
+        bool skip_ponder = false;
+    };
+
+    using Handler = std::function<void(const std::string& args, RunState& rs)>;
+
+    void init_handlers();
+
+    // Helper methods
+    int make_move(int stm, Move_t move);
+    void un_make(Move_t move);
+    int setup(const std::string& fen);
+    void set_memory_size(int n);
+    std::string move_to_text(Move_t move);
+    Move_t parse_move(const std::string& move_text);
+    int search_best_move(int stm,
+                         int time_left,
+                         int mps,
+                         int time_control,
+                         float inc,
+                         int time_per_move,
+                         int max_depth,
+                         Move_t* move,
+                         Move_t* ponder_move);
+    void ponder_until_input(int stm);
     int take_back(int n);
     void print_result(int stm, int score);
 
     Board board_;
     Search search_;
 
-    int move_nr_;                // part of game state; incremented by make_move
-    Move_t game_move_[MAXMOVES]; // holds the game history
+    int move_nr_ = 0;
+    Move_t game_move_[MAXMOVES] {};
 
-    // Some global variables that control your engine's behavior
-    int ponder_;
-    int randomize_;
-    int post_thinking_;
-    int resign_;          // engine-defined option
-    int contempt_factor_; // likewise
+    int ponder_ = OFF;
+    int randomize_ = OFF;
+    int post_thinking_ = OFF;
+    int resign_ = 0;
+    int contempt_factor_ = 0;
     std::string setup_fen_;
+
+    std::unordered_map<std::string, Handler> handlers_;
 };
 
 #endif  // XBOARD_H
