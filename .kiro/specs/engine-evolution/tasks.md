@@ -236,23 +236,23 @@
   - [ ]* 29.3 Write a benchmark test comparing search depth reached in a fixed time budget with and without LMR
     - **Validates: Requirement 22.3**
 
-- [-] 30. Checkpoint — Verify Phase 4 optimizations
+- [x] 30. Checkpoint — Verify Phase 4 optimizations
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Phase 5: Debugging & Observability
 
-- [ ] 31. Implement search statistics (Req 23)
-  - [ ] 31.1 Add a SearchStats struct to source/Search.h with fields: nodes_visited, hash_hits, hash_probes, beta_cutoffs, total_moves_searched, start_time; and methods nps(), hash_hit_rate(), cutoff_rate(), branching_factor(), reset()
+- [x] 31. Implement search statistics (Req 23)
+  - [x] 31.1 Add a SearchStats struct to source/Search.h with fields: nodes_visited, hash_hits, hash_probes, beta_cutoffs, total_moves_searched, start_time; and methods nps(), hash_hit_rate(), cutoff_rate(), branching_factor(), reset()
     - _Requirements: 23.1, 23.3_
-  - [ ] 31.2 Instrument Search::alphabeta() and Search::quiesce() to update SearchStats counters on hash probes, hash hits, and beta cutoffs
+  - [x] 31.2 Instrument Search::alphabeta() and Search::quiesce() to update SearchStats counters on hash probes, hash hits, and beta cutoffs
     - _Requirements: 23.1_
-  - [ ] 31.3 Add a verbose/debug mode to Search that logs per-depth statistics (depth, score, nodes, nps, pv) during iterative deepening
+  - [x] 31.3 Add a verbose/debug mode to Search that logs per-depth statistics (depth, score, nodes, nps, pv) during iterative deepening
     - _Requirements: 23.2_
 
 - [ ] 32. Expand perft regression tests (Req 24)
-  - [ ] 32.1 In test/source/TestPerft.cpp, add Catch2 test cases validating perft for the initial position at depths 1–5 against published correct node counts
+  - [x] 32.1 In test/source/TestPerft.cpp, add Catch2 test cases validating perft for the initial position at depths 1–5 against published correct node counts
     - _Requirements: 24.1_
-  - [ ] 32.2 Add perft test cases for at least 5 tricky positions: Kiwipete, en-passant edge cases, promotion positions, castling edge cases
+  - [x] 32.2 Add perft test cases for at least 5 tricky positions: Kiwipete, en-passant edge cases, promotion positions, castling edge cases
     - _Requirements: 24.2, 24.3_
 
 - [ ] 33. Checkpoint — Verify Phase 5 complete

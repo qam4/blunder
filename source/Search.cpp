@@ -7,6 +7,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <iomanip>
 
 #include "Search.h"
 
@@ -91,6 +92,7 @@ Move_t Search::search(int depth,
     pv_.reset();
     std::memset(killers_, 0, sizeof(killers_));
     std::memset(history_, 0, sizeof(history_));
+    stats_.reset();
 
     Move_t last_best_move = 0U;
     searched_moves_ = 0;
@@ -147,6 +149,18 @@ Move_t Search::search(int depth,
             cout << ", pv=";
             pv_.print(board_);
             cout << endl;
+
+            if (verbose_)
+            {
+                cout << "  nodes=" << stats_.nodes_visited;
+                cout << ", nps=" << stats_.nps();
+                cout << ", hash=" << std::fixed << std::setprecision(1)
+                     << (stats_.hash_hit_rate() * 100.0) << "%";
+                cout << " (" << stats_.hash_hits << "/" << stats_.hash_probes << ")";
+                cout << ", cutoffs=" << stats_.beta_cutoffs;
+                cout << ", bf=" << std::setprecision(2) << stats_.branching_factor(current_depth);
+                cout << std::defaultfloat << endl;
+            }
         }
         last_best_move = search_best_move_;
         search_best_score_ = value;
@@ -186,6 +200,7 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
         return 0;
     }
     nodes_visited_++;
+    stats_.nodes_visited++;
 
     // Check for draw
     if (board_.is_draw(true))
@@ -195,8 +210,10 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     }
 
     int hash_flag = HASH_ALPHA;
+    stats_.hash_probes++;
     if ((value = probe_hash(depth, alpha, beta, best_move)) != UNKNOWN_SCORE)
     {
+        stats_.hash_hits++;
         return value;
     }
 
@@ -299,6 +316,7 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
         }
         board_.undo_move(move);
         searched_moves_++;
+        stats_.total_moves_searched++;
         if (value > alpha)
         {
             found_pv = 1;
@@ -309,6 +327,7 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
 
             if (value >= beta)
             {
+                stats_.beta_cutoffs++;
                 if (!is_capture(move))
                 {
                     store_killer(search_ply, move);
@@ -357,6 +376,7 @@ int Search::quiesce(int alpha, int beta)
         return 0;
     }
     nodes_visited_++;
+    stats_.nodes_visited++;
 
     // Check for draw
     if (board_.is_draw(true))
@@ -397,12 +417,14 @@ int Search::quiesce(int alpha, int beta)
             value = -quiesce(-beta, -alpha);
             board_.undo_move(move);
             searched_moves_++;
+            stats_.total_moves_searched++;
             if (value > alpha)
             {
                 alpha = value;
                 pv_.store_move(search_ply, move);
                 if (value >= beta)
                 {
+                    stats_.beta_cutoffs++;
                     return beta;
                 }
             }

@@ -8,6 +8,19 @@
 
 #include "Tests.h"
 
+TEST_CASE("perft starting position depth 1", "[perft]")
+{
+    // https://www.chessprogramming.org/Perft_Results#Initial_Position
+    long move_count = perft_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 1);
+    REQUIRE(move_count == 20);
+}
+
+TEST_CASE("perft starting position depth 2", "[perft]")
+{
+    long move_count = perft_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 2);
+    REQUIRE(move_count == 400);
+}
+
 TEST_CASE("perft starting position depth 3", "[perft]")
 {
     // https://www.chessprogramming.org/Perft_Results#Initial_Position
@@ -107,6 +120,37 @@ TEST_CASE("perft position 5 debug 1", "[perft]")
     long move_count =
         perft_fen("r3k2r/p1pp1pb1/bn2pqp1/3PN3/1p2P3/2N5/PPPBBPpP/R4K1R w kq - 0 1", 1);
     REQUIRE(move_count == 3);
+}
+
+// Position 6 from CPW — alternative starting position
+// https://www.chessprogramming.org/Perft_Results#Position_6
+TEST_CASE("perft position 6 depth 4", "[perft]")
+{
+    long move_count =
+        perft_fen("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10", 4);
+    REQUIRE(move_count == 3894594);
+}
+
+// Promotion-heavy position (CPW Position 4 mirrored)
+TEST_CASE("perft promotions depth 5", "[perft]")
+{
+    long move_count = perft_fen("n1n5/PPPk4/8/8/8/8/4Kppp/5N1N b - - 0 1", 5);
+    REQUIRE(move_count == 3605103);
+}
+
+// Castling rights edge case — all castling available, open board
+TEST_CASE("perft castling rook capture", "[perft]")
+{
+    long move_count = perft_fen("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1", 5);
+    REQUIRE(move_count == 7594526);
+}
+
+// En-passant edge case — EP available with pin considerations
+TEST_CASE("perft en passant edge case", "[perft]")
+{
+    // Position 3 from CPW at depth 4 (includes EP captures)
+    long move_count = perft_fen("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -", 4);
+    REQUIRE(move_count == 43238);
 }
 
 TEST_CASE("perft starting position benchmark", "[perft]")
