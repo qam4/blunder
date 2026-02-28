@@ -60,9 +60,7 @@ const int SEE_PIECE_VALUE[NUM_PIECES / 2] = {
 */
 U8 inline bit_scan_forward(U64 bb)
 {
-#ifndef NDEBUG
     assert(bb > 0);
-#endif
 #if defined(__GNUC__)
     return static_cast<U8>(__builtin_ffsll(static_cast<long long>(bb)) - 1);
 #else
@@ -74,10 +72,8 @@ U8 inline bit_scan_forward(U64 bb)
 
 U64 inline circular_left_shift(U64 target, int shift)
 {
-#ifndef NDEBUG
     assert(shift >= 0);
     assert(shift <= 64);
-#endif
     return (target << shift) | (target >> (64 - shift));
 }
 

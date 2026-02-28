@@ -79,6 +79,14 @@
       }
     },
     {
+      "name": "flags-mingw",
+      "description": "Flags for MinGW-w64 GCC on Windows",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-O2 -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -Wcast-qual -Wformat=2 -Wundef -Werror=float-equal -Wshadow -Wcast-align -Wunused -Wnull-dereference -Wdouble-promotion -Wimplicit-fallthrough -Woverloaded-virtual -Wnon-virtual-dtor -Wold-style-cast"
+      }
+    },
+    {
       "name": "ci-linux",
       "generator": "Unix Makefiles",
       "hidden": true,
@@ -99,9 +107,18 @@
     {
       "name": "ci-win64",
       "inherits": ["flags-windows", "ci-std"],
-      "generator": "Visual Studio 17 2022",
+      "generator": "Visual Studio 18 2026",
       "architecture": "x64",
       "hidden": true
+    },
+    {
+      "name": "ci-mingw-base",
+      "inherits": ["flags-mingw", "ci-std"],
+      "generator": "MinGW Makefiles",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     },
     {
       "name": "coverage-linux",
@@ -159,6 +176,10 @@
     {
       "name": "ci-windows",
       "inherits": ["ci-build", "ci-win64", "dev-mode"]
+    },
+    {
+      "name": "ci-mingw",
+      "inherits": ["ci-build", "ci-mingw-base", "clang-tidy", "cppcheck", "dev-mode"]
     }
   ]
 }

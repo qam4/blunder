@@ -20,13 +20,12 @@ int Board::quiesce(int alpha, int beta)
     nodes_visited_++;
 
     // Check for draw
-    if (is_draw())
+    if (is_draw(true))
     {
         return DRAW_SCORE;
     }
 
-    int who2move = (side_to_move() == WHITE) ? 1 : -1;
-    int stand_pat = who2move * evaluate();
+    int stand_pat = side_relative_eval();
 
     if (search_ply_ > MAX_SEARCH_PLY - 1)
     {

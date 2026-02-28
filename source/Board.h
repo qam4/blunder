@@ -75,8 +75,9 @@ public:
     void do_null_move();
     void undo_null_move();
     int evaluate();
+    int side_relative_eval();
     bool is_game_over();
-    bool is_draw();
+    bool is_draw(bool in_search = false);
     // Algos
     Move_t search(int depth, int search_time=DEFAULT_SEARCH_TIME, int max_nodes_visited=-1, bool xboard=false);
     int minimax(int depth, bool maximizing_player);

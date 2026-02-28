@@ -47,7 +47,7 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     nodes_visited_++;
 
     // Check for draw
-    if (is_draw())
+    if (is_draw(true))
     {
         value = DRAW_SCORE;
         return value;
@@ -85,9 +85,13 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
 
     // NULL move pruning
     // https://web.archive.org/web/20040427014629/http://brucemo.com/compchess/programming/nullmove.htm
-    if ((can_null) && (depth > 2) && !is_pv && !in_check)
+    // Zugzwang guard: skip null move when side has only king + pawns
+    U8 stm = side_to_move();
+    bool has_pieces = (bitboards_[KNIGHT + stm] | bitboards_[BISHOP + stm] |
+                       bitboards_[ROOK + stm] | bitboards_[QUEEN + stm]) != 0;
+    if ((can_null) && (depth > 2) && !is_pv && !in_check && has_pieces)
     {
-        int R = 2;
+        int R = (depth > 6) ? 3 : 2;
         do_null_move();
         value = -alphabeta(-beta, -beta + 1, depth - 1 - R, NO_PV, NO_NULL);
         undo_null_move();

@@ -86,8 +86,12 @@ U64 MoveGenerator::consider_xrays(const class Board& board, U64 occupied, U8 to)
     return attackers & occupied;
 }
 
-// TODO: handle en-assant captures
-// TODO: handle promotions
+// SEE: Static Exchange Evaluation
+// Evaluates the material outcome of a sequence of captures on the target square.
+// For capture moves, returns the net material gain/loss of the exchange.
+// For non-capture moves (e.g., quiet moves, non-capture promotions), evaluates
+// what happens if the moved piece is captured on the destination square.
+// En-passant captures and promotions are handled.
 int MoveGenerator::see(const class Board& board, Move_t move)
 {
     assert(move != 0U);
@@ -149,9 +153,7 @@ int MoveGenerator::see(const class Board& board, Move_t move)
         count++;
         // cout << "gain[" << d << "]=" << gain[d] << endl;
         d++;  // next depth and side
-#ifndef NDEBUG
         assert(d < MAX_GAINS_LENGTH);
-#endif
         gain[d] = SEE_PIECE_VALUE[piece >> 1] - gain[d - 1];  // speculative store, if defended
         // cout << Output::piece(piece) << "x" << endl;
         // cout << "gain[" << d << "]=" << gain[d] << endl;

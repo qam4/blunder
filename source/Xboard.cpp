@@ -8,6 +8,7 @@
 
 #include "Xboard.h"
 
+#include "Hash.h"
 #include "Output.h"
 #include "Parser.h"
 #include "ValidateMove.h"
@@ -34,6 +35,7 @@ int Xboard::setup(const char* fen)
         setup_fen_ = fen;
     }
     board_ = Parser::parse_fen(setup_fen_);
+    reset_hash_table();
     return board_.side_to_move();
 }
 

@@ -33,11 +33,9 @@ bool Board::is_blank()
 
 void Board::add_piece(U8 piece, int square)
 {
-#ifndef NDEBUG
     assert(is_valid_piece(piece));
     assert(is_valid_square(square));
     assert(board_array_[square] == EMPTY);
-#endif
     board_array_[square] = piece;
     U64 bitboard = 1ULL << square;
     bitboards_[piece & 1] |= bitboard;
@@ -47,10 +45,8 @@ void Board::add_piece(U8 piece, int square)
 
 void Board::remove_piece(int square)
 {
-#ifndef NDEBUG
     assert(is_valid_square(square));
     assert(board_array_[square] != EMPTY);
-#endif
     U8 piece = board_array_[square];
     board_array_[square] = EMPTY;
     U64 bitboard = ~(1ULL << square);
@@ -84,17 +80,13 @@ void Board::reset()
 
 U8 Board::operator[](const int square) const
 {
-#ifndef NDEBUG
     assert(is_valid_square(square));
-#endif
     return board_array_[square];
 }
 
 U64 Board::bitboard(const int type) const
 {
-#ifndef NDEBUG
     assert(type >= 0 && type <= BLACK_QUEEN);
-#endif
     return bitboards_[type];
 }
 
@@ -242,10 +234,8 @@ void Board::do_move(Move_t move)
     search_ply_++;
     max_search_ply_ = max(max_search_ply_, search_ply_);
     // update_hash();
-#ifndef NDEBUG
     assert(game_ply_ < MAX_GAME_PLY);
     assert(irrev_.board_hash == zobrist_.get_zobrist_key(*this));
-#endif
     hash_history_[game_ply_] = irrev_.board_hash;
 }
 
@@ -354,10 +344,8 @@ void Board::do_null_move()
     game_ply_++;
     search_ply_++;
     max_search_ply_ = max(max_search_ply_, search_ply_);
-#ifndef NDEBUG
     assert(game_ply_ < MAX_GAME_PLY);
     assert(irrev_.board_hash == zobrist_.get_zobrist_key(*this));
-#endif
     hash_history_[game_ply_] = irrev_.board_hash;
 }
 
@@ -493,6 +481,12 @@ int Board::evaluate()
     return result;
 }
 
+int Board::side_relative_eval()
+{
+    int who2move = (side_to_move() == WHITE) ? 1 : -1;
+    return who2move * evaluate();
+}
+
 // is_game_over(): return 1 if game is over.
 bool Board::is_game_over()
 {
@@ -507,7 +501,7 @@ bool Board::is_game_over()
     return is_draw();
 }
 
-bool Board::is_draw()
+bool Board::is_draw(bool in_search)
 {
     // fifty-move rule: https://www.chessprogramming.org/Fifty-move_Rule
     if (irrev_.half_move_count >= 100)
@@ -527,7 +521,7 @@ bool Board::is_draw()
             repetition_count++;
         }
     }
-    return (repetition_count > 1) ? true : false;
+    return (repetition_count > (in_search ? 0 : 1)) ? true : false;
 }
 
 Move_t Board::search(int depth,
@@ -539,7 +533,6 @@ Move_t Board::search(int depth,
     max_nodes_visited_ = max_nodes_visited;
     search_start_time_ = clock();
     search_ply_ = 0;
-    reset_hash_table();
     reset_pv_table();
 
     // Iterative deepening
@@ -563,6 +556,7 @@ Move_t Board::search(int depth,
         {
             alpha = -MAX_SCORE;  // We fell outside the window, so try again with a
             beta = MAX_SCORE;    //  full-width window (and the same depth).
+            follow_pv_ = 1;      // Reset PV-following so move ordering works on re-search.
             value = alphabeta(alpha, beta, current_depth, IS_PV, DO_NULL);
         }
         else
@@ -660,9 +654,7 @@ bool Board::should_stop_search()
 
 void Board::update_hash()
 {
-#ifndef NDEBUG
     assert(game_ply_ < MAX_GAME_PLY);
-#endif
     set_hash(zobrist_.get_zobrist_key(*this));
     hash_history_[game_ply_] = irrev_.board_hash;
 }

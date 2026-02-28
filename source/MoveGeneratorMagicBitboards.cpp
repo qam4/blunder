@@ -46,10 +46,8 @@ void MoveGenerator::init_rook_magic_table()
         {
             U64 blockers = get_blockers_from_index(blocker_index, ROOK_MB_MASK[square]);
             U64 index = (blockers * ROOK_MAGICS[square]) >> (64 - ROOK_INDEX_BITS[square]);
-#ifndef NDEBUG
             assert(index < ROOK_MB_TABLE_SIZE);
             assert(ROOK_MB_TABLE[square][index] == 0);
-#endif
             ROOK_MB_TABLE[square][index] = rook_attacks_slow(blockers, square);
         }
     }
@@ -67,10 +65,8 @@ void MoveGenerator::init_bishop_magic_table()
         {
             U64 blockers = get_blockers_from_index(blocker_index, BISHOP_MB_MASK[square]);
             U64 index = (blockers * BISHOP_MAGICS[square]) >> (64 - BISHOP_INDEX_BITS[square]);
-#ifndef NDEBUG
             assert(index < BISHOP_MB_TABLE_SIZE);
             assert(BISHOP_MB_TABLE[square][index] == 0);
-#endif
             BISHOP_MB_TABLE[square][index] = bishop_attacks_slow(blockers, square);
         }
     }

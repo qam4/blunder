@@ -22,24 +22,18 @@ public:
   MoveList() { size_ = 0; }
   void inline push(Move_t move)
   {
-#ifndef NDEBUG
     assert(size_ < MAX_MOVELIST_LENGTH);
-#endif
     // cout << "move=" << hex << move << dec << endl;
     data_[size_++] = move;
   }
   Move_t inline pop()
   {
-#ifndef NDEBUG
     assert(size_ > 0);
-#endif
     return data_[--size_];
   }
   void set_move(const int idx, Move_t move)
   {
-#ifndef NDEBUG
     assert(size_ > 0);
-#endif
     data_[idx] = move;
   }
   void inline reset() { size_ = 0; };

@@ -239,9 +239,7 @@ bool MoveGenerator::ep_move_discovers_check(const class Board& board,
     U64 non_diag_attackers = queens | rooks;
 
     U64 kings = board.bitboards_[KING | side];
-#ifndef NDEBUG
     assert(pop_count(kings) == 1);
-#endif
     U8 king_sq = bit_scan_forward(kings);
 
     return ((rank_attacks(occupied, king_sq) & non_diag_attackers) != BB_EMPTY);
@@ -976,9 +974,7 @@ bool MoveGenerator::in_check(const class Board& board, const U8 side)
 void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board, const U8 side)
 {
     U64 kings = board.bitboards_[KING | side];
-#ifndef NDEBUG
     assert(pop_count(kings) == 1);
-#endif
 
     // We always need legal king moves
     U64 attacked_squares = get_king_danger_squares(board, side, kings);
@@ -1019,9 +1015,7 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
         // if only one attacker, we can try attacking the attacker with
         // our other pieces.
         capture_mask = checkers;
-#ifndef NDEBUG
         assert(pop_count(checkers) == 1);
-#endif
         U8 checker_sq = bit_scan_forward(checkers);
         U8 checker = board[checker_sq];
 
@@ -1064,9 +1058,7 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
 
     // return (king_attacks_count > 0)
 
-#ifndef NDEBUG
     assert(list.contains_valid_moves(board, true));
-#endif
 }
 
 /// Adds 'loud' legal moves to the move list.
@@ -1077,9 +1069,7 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
 void MoveGenerator::add_loud_moves(class MoveList& list, const class Board& board, const U8 side)
 {
     U64 kings = board.bitboards_[KING | side];
-#ifndef NDEBUG
     assert(pop_count(kings) == 1);
-#endif
 
     // We always need legal king moves
     U64 attacked_squares = get_king_danger_squares(board, side, kings);
@@ -1120,9 +1110,7 @@ void MoveGenerator::add_loud_moves(class MoveList& list, const class Board& boar
         // if only one attacker, we can try attacking the attacker with
         // our other pieces.
         capture_mask = checkers;
-#ifndef NDEBUG
         assert(pop_count(checkers) == 1);
-#endif
         U8 checker_sq = bit_scan_forward(checkers);
         U8 checker = board[checker_sq];
 
@@ -1164,9 +1152,7 @@ void MoveGenerator::add_loud_moves(class MoveList& list, const class Board& boar
         add_slider_legal_attacks(list, board, capture_mask, pinned, king_sq, side);
         add_king_legal_attacks(list, board, king_capture_mask, side);
     }
-#ifndef NDEBUG
     assert(list.contains_valid_moves(board, true));
-#endif
 }
 
 #ifdef MVVLVA
@@ -1251,9 +1237,7 @@ U64 MoveGenerator::get_checkers(const class Board& board, const U8 side)
     {
         return checkers;
     }
-#ifndef NDEBUG
     assert(pop_count(kings) == 1);
-#endif
     U64 occupied = board.bitboards_[WHITE] | board.bitboards_[BLACK];
     U8 king_sq = bit_scan_forward(kings);
 
@@ -1292,9 +1276,7 @@ MoveGenPreprocessing MoveGenerator::get_checkers_and_pinned(const class Board& b
     U8 attacker_side = !side;
 
     U64 kings = board.bitboards_[KING | side];
-#ifndef NDEBUG
     assert(pop_count(kings) == 1);
-#endif
     U64 occupied = board.bitboards_[WHITE] | board.bitboards_[BLACK];
     U64 friendly = board.bitboards_[side];
     U8 king_sq = bit_scan_forward(kings);
@@ -1380,9 +1362,7 @@ U64 MoveGenerator::get_king_danger_squares(const class Board& board, const U8 si
     attacked_squares |= knight_targets(knights);
 
     U64 kings = board.bitboards_[KING | attacker_side];
-#ifndef NDEBUG
     assert(pop_count(kings) == 1);
-#endif
     attacked_squares |= king_targets(kings);
 
     U64 pawns = board.bitboards_[PAWN | attacker_side];
