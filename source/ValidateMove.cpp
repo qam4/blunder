@@ -7,6 +7,10 @@
 #include "MoveGenerator.h"
 #include "Output.h"
 
+using std::cerr;
+using std::endl;
+using std::string;
+
 string static is_legal_move_err(Move_t move, const class Board& board);
 string static is_valid_move_err(Move_t move, const class Board& board);
 

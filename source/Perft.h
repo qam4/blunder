@@ -11,7 +11,7 @@
 #include "Board.h"
 
 long perft(class Board &board, int depth);
-long perft_fen(string fen, int depth);
-void perft_benchmark(string fen, int depth);
+long perft_fen(std::string fen, int depth);
+void perft_benchmark(std::string fen, int depth);
 
 #endif /* PERFT_H */

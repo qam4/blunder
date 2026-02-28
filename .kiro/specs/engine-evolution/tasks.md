@@ -87,20 +87,20 @@
   - [x] 12.5 Verify the engine builds and all existing tests pass after decomposition
     - _Requirements: 34.1, 34.2, 34.3, 34.4, 34.5, 34.6, 35.1, 35.2, 35.3, 35.4_
 
-- [ ] 13. Checkpoint — Verify decomposition
+- [x] 13. Checkpoint — Verify decomposition
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 14. Modernize C++ patterns (Req 36, 40)
-  - [ ] 14.1 Replace typedefs in source/Types.h with `<cstdint>` using-declarations: `using U64 = uint64_t;`, `using U32 = uint32_t;`, `using U16 = uint16_t;`, `using U8 = uint8_t;`
+- [x] 14. Modernize C++ patterns (Req 36, 40)
+  - [x] 14.1 Replace typedefs in source/Types.h with `<cstdint>` using-declarations: `using U64 = uint64_t;`, `using U32 = uint32_t;`, `using U16 = uint16_t;`, `using U8 = uint8_t;`
     - Audit all U16 usages to confirm they work with actual 16-bit type
     - _Requirements: 36.7, 40.1, 40.2, 40.3_
-  - [ ] 14.2 Remove `using namespace std;` from source/Common.h; add explicit `std::` prefixes to all affected files
+  - [x] 14.2 Remove `using namespace std;` from source/Common.h; add explicit `std::` prefixes to all affected files
     - _Requirements: 36.1_
-  - [ ] 14.3 Remove `#define DEBUG` from source/Common.h; add `target_compile_definitions(blunder PRIVATE $<$<CONFIG:Debug>:DEBUG>)` to CMakeLists.txt
+  - [x] 14.3 Remove `#define DEBUG` from source/Common.h; add `target_compile_definitions(blunder PRIVATE $<$<CONFIG:Debug>:DEBUG>)` to CMakeLists.txt
     - _Requirements: 36.2_
-  - [ ] 14.4 Replace C-style casts with static_cast/reinterpret_cast throughout the codebase
+  - [x] 14.4 Replace C-style casts with static_cast/reinterpret_cast throughout the codebase
     - _Requirements: 36.4_
-  - [ ] 14.5 Verify the engine builds in both Debug and Release configurations after all modernization changes
+  - [x] 14.5 Verify the engine builds in both Debug and Release configurations after all modernization changes
     - _Requirements: 36.1, 36.2, 36.3, 36.4, 36.5, 36.6, 36.7_
 
 - [ ] 15. Refactor Xboard command loop (Req 37)

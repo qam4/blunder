@@ -48,6 +48,12 @@ target_include_directories(
 
 target_compile_features(blunder_lib PUBLIC cxx_std_17)
 
+target_compile_definitions(
+    blunder_lib
+    PRIVATE
+    $<$<CONFIG:Debug>:DEBUG>
+)
+
 # ---- Declare executable ----
 
 add_executable(blunder_exe source/main.cpp)

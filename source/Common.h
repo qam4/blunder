@@ -11,10 +11,6 @@
 #include <string>
 #include <assert.h>
 
-using namespace std;
-
-#define DEBUG
-
 #include "Types.h"
 #include "Constants.h"
 

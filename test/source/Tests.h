@@ -14,4 +14,8 @@
 #include "Perft.h"
 #include "Search.h"
 
+using std::cout;
+using std::endl;
+using std::string;
+
 #endif /* TESTS_H */

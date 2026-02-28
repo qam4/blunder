@@ -12,6 +12,10 @@
 #include "Parser.h"
 #include "ValidateMove.h"
 
+using std::cout;
+using std::endl;
+using std::string;
+
 Xboard::Xboard()
     : search_(board_, board_.get_evaluator(), board_.get_tt())
 {

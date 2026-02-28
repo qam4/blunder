@@ -37,7 +37,7 @@ class Xboard
     void un_make(Move_t move);                 // unmakes the move;
     int  setup(const char *fen);               // sets up the position from the given FEN, and returns the new side to move
     void set_memory_size(int n);               // if n is different from last time, resize all tables to make memory usage below n MB
-    string move_to_text(Move_t move);          // converts the move from your internal format to text like e2e2, e1g1, a7a8q.
+    std::string move_to_text(Move_t move);          // converts the move from your internal format to text like e2e2, e1g1, a7a8q.
     Move_t parse_move(const char *move_text);  // converts a long-algebraic text move to your internal move format
     int  search_best_move(int stm, int time_left, int mps, int time_control, float inc, int time_per_move, int max_depth, Move_t *move, Move_t *ponder_move);
     void ponder_until_input(int stm);          // Search current position for stm, deepening forever until there is input.
@@ -56,7 +56,7 @@ class Xboard
     int post_thinking_;
     int resign_;          // engine-defined option
     int contempt_factor_; // likewise
-    string setup_fen_;
+    std::string setup_fen_;
 };
 
 #endif  // XBOARD_H

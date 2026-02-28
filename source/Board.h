@@ -40,7 +40,7 @@ private:
     } irrev_;
 
     // Extended Position Description
-    map<string, string> epd_;
+    std::map<std::string, std::string> epd_;
 
     Zobrist zobrist_;
     std::shared_ptr<TranspositionTable> tt_;
@@ -90,8 +90,8 @@ public:
     Evaluator& get_evaluator() { return evaluator_; }
 
     // EPD
-    void set_epd_op(const string& opcode, const string& operand) { epd_[opcode] = operand; }
-    string& epd_op(const string& opcode) {return epd_[opcode]; }
+    void set_epd_op(const std::string& opcode, const std::string& operand) { epd_[opcode] = operand; }
+    std::string& epd_op(const std::string& opcode) {return epd_[opcode]; }
 };
 
 #endif /* BOARD_H */

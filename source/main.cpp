@@ -25,7 +25,11 @@
 #include "ValidateMove.h"
 #include "Xboard.h"
 
-using namespace std;
+using std::cin;
+using std::cout;
+using std::endl;
+using std::string;
+using std::vector;
 
 static void print_help(void);
 static void usage(const string& prog_name);

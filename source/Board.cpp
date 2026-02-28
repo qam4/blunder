@@ -3,6 +3,8 @@
  *
  */
 
+#include <algorithm>
+
 #include "Board.h"
 
 #include "MoveGenerator.h"
@@ -235,7 +237,7 @@ void Board::do_move(Move_t move)
 
     game_ply_++;
     search_ply_++;
-    max_search_ply_ = max(max_search_ply_, search_ply_);
+    max_search_ply_ = std::max(max_search_ply_, search_ply_);
     // update_hash();
     assert(game_ply_ < MAX_GAME_PLY);
 #ifdef EXPENSIVE_ASSERTS
@@ -348,7 +350,7 @@ void Board::do_null_move()
 
     game_ply_++;
     search_ply_++;
-    max_search_ply_ = max(max_search_ply_, search_ply_);
+    max_search_ply_ = std::max(max_search_ply_, search_ply_);
     assert(game_ply_ < MAX_GAME_PLY);
 #ifdef EXPENSIVE_ASSERTS
     assert(irrev_.board_hash == zobrist_.get_zobrist_key(*this));

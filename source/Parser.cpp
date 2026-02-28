@@ -11,6 +11,12 @@
 #include "MoveGenerator.h"
 #include "MoveList.h"
 
+using std::cout;
+using std::endl;
+using std::stoi;
+using std::string;
+using std::vector;
+
 // FEN (Forsyth Edwards Notation) parser
 // https://www.chessprogramming.org/Forsyth-Edwards_Notation
 class Board Parser::parse_fen(string fen)

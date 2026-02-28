@@ -1378,6 +1378,8 @@ U64 MoveGenerator::get_king_danger_squares(const class Board& board, const U8 si
 #define INDENT "    "
 void MoveGenerator::generate_move_lookup_tables()
 {
+    using std::cout;
+    using std::endl;
     cout << "// LOOKUP TABLE FOR KNIGHT MOVES" << endl;
     cout << "const U64 KNIGHT_LOOKUP_TABLE[64] = {" << endl << INDENT;
     for (int row = 0; row < 8; row++)

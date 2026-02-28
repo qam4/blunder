@@ -10,6 +10,15 @@
 #include "Parser.h"
 #include "Search.h"
 
+using std::cout;
+using std::endl;
+using std::ifstream;
+using std::setprecision;
+using std::stoi;
+using std::string;
+using std::tuple;
+using std::vector;
+
 // Test positions
 // https://www.chessprogramming.org/Test-Positions
 

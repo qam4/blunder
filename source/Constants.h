@@ -47,7 +47,7 @@ const U8 WHITE_KING = 12;
 const U8 BLACK_KING = 13;
 const int NUM_PIECES = 14;
 
-const string PIECE_CHARS = "_EPpNnBbRrQqKk";
+const std::string PIECE_CHARS = "_EPpNnBbRrQqKk";
 
 // Unicode chess piece characters (indexed same as PIECE_CHARS)
 // Index: 0=EMPTY, 1=EMPTY, 2=WHITE_PAWN, 3=BLACK_PAWN, 4=WHITE_KNIGHT, ...

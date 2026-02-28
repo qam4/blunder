@@ -5,10 +5,18 @@
  * Contains: iterative deepening, alphabeta, quiesce, negamax, minimax.
  */
 
+#include <algorithm>
+
 #include "Search.h"
 
 #include "MoveGenerator.h"
 #include "MoveList.h"
+
+using std::cout;
+using std::dec;
+using std::endl;
+using std::max;
+using std::min;
 
 Search::Search(Board& board, Evaluator& evaluator, TranspositionTable& tt)
     : board_(board)

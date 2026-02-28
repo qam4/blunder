@@ -5,6 +5,10 @@
 #include "MoveList.h"
 #include "Parser.h"
 
+using std::cout;
+using std::endl;
+using std::string;
+
 // Performance testing
 // https://www.chessprogramming.org/Perft
 

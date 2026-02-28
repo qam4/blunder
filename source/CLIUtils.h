@@ -8,8 +8,7 @@
 #include <string>
 #include <vector>
 
-using namespace std;
-vector<string> split(const string& s, const char delimiter);
-int str2int(const string& s);
+std::vector<std::string> split(const std::string& s, const char delimiter);
+int str2int(const std::string& s);
 
 #endif  // CLI_UTILS_H

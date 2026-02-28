@@ -3,7 +3,11 @@
  *
  */
 
+#include <algorithm>
+
 #include "MoveGenerator.h"
+
+using std::max;
 
 const int MAX_GAINS_LENGTH = 32;
 

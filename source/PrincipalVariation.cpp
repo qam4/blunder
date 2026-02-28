@@ -9,6 +9,9 @@
 #include "MoveList.h"
 #include "Output.h"
 
+using std::cout;
+using std::endl;
+
 PrincipalVariation::PrincipalVariation()
 {
     reset();

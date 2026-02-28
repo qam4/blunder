@@ -5,7 +5,11 @@
 #include <sstream>
 
 #include "CLIUtils.h"
-using namespace std;
+
+using std::getline;
+using std::istringstream;
+using std::string;
+using std::vector;
 
 // Split string into a vector of strings
 vector<string> split(const string& s, const char delimiter)

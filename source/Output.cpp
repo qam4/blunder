@@ -8,6 +8,12 @@
 #include "MoveGenerator.h"
 #include "MoveList.h"
 
+using std::dec;
+using std::endl;
+using std::hex;
+using std::string;
+using std::stringstream;
+
 #define MAX_ROW 7
 #define MAX_COL 7
 
