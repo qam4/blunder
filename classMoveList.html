@@ -77,33 +77,42 @@
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
-            <dt id="ada31ad7f77a4e9b5679b565148fea778">
-              <span class="m-doc-wrap-bumper">void <a href="#ada31ad7f77a4e9b5679b565148fea778" class="m-doc-self">push</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move)</span>
+            <dt id="a0030592a7c9401993f9be68cb3013f84">
+              <span class="m-doc-wrap-bumper">void <a href="#a0030592a7c9401993f9be68cb3013f84" class="m-doc-self">push</a>(</span><span class="m-doc-wrap"><a href="structMove.html" class="m-doc">Move</a> move)</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a92801b919196385485141967d19860ad">
-              <span class="m-doc-wrap-bumper">auto <a href="#a92801b919196385485141967d19860ad" class="m-doc-self">pop</a>(</span><span class="m-doc-wrap">) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
+            <dt id="aca0176a6bf167b240233720b9add50b5">
+              <span class="m-doc-wrap-bumper">auto <a href="#aca0176a6bf167b240233720b9add50b5" class="m-doc-self">pop</a>(</span><span class="m-doc-wrap">) -&gt; <a href="structMove.html" class="m-doc">Move</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a7659c15193938b799d79224b216e3393">
-              <span class="m-doc-wrap-bumper">void <a href="#a7659c15193938b799d79224b216e3393" class="m-doc-self">set_move</a>(</span><span class="m-doc-wrap">const int idx,
-              <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move)</span>
+            <dt id="af9e5d5833062ba8b6686b4a5b49379cc">
+              <span class="m-doc-wrap-bumper">void <a href="#af9e5d5833062ba8b6686b4a5b49379cc" class="m-doc-self">set_move</a>(</span><span class="m-doc-wrap">int idx,
+              <a href="structMove.html" class="m-doc">Move</a> move)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a4189ad18e08ac89099433f449d98c857">
+              <span class="m-doc-wrap-bumper">void <a href="#a4189ad18e08ac89099433f449d98c857" class="m-doc-self">set_score</a>(</span><span class="m-doc-wrap">int idx,
+              <a href="Types_8h.html#a04d64f805bec0593595b82c338f95e33" class="m-doc">U16</a> score)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ab92e3ad3e1b55d514c0d856f0b82cfc8">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab92e3ad3e1b55d514c0d856f0b82cfc8" class="m-doc-self">get_score</a>(</span><span class="m-doc-wrap">int idx) const -&gt; <a href="Types_8h.html#a04d64f805bec0593595b82c338f95e33" class="m-doc">U16</a></span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="afb83fb5f5601e7000b476ef43aad8c91">
+              <span class="m-doc-wrap-bumper">auto <a href="#afb83fb5f5601e7000b476ef43aad8c91" class="m-doc-self">operator[]</a>(</span><span class="m-doc-wrap">int idx) const -&gt; <a href="structMove.html" class="m-doc">Move</a></span>
             </dt>
             <dd><span></span></dd>
             <dt id="a6633d899e56f63f2d084a3d96bc0390a">
               <span class="m-doc-wrap-bumper">void <a href="#a6633d899e56f63f2d084a3d96bc0390a" class="m-doc-self">reset</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a028985ee955fb8939e7c835c55854617">
-              <span class="m-doc-wrap-bumper">auto <a href="#a028985ee955fb8939e7c835c55854617" class="m-doc-self">operator[]</a>(</span><span class="m-doc-wrap">const int idx) const -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
-            </dt>
-            <dd><span></span></dd>
             <dt id="a1a308a35fc3b04b31875784bedff542c">
               <span class="m-doc-wrap-bumper">auto <a href="#a1a308a35fc3b04b31875784bedff542c" class="m-doc-self">length</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a57bf069858f7fda21bec1dba70e04612">
-              <span class="m-doc-wrap-bumper">auto <a href="#a57bf069858f7fda21bec1dba70e04612" class="m-doc-self">contains</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move) -&gt; bool</span>
+            <dt id="abe8542f2151093ace944077761b3d585">
+              <span class="m-doc-wrap-bumper">auto <a href="#abe8542f2151093ace944077761b3d585" class="m-doc-self">contains</a>(</span><span class="m-doc-wrap"><a href="structMove.html" class="m-doc">Move</a> move) -&gt; bool</span>
             </dt>
             <dd><span></span></dd>
             <dt id="a1c3c97accd924b36d94fd94ce7084fd5">

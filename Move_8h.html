@@ -58,6 +58,7 @@
             <li>
               Reference
               <ul>
+                <li><a href="#nested-classes">Classes</a></li>
                 <li><a href="#typedef-members">Typedefs</a></li>
                 <li><a href="#func-members">Functions</a></li>
                 <li><a href="#var-members">Variables</a></li>
@@ -65,11 +66,24 @@
             </li>
           </ul>
         </div>
+        <section id="nested-classes">
+          <h2><a href="#nested-classes">Classes</a></h2>
+          <dl class="m-doc">
+            <dt>
+              struct <a href="structMove.html" class="m-doc">Move</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              struct <a href="structScoredMove.html" class="m-doc">ScoredMove</a>
+            </dt>
+            <dd><span></span></dd>
+          </dl>
+        </section>
         <section id="typedef-members">
           <h2><a href="#typedef-members">Typedefs</a></h2>
           <dl class="m-doc">
-            <dt id="a5db0acaa0ed15a66740fd0182605dd40">
-              using <a href="#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc-self">Move_t</a> = <a href="Types_8h.html#ac3df7cf3c8cb172a588adec881447d68" class="m-doc">U32</a>
+            <dt id="a7f28988fc6d784f06a66dde1a6f4318c">
+              using <a href="#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc-self">Move_t</a> = <a href="structMove.html" class="m-doc">Move</a>
             </dt>
             <dd><span></span></dd>
           </dl>
@@ -77,103 +91,90 @@
         <section id="func-members">
           <h2><a href="#func-members">Functions</a></h2>
           <dl class="m-doc">
-            <dt id="ae0645296952980061600865812939ced">
-              <span class="m-doc-wrap-bumper">auto <a href="#ae0645296952980061600865812939ced" class="m-doc-self">build_move</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> from,
-              <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> to) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
+            <dt id="ab7503685039464293094fe9853b059b4">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab7503685039464293094fe9853b059b4" class="m-doc-self">build_move</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> from,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> to) -&gt; <a href="structMove.html" class="m-doc">Move</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="aba147047a2cd7ae8f7f3fdf2367aac44">
-              <span class="m-doc-wrap-bumper">auto <a href="#aba147047a2cd7ae8f7f3fdf2367aac44" class="m-doc-self">build_capture</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> from,
-              <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> to,
-              <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> capture) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
+            <dt id="a271652aec28a2deeb35aeac271e565b4">
+              <span class="m-doc-wrap-bumper">auto <a href="#a271652aec28a2deeb35aeac271e565b4" class="m-doc-self">build_capture</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> from,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> to,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> capture) -&gt; <a href="structMove.html" class="m-doc">Move</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="ade2246831c8dec9cde866a9f96e2c7ce">
-              <span class="m-doc-wrap-bumper">auto <a href="#ade2246831c8dec9cde866a9f96e2c7ce" class="m-doc-self">build_ep_capture</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> from,
-              <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> to,
-              <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> capture) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
+            <dt id="af6ee0244a48a86499501762b6a8ff107">
+              <span class="m-doc-wrap-bumper">auto <a href="#af6ee0244a48a86499501762b6a8ff107" class="m-doc-self">build_ep_capture</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> from,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> to,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> capture) -&gt; <a href="structMove.html" class="m-doc">Move</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="aa26a3c2e65812e7da94d75a0e422994e">
-              <span class="m-doc-wrap-bumper">auto <a href="#aa26a3c2e65812e7da94d75a0e422994e" class="m-doc-self">build_promotion</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> from,
-              <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> to,
-              <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> promote_to) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
+            <dt id="a700fac9f1f56965c043cf64c8fc276c6">
+              <span class="m-doc-wrap-bumper">auto <a href="#a700fac9f1f56965c043cf64c8fc276c6" class="m-doc-self">build_promotion</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> from,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> to,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> promote_to) -&gt; <a href="structMove.html" class="m-doc">Move</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a09bd8f01fd21683da946dd9a0efaba78">
-              <span class="m-doc-wrap-bumper">auto <a href="#a09bd8f01fd21683da946dd9a0efaba78" class="m-doc-self">build_capture_promotion</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> from,
-              <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> to,
-              <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> capture,
-              <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> promote_to) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
+            <dt id="a8c826578a36e79ea330cd41d57bb87db">
+              <span class="m-doc-wrap-bumper">auto <a href="#a8c826578a36e79ea330cd41d57bb87db" class="m-doc-self">build_capture_promotion</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> from,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> to,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> capture,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> promote_to) -&gt; <a href="structMove.html" class="m-doc">Move</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a25b1493ef2896ed7a286bfe72cdd22e4">
-              <span class="m-doc-wrap-bumper">auto <a href="#a25b1493ef2896ed7a286bfe72cdd22e4" class="m-doc-self">build_pawn_double_push</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> from,
-              <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> to) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
+            <dt id="ae2c376c3ca37bb9de309e41090542814">
+              <span class="m-doc-wrap-bumper">auto <a href="#ae2c376c3ca37bb9de309e41090542814" class="m-doc-self">build_pawn_double_push</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> from,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> to) -&gt; <a href="structMove.html" class="m-doc">Move</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a08197aab4fb51b6b00b736d58dd100aa">
-              <span class="m-doc-wrap-bumper">auto <a href="#a08197aab4fb51b6b00b736d58dd100aa" class="m-doc-self">build_castle</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#ac3df7cf3c8cb172a588adec881447d68" class="m-doc">U32</a> flags) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
+            <dt id="aaad22cdd522285c8dfaaa26811c4cd11">
+              <span class="m-doc-wrap-bumper">auto <a href="#aaad22cdd522285c8dfaaa26811c4cd11" class="m-doc-self">build_castle</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#ab37374d415ba87a0b67431eca2673dba" class="m-doc">U32</a> flags) -&gt; <a href="structMove.html" class="m-doc">Move</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="aa5a8e8fcad68edfcae8e6a1ac6332ed1">
-              <span class="m-doc-wrap-bumper">auto <a href="#aa5a8e8fcad68edfcae8e6a1ac6332ed1" class="m-doc-self">build_move_all</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> from,
-              <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> to,
-              <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> capture,
-              <a href="Types_8h.html#ac3df7cf3c8cb172a588adec881447d68" class="m-doc">U32</a> flags) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
+            <dt id="a4d21dc3917e7606075eae132adbb9610">
+              <span class="m-doc-wrap-bumper">auto <a href="#a4d21dc3917e7606075eae132adbb9610" class="m-doc-self">build_move_all</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> from,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> to,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> capture,
+              <a href="Types_8h.html#ab37374d415ba87a0b67431eca2673dba" class="m-doc">U32</a> flags) -&gt; <a href="structMove.html" class="m-doc">Move</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a578a53a5f2c057fe378c2467b8457641">
-              <span class="m-doc-wrap-bumper">void <a href="#a578a53a5f2c057fe378c2467b8457641" class="m-doc-self">move_reset_score</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a>* move)</span>
+            <dt id="abda804c5715eb1a22fe8ecb7ec853d81">
+              <span class="m-doc-wrap-bumper">auto <a href="#abda804c5715eb1a22fe8ecb7ec853d81" class="m-doc-self">move_from</a>(</span><span class="m-doc-wrap"><a href="structMove.html" class="m-doc">Move</a> m) -&gt; <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="ae89cb3434566d14860f257e230ee69f2">
-              <span class="m-doc-wrap-bumper">void <a href="#ae89cb3434566d14860f257e230ee69f2" class="m-doc-self">move_set_score</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a>* move,
-              <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> score)</span>
+            <dt id="a00a7d18b35e2e4df7c2a5cfb3a084023">
+              <span class="m-doc-wrap-bumper">auto <a href="#a00a7d18b35e2e4df7c2a5cfb3a084023" class="m-doc-self">move_to</a>(</span><span class="m-doc-wrap"><a href="structMove.html" class="m-doc">Move</a> m) -&gt; <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="af51392e0c378a41c3c2aae5ce221acae">
-              <span class="m-doc-wrap-bumper">auto <a href="#af51392e0c378a41c3c2aae5ce221acae" class="m-doc-self">is_capture</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move) -&gt; bool</span>
+            <dt id="afaa565ce2f1a7cf395080210bb4218fe">
+              <span class="m-doc-wrap-bumper">auto <a href="#afaa565ce2f1a7cf395080210bb4218fe" class="m-doc-self">move_captured</a>(</span><span class="m-doc-wrap"><a href="structMove.html" class="m-doc">Move</a> m) -&gt; <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="aa7717f0e387fa31fb880dd85c848ace9">
-              <span class="m-doc-wrap-bumper">auto <a href="#aa7717f0e387fa31fb880dd85c848ace9" class="m-doc-self">is_promotion</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move) -&gt; bool</span>
+            <dt id="a9edef355947291dfe073a6f4299af3d2">
+              <span class="m-doc-wrap-bumper">auto <a href="#a9edef355947291dfe073a6f4299af3d2" class="m-doc-self">move_flags</a>(</span><span class="m-doc-wrap"><a href="structMove.html" class="m-doc">Move</a> m) -&gt; <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="ae52ec49d67ba54cfda049b53b6974fa5">
-              <span class="m-doc-wrap-bumper">auto <a href="#ae52ec49d67ba54cfda049b53b6974fa5" class="m-doc-self">is_ep_capture</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move) -&gt; bool</span>
+            <dt id="a42099c1837c449174c9cb95fec0f0a4f">
+              <span class="m-doc-wrap-bumper">auto <a href="#a42099c1837c449174c9cb95fec0f0a4f" class="m-doc-self">move_promote_to</a>(</span><span class="m-doc-wrap"><a href="structMove.html" class="m-doc">Move</a> m) -&gt; <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a8707b859e37ac2d155d46b387da9c0da">
-              <span class="m-doc-wrap-bumper">auto <a href="#a8707b859e37ac2d155d46b387da9c0da" class="m-doc-self">is_castle</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move) -&gt; bool</span>
+            <dt id="ab1d00af397548fbdc38d2b23eb6de72e">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab1d00af397548fbdc38d2b23eb6de72e" class="m-doc-self">is_capture</a>(</span><span class="m-doc-wrap"><a href="structMove.html" class="m-doc">Move</a> m) -&gt; bool</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a66345dfe05e284a6f0caa549bd5dc7d5">
-              <span class="m-doc-wrap-bumper">auto <a href="#a66345dfe05e284a6f0caa549bd5dc7d5" class="m-doc-self">is_pawn_double_push</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move) -&gt; bool</span>
+            <dt id="afc2693b64f1a588e002791ee2affd16a">
+              <span class="m-doc-wrap-bumper">auto <a href="#afc2693b64f1a588e002791ee2affd16a" class="m-doc-self">is_promotion</a>(</span><span class="m-doc-wrap"><a href="structMove.html" class="m-doc">Move</a> m) -&gt; bool</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="aa71aef07a5a407dcb3e9b679530b9d7b">
-              <span class="m-doc-wrap-bumper">auto <a href="#aa71aef07a5a407dcb3e9b679530b9d7b" class="m-doc-self">move_from</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move) -&gt; <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a></span>
+            <dt id="ace8b45adfa873814a5a3701968c574cb">
+              <span class="m-doc-wrap-bumper">auto <a href="#ace8b45adfa873814a5a3701968c574cb" class="m-doc-self">is_ep_capture</a>(</span><span class="m-doc-wrap"><a href="structMove.html" class="m-doc">Move</a> m) -&gt; bool</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a529b9113ef0a5c8ca19f78a8dd00918e">
-              <span class="m-doc-wrap-bumper">auto <a href="#a529b9113ef0a5c8ca19f78a8dd00918e" class="m-doc-self">move_to</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move) -&gt; <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a></span>
+            <dt id="aafb96f2c7df767fa291e178257c2b7a7">
+              <span class="m-doc-wrap-bumper">auto <a href="#aafb96f2c7df767fa291e178257c2b7a7" class="m-doc-self">is_castle</a>(</span><span class="m-doc-wrap"><a href="structMove.html" class="m-doc">Move</a> m) -&gt; bool</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="ac8adc036d15f8ebc36197783c0248a6e">
-              <span class="m-doc-wrap-bumper">auto <a href="#ac8adc036d15f8ebc36197783c0248a6e" class="m-doc-self">move_captured</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move) -&gt; <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a></span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a322ebb6bbc6cc5a954819847eb77102c">
-              <span class="m-doc-wrap-bumper">auto <a href="#a322ebb6bbc6cc5a954819847eb77102c" class="m-doc-self">move_flags</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move) -&gt; <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a></span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a16255d8c29a4b6f5416386fa90445c4a">
-              <span class="m-doc-wrap-bumper">auto <a href="#a16255d8c29a4b6f5416386fa90445c4a" class="m-doc-self">move_promote_to</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move) -&gt; <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a></span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="abf204a646762567aef989ac979b1ede2">
-              <span class="m-doc-wrap-bumper">auto <a href="#abf204a646762567aef989ac979b1ede2" class="m-doc-self">move_score</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move) -&gt; <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a></span>
+            <dt id="a96f7644bbf32f203a3d757c0006382d1">
+              <span class="m-doc-wrap-bumper">auto <a href="#a96f7644bbf32f203a3d757c0006382d1" class="m-doc-self">is_pawn_double_push</a>(</span><span class="m-doc-wrap"><a href="structMove.html" class="m-doc">Move</a> m) -&gt; bool</span>
             </dt>
             <dd><span></span></dd>
           </dl>
@@ -181,72 +182,68 @@
         <section id="var-members">
           <h2><a href="#var-members">Variables</a></h2>
           <dl class="m-doc">
-            <dt id="a33a00d5ee94b9f6461e4d9d84544cdd8">
-              static const int <a href="#a33a00d5ee94b9f6461e4d9d84544cdd8" class="m-doc-self">FROM_SHIFT</a>
+            <dt id="ada2853bcf648c79bf2a1e58503dbf019">
+              int <a href="#ada2853bcf648c79bf2a1e58503dbf019" class="m-doc-self">FROM_SHIFT</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a1e215d5ef80f93ea6f82dbe275b18c1b">
-              static const <a href="Types_8h.html#ac3df7cf3c8cb172a588adec881447d68" class="m-doc">U32</a> <a href="#a1e215d5ef80f93ea6f82dbe275b18c1b" class="m-doc-self">FROM_MASK</a>
+            <dt id="a1b3d464dc487ef2ac0de103647fae996">
+              <a href="Types_8h.html#ab37374d415ba87a0b67431eca2673dba" class="m-doc">U32</a> <a href="#a1b3d464dc487ef2ac0de103647fae996" class="m-doc-self">FROM_MASK</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a1cc82500904311858cf4da6effff460c">
-              static const int <a href="#a1cc82500904311858cf4da6effff460c" class="m-doc-self">TO_SHIFT</a>
+            <dt id="a1edfa32a4c8ce03c3c23e7295bae1878">
+              int <a href="#a1edfa32a4c8ce03c3c23e7295bae1878" class="m-doc-self">TO_SHIFT</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a1c4db5288228d54219b811679762d8ff">
-              static const <a href="Types_8h.html#ac3df7cf3c8cb172a588adec881447d68" class="m-doc">U32</a> <a href="#a1c4db5288228d54219b811679762d8ff" class="m-doc-self">TO_MASK</a>
+            <dt id="ab890f37133e7a3a4bb1138558b8a9a85">
+              <a href="Types_8h.html#ab37374d415ba87a0b67431eca2673dba" class="m-doc">U32</a> <a href="#ab890f37133e7a3a4bb1138558b8a9a85" class="m-doc-self">TO_MASK</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a5c7a3c6dfdef3c5caf6e278d0f7ba99e">
-              static const int <a href="#a5c7a3c6dfdef3c5caf6e278d0f7ba99e" class="m-doc-self">CAPTURE_SHIFT</a>
+            <dt id="a47d2c21700d3595b14bf0acc9929a7e3">
+              int <a href="#a47d2c21700d3595b14bf0acc9929a7e3" class="m-doc-self">CAPTURE_SHIFT</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="ac6784c45d054664b9e0b9e1049e24138">
-              static const <a href="Types_8h.html#ac3df7cf3c8cb172a588adec881447d68" class="m-doc">U32</a> <a href="#ac6784c45d054664b9e0b9e1049e24138" class="m-doc-self">CAPTURE_MASK</a>
+            <dt id="a65cb755591173f4090a8728b2a61e511">
+              <a href="Types_8h.html#ab37374d415ba87a0b67431eca2673dba" class="m-doc">U32</a> <a href="#a65cb755591173f4090a8728b2a61e511" class="m-doc-self">CAPTURE_MASK</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a6576f8cf0877e76260662c4fca72a40a">
-              static const int <a href="#a6576f8cf0877e76260662c4fca72a40a" class="m-doc-self">FLAGS_SHIFT</a>
+            <dt id="aaf98c703b7b13e0cf4452942f3fa9cb2">
+              int <a href="#aaf98c703b7b13e0cf4452942f3fa9cb2" class="m-doc-self">FLAGS_SHIFT</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="ae55ae99061d6d2d47776ff8749df9d4a">
-              static const <a href="Types_8h.html#ac3df7cf3c8cb172a588adec881447d68" class="m-doc">U32</a> <a href="#ae55ae99061d6d2d47776ff8749df9d4a" class="m-doc-self">FLAGS_MASK</a>
+            <dt id="a960f90ca7e3f1e848cad69de98574af6">
+              <a href="Types_8h.html#ab37374d415ba87a0b67431eca2673dba" class="m-doc">U32</a> <a href="#a960f90ca7e3f1e848cad69de98574af6" class="m-doc-self">FLAGS_MASK</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a081ee1a99fe2dee9b997a9fcc153ff1f">
-              static const <a href="Types_8h.html#ac3df7cf3c8cb172a588adec881447d68" class="m-doc">U32</a> <a href="#a081ee1a99fe2dee9b997a9fcc153ff1f" class="m-doc-self">NO_FLAGS</a>
+            <dt id="abd231df5e15d27211730a94a8a497b4f">
+              <a href="Types_8h.html#ab37374d415ba87a0b67431eca2673dba" class="m-doc">U32</a> <a href="#abd231df5e15d27211730a94a8a497b4f" class="m-doc-self">NO_FLAGS</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="abac669b03bada8d225fb3bdafe6315ce">
-              static const <a href="Types_8h.html#ac3df7cf3c8cb172a588adec881447d68" class="m-doc">U32</a> <a href="#abac669b03bada8d225fb3bdafe6315ce" class="m-doc-self">PROMOTE_TO_MASK</a>
+            <dt id="a4176b05215ad67c95a9d29d16d4eda56">
+              <a href="Types_8h.html#ab37374d415ba87a0b67431eca2673dba" class="m-doc">U32</a> <a href="#a4176b05215ad67c95a9d29d16d4eda56" class="m-doc-self">PROMOTE_TO_MASK</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="af2ce2cebc4ef86a3795a6fb2def7e0da">
-              static const <a href="Types_8h.html#ac3df7cf3c8cb172a588adec881447d68" class="m-doc">U32</a> <a href="#af2ce2cebc4ef86a3795a6fb2def7e0da" class="m-doc-self">PAWN_DOUBLE_PUSH</a>
+            <dt id="acc3ebaa3edacb13c3bcb04fe61c81692">
+              <a href="Types_8h.html#ab37374d415ba87a0b67431eca2673dba" class="m-doc">U32</a> <a href="#acc3ebaa3edacb13c3bcb04fe61c81692" class="m-doc-self">PAWN_DOUBLE_PUSH</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="af95ba5496654e21094b0131969e9d7ca">
-              static const <a href="Types_8h.html#ac3df7cf3c8cb172a588adec881447d68" class="m-doc">U32</a> <a href="#af95ba5496654e21094b0131969e9d7ca" class="m-doc-self">EP_CAPTURE</a>
+            <dt id="a2f72a56b80fc3010ed35894411271e86">
+              <a href="Types_8h.html#ab37374d415ba87a0b67431eca2673dba" class="m-doc">U32</a> <a href="#a2f72a56b80fc3010ed35894411271e86" class="m-doc-self">EP_CAPTURE</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a3018f4dc167acd5469578a85732d72bf">
-              static const <a href="Types_8h.html#ac3df7cf3c8cb172a588adec881447d68" class="m-doc">U32</a> <a href="#a3018f4dc167acd5469578a85732d72bf" class="m-doc-self">KING_CASTLE</a>
+            <dt id="a417196c2ae3f6ea45b1a162ec45ddba0">
+              <a href="Types_8h.html#ab37374d415ba87a0b67431eca2673dba" class="m-doc">U32</a> <a href="#a417196c2ae3f6ea45b1a162ec45ddba0" class="m-doc-self">KING_CASTLE</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a49aa8408c253d63ab3ebabd092d8ee60">
-              static const <a href="Types_8h.html#ac3df7cf3c8cb172a588adec881447d68" class="m-doc">U32</a> <a href="#a49aa8408c253d63ab3ebabd092d8ee60" class="m-doc-self">QUEEN_CASTLE</a>
+            <dt id="a10a24ecdf5e319fe27a179b8fc903f88">
+              <a href="Types_8h.html#ab37374d415ba87a0b67431eca2673dba" class="m-doc">U32</a> <a href="#a10a24ecdf5e319fe27a179b8fc903f88" class="m-doc-self">QUEEN_CASTLE</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a3f4c72278f2469e6b1da62711c76f0ee">
-              static const <a href="Types_8h.html#ac3df7cf3c8cb172a588adec881447d68" class="m-doc">U32</a> <a href="#a3f4c72278f2469e6b1da62711c76f0ee" class="m-doc-self">CASTLE_MASK</a>
+            <dt id="ae25933a63dfc9093cd7f35b7096e90d4">
+              <a href="Types_8h.html#ab37374d415ba87a0b67431eca2673dba" class="m-doc">U32</a> <a href="#ae25933a63dfc9093cd7f35b7096e90d4" class="m-doc-self">CASTLE_MASK</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a3c9ac7d3b1b6df61b5532ba132153353">
-              static const int <a href="#a3c9ac7d3b1b6df61b5532ba132153353" class="m-doc-self">SCORE_SHIFT</a>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a58ed2ee21af506c134ffca2f64b89bfc">
-              static const <a href="Types_8h.html#ac3df7cf3c8cb172a588adec881447d68" class="m-doc">U32</a> <a href="#a58ed2ee21af506c134ffca2f64b89bfc" class="m-doc-self">SCORE_MASK</a>
+            <dt id="ad53ae11fe24a31c740fb823303b5d51f">
+              <a href="Types_8h.html#ab37374d415ba87a0b67431eca2673dba" class="m-doc">U32</a> <a href="#ad53ae11fe24a31c740fb823303b5d51f" class="m-doc-self">MOVE_IDENTITY_MASK</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
           </dl>

@@ -67,38 +67,38 @@
         <section id="pub-static-methods">
           <h2><a href="#pub-static-methods">Public static functions</a></h2>
           <dl class="m-doc">
-            <dt id="a690f0314135a01d1bac7dfe9f6c7d54d">
-              <span class="m-doc-wrap-bumper">static auto <a href="#a690f0314135a01d1bac7dfe9f6c7d54d" class="m-doc-self">parse_fen</a>(</span><span class="m-doc-wrap">string fen) -&gt; class <a href="classBoard.html" class="m-doc">Board</a></span>
+            <dt id="a2e139135a8ddc168f5ebc9c2312d1ddc">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a2e139135a8ddc168f5ebc9c2312d1ddc" class="m-doc-self">parse_fen</a>(</span><span class="m-doc-wrap">const std::string&amp; fen) -&gt; <a href="classBoard.html" class="m-doc">Board</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="ac31a62e59b56ed8d2507c2413bd64f59">
-              <span class="m-doc-wrap-bumper">static auto <a href="#ac31a62e59b56ed8d2507c2413bd64f59" class="m-doc-self">parse_epd</a>(</span><span class="m-doc-wrap">string epd) -&gt; class <a href="classBoard.html" class="m-doc">Board</a></span>
+            <dt id="ae6db6b95226af7f56fc005a633d650a0">
+              <span class="m-doc-wrap-bumper">static auto <a href="#ae6db6b95226af7f56fc005a633d650a0" class="m-doc-self">parse_epd</a>(</span><span class="m-doc-wrap">std::string epd) -&gt; <a href="classBoard.html" class="m-doc">Board</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a5faf4cd0b2ba495026d30e66b3c071a8">
-              <span class="m-doc-wrap-bumper">static auto <a href="#a5faf4cd0b2ba495026d30e66b3c071a8" class="m-doc-self">parse_san</a>(</span><span class="m-doc-wrap">string str,
-              const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
+            <dt id="a4d79c19fd73ee3bc81ff9bee97a0b549">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a4d79c19fd73ee3bc81ff9bee97a0b549" class="m-doc-self">parse_san</a>(</span><span class="m-doc-wrap">const std::string&amp; str,
+              const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; std::optional&lt;<a href="Move_8h.html#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc">Move_<wbr />t</a>&gt;</span>
             </dt>
             <dd><span></span></dd>
             <dt id="a336f1d197a67b8c886fb51de4f533de8">
-              <span class="m-doc-wrap-bumper">static auto <a href="#a336f1d197a67b8c886fb51de4f533de8" class="m-doc-self">parse_piece</a>(</span><span class="m-doc-wrap">char piece) -&gt; <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a></span>
+              <span class="m-doc-wrap-bumper">static auto <a href="#a336f1d197a67b8c886fb51de4f533de8" class="m-doc-self">parse_piece</a>(</span><span class="m-doc-wrap">char piece) -&gt; <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a></span>
             </dt>
             <dd><span></span></dd>
             <dt id="af997fdb18bf60188fdd52f9f8c34d560">
-              <span class="m-doc-wrap-bumper">static auto <a href="#af997fdb18bf60188fdd52f9f8c34d560" class="m-doc-self">side</a>(</span><span class="m-doc-wrap">char c) -&gt; <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a></span>
+              <span class="m-doc-wrap-bumper">static auto <a href="#af997fdb18bf60188fdd52f9f8c34d560" class="m-doc-self">side</a>(</span><span class="m-doc-wrap">char c) -&gt; <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a></span>
             </dt>
             <dd><span></span></dd>
             <dt id="acc73606776eef5973afc9ed4bbd6d1c0">
-              <span class="m-doc-wrap-bumper">static auto <a href="#acc73606776eef5973afc9ed4bbd6d1c0" class="m-doc-self">castling_right</a>(</span><span class="m-doc-wrap">char c) -&gt; <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a></span>
+              <span class="m-doc-wrap-bumper">static auto <a href="#acc73606776eef5973afc9ed4bbd6d1c0" class="m-doc-self">castling_right</a>(</span><span class="m-doc-wrap">char c) -&gt; <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a2d058a6d9fae8838ef767381167b9334">
-              <span class="m-doc-wrap-bumper">static auto <a href="#a2d058a6d9fae8838ef767381167b9334" class="m-doc-self">square</a>(</span><span class="m-doc-wrap">char sq[]) -&gt; <a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a></span>
+            <dt id="ae7809b95f75806f5e4a7242432303a00">
+              <span class="m-doc-wrap-bumper">static auto <a href="#ae7809b95f75806f5e4a7242432303a00" class="m-doc-self">square</a>(</span><span class="m-doc-wrap">const char sq[]) -&gt; <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a8d7ca4d1b8be8c9c1e6e537c84d5e9be">
-              <span class="m-doc-wrap-bumper">static auto <a href="#a8d7ca4d1b8be8c9c1e6e537c84d5e9be" class="m-doc-self">move</a>(</span><span class="m-doc-wrap">string str,
-              const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
+            <dt id="a83062843061f22b7194e97aef37a49bb">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a83062843061f22b7194e97aef37a49bb" class="m-doc-self">move</a>(</span><span class="m-doc-wrap">const std::string&amp; str,
+              const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; std::optional&lt;<a href="Move_8h.html#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc">Move_<wbr />t</a>&gt;</span>
             </dt>
             <dd><span></span></dd>
           </dl>
