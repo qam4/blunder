@@ -112,6 +112,12 @@ Move_t PrincipalVariation::get_best_move() const
     return pv_table_[0];
 }
 
+Move_t PrincipalVariation::get_move(int index) const
+{
+    assert(index >= 0 && index < pv_length_[0]);
+    return pv_table_[index];
+}
+
 int PrincipalVariation::length() const
 {
     return pv_length_[0];

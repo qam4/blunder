@@ -92,3 +92,69 @@ TEST_CASE("move_generator_see_3", "[move generator see]")
             == SEE_PIECE_VALUE[PAWN >> 1]);
     // TODO: black promotions
 }
+
+// Additional SEE example-based tests for specific capture categories
+
+TEST_CASE("see_undefended_capture", "[move generator see]")
+{
+    // Rook on e2 captures undefended pawn on e5: full pawn value
+    REQUIRE(seeTest("4k3/8/8/4p3/8/8/4R3/4K3 w - -", "Rxe5") == SEE_PIECE_VALUE[PAWN >> 1]);
+    // Queen on b2 captures undefended knight on e5 (diagonal b2-e5): full knight value
+    REQUIRE(seeTest("4k3/8/8/4n3/8/8/1Q6/4K3 w - -", "Qxe5") == SEE_PIECE_VALUE[KNIGHT >> 1]);
+    // Bishop on h2 captures undefended rook on e5 (diagonal h2-e5): full rook value
+    REQUIRE(seeTest("4k3/8/8/4r3/8/8/7B/4K3 w - -", "Bxe5") == SEE_PIECE_VALUE[ROOK >> 1]);
+}
+
+TEST_CASE("see_equally_defended_capture", "[move generator see]")
+{
+    // Knight captures pawn on e5 defended by pawn on d6: pawn - knight (losing trade)
+    REQUIRE(seeTest("4k3/8/3p4/4p3/8/3N4/8/4K3 w - -", "Nxe5")
+            == SEE_PIECE_VALUE[PAWN >> 1] - SEE_PIECE_VALUE[KNIGHT >> 1]);
+    // Queen on b2 captures undefended queen on e5 (diagonal): full queen value
+    REQUIRE(seeTest("4k3/8/8/4q3/8/8/1Q6/4K3 w - -", "Qxe5") == SEE_PIECE_VALUE[QUEEN >> 1]);
+}
+
+// Property 8: Quiescence search has no side effects on board state
+TEST_CASE("quiesce_no_side_effects", "[board invariance]")
+{
+    static const char* QUIESCE_FENS[] = {
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4",
+        "r3k2r/ppp2ppp/2nqbn2/3pp3/3PP3/2NQBN2/PPP2PPP/R3K2R w KQkq - 6 8",
+        "8/pp3ppp/2p1k3/4p3/4P3/2P1K3/PP3PPP/8 w - - 0 1",
+        // Tactical position with many captures available
+        "r1bqk2r/ppp2ppp/2n5/3np1N1/2B5/8/PPPP1PPP/RNBQK2R w KQkq - 0 6",
+        "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+    };
+
+    for (const auto* fen : QUIESCE_FENS)
+    {
+        Board board = Parser::parse_fen(fen);
+        U64 hash_before = board.get_hash();
+        U8 stm_before = board.side_to_move();
+        U8 castle_before = board.castling_rights();
+        U8 ep_before = board.ep_square();
+        int hmc_before = board.half_move_count();
+
+        // Capture board array
+        U8 pieces_before[64];
+        for (int i = 0; i < 64; i++)
+            pieces_before[i] = board[i];
+
+        Search search(board, board.get_evaluator(), board.get_tt());
+        board.set_search_ply(0);
+        search.quiesce(-MAX_SCORE, MAX_SCORE);
+
+        INFO("FEN: " << fen);
+        REQUIRE(board.get_hash() == hash_before);
+        REQUIRE(board.side_to_move() == stm_before);
+        REQUIRE(board.castling_rights() == castle_before);
+        REQUIRE(board.ep_square() == ep_before);
+        REQUIRE(board.half_move_count() == hmc_before);
+        for (int i = 0; i < 64; i++)
+        {
+            INFO("square: " << i);
+            REQUIRE(board[i] == pieces_before[i]);
+        }
+    }
+}

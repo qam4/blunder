@@ -44,8 +44,14 @@ project(blunderTests LANGUAGES CXX)
 # ---- Tests ----
 
 add_executable(blunder_test
+    source/TestAlgorithmEquivalence.cpp
     source/TestBoard.cpp
+    source/TestBoardInvariance.cpp
+    source/TestDrawDetection.cpp
+    source/TestEvaluation.cpp
+    source/TestFenRoundTrip.cpp
     source/TestSearch.cpp
+    source/TestSearchProperties.cpp
     source/TestParser.cpp
     source/TestMove.cpp
     source/TestMoveList.cpp

@@ -23,6 +23,7 @@ public:
     void score_move(MoveList& list, int search_ply, Move_t best_move, int& follow_pv);
     void print(Board& board);
     Move_t get_best_move() const;
+    Move_t get_move(int index) const;
     int length() const;
     void set_length(int ply, int len);
 

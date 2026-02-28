@@ -127,13 +127,13 @@
   - [x] 17.3 Update source/ValidateMove.cpp to use the same error reporting mechanism instead of raw cerr
     - _Requirements: 39.4_
 
-- [ ] 18. Checkpoint — Verify Phase 2 complete
+- [x] 18. Checkpoint — Verify Phase 2 complete
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Phase 3: Algorithm Correctness Validation
 
-- [ ] 19. Implement algorithm equivalence tests (Req 1, 2)
-  - [ ] 19.1 Create test/source/TestAlgorithmEquivalence.cpp with Catch2 test cases
+- [x] 19. Implement algorithm equivalence tests (Req 1, 2)
+  - [x] 19.1 Create test/source/TestAlgorithmEquivalence.cpp with Catch2 test cases
     - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.2, 2.3_
   - [ ]* 19.2 Write property test: MiniMax and NegaMax produce identical scores for any valid FEN at the same depth
     - **Property 1: minimax_score == negamax_score for all positions and depths 1–4**
@@ -145,8 +145,8 @@
     - **Property 3: alphabeta_nodes <= negamax_nodes for all positions and depths**
     - **Validates: Requirement 2.2**
 
-- [ ] 20. Implement board invariance tests (Req 3, 4, 5, 13)
-  - [ ] 20.1 Create test/source/TestBoardInvariance.cpp with Catch2 test cases
+- [x] 20. Implement board invariance tests (Req 3, 4, 5, 13)
+  - [x] 20.1 Create test/source/TestBoardInvariance.cpp with Catch2 test cases
     - _Requirements: 3.1, 3.2, 3.3, 4.1, 4.2, 4.3, 4.4, 5.1, 5.2, 5.3, 13.1, 13.2, 13.3, 13.4_
   - [ ]* 20.2 Write property test: Board state is identical before and after any search algorithm completes
     - **Property 4: board_hash_after_search == board_hash_before_search for all positions and algorithms**
@@ -161,30 +161,30 @@
     - **Property 7: do_null_move then undo_null_move restores hash, side_to_move, ep_square, pieces**
     - **Validates: Requirements 13.1, 13.2, 13.3, 13.4**
 
-- [ ] 21. Implement SEE and quiescence tests (Req 6, 7)
+- [x] 21. Implement SEE and quiescence tests (Req 6, 7)
   - [ ]* 21.1 Write example-based tests for SEE in test/source/TestSee.cpp: undefended capture, equally-defended capture, promotion capture, en-passant capture
     - **Validates: Requirements 6.1, 6.2, 6.3, 6.4, 6.5**
   - [ ]* 21.2 Write property test: Quiescence search has no side effects on board state
     - **Property 8: board_hash_after_quiesce == board_hash_before_quiesce for all positions**
     - **Validates: Requirements 7.1, 7.2, 7.3, 7.4**
 
-- [ ] 22. Implement mate and draw detection tests (Req 8, 15)
-  - [ ] 22.1 Create test/source/TestDrawDetection.cpp with Catch2 test cases for fifty-move rule boundaries and threefold repetition
+- [x] 22. Implement mate and draw detection tests (Req 8, 15)
+  - [x] 22.1 Create test/source/TestDrawDetection.cpp with Catch2 test cases for fifty-move rule boundaries and threefold repetition
     - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5_
   - [ ]* 22.2 Write example-based tests for mate detection: checkmate returns mate score, stalemate returns draw score, mate-in-N at sufficient depth
     - **Validates: Requirements 8.1, 8.2, 8.3, 8.4**
   - [ ]* 22.3 Write example-based tests for draw boundaries: is_draw() at half_move_count 99 vs 100, twofold vs threefold
     - **Validates: Requirements 15.1, 15.2, 15.3, 15.4, 15.5**
 
-- [ ] 23. Implement evaluation symmetry tests (Req 16)
-  - [ ] 23.1 Create test/source/TestEvaluation.cpp with Catch2 test cases
+- [x] 23. Implement evaluation symmetry tests (Req 16)
+  - [x] 23.1 Create test/source/TestEvaluation.cpp with Catch2 test cases
     - _Requirements: 16.1, 16.2, 16.3, 16.4_
   - [ ]* 23.2 Write property test: evaluate(pos) == -evaluate(mirror(pos)) for color-mirrored positions
     - **Property 9: Evaluation is symmetric under color swap for all positions**
     - **Validates: Requirements 16.1**
 
-- [ ] 24. Implement search property tests (Req 9, 10, 11, 12, 14, 17, 18)
-  - [ ] 24.1 Create test/source/TestSearchProperties.cpp with Catch2 test cases
+- [x] 24. Implement search property tests (Req 9, 10, 11, 12, 14, 17, 18)
+  - [x] 24.1 Create test/source/TestSearchProperties.cpp with Catch2 test cases
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 12.1, 12.2, 14.1, 14.2, 14.3, 17.1, 17.2, 17.3, 18.1, 18.2, 18.3_
   - [ ]* 24.2 Write property test: PV consists of legal moves that form a valid game sequence
     - **Property 10: Every move in the PV is legal in the position at that ply**
@@ -195,13 +195,13 @@
   - [ ]* 24.4 Write property test: Aspiration window re-search produces same result as full-window search
     - **Property 12: aspiration_search(pos, d) == full_window_search(pos, d) for all positions**
     - **Validates: Requirements 14.1, 14.2, 14.3**
-  - [ ] 24.5 Create test/source/TestFenRoundTrip.cpp with Catch2 test cases for FEN parse → serialize → parse round-trip
+  - [x] 24.5 Create test/source/TestFenRoundTrip.cpp with Catch2 test cases for FEN parse → serialize → parse round-trip
     - _Requirements: 11.1, 11.2, 11.3_
   - [ ]* 24.6 Write property test: FEN round-trip produces identical board state
     - **Property 13: parse(serialize(parse(fen))) == parse(fen) for all valid FEN strings**
     - **Validates: Requirements 11.1, 11.2, 11.3**
 
-- [ ] 25. Checkpoint — Verify Phase 3 tests pass
+- [-] 25. Checkpoint — Verify Phase 3 tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Phase 4: Performance & Efficiency
