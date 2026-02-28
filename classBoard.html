@@ -110,62 +110,12 @@
               <span class="m-doc-wrap-bumper">void <a href="#a474d131402f45d240d9f9438895d12a5" class="m-doc-self">undo_null_move</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a3669aa7482204b35711b2040be2aff31">
-              <span class="m-doc-wrap-bumper">auto <a href="#a3669aa7482204b35711b2040be2aff31" class="m-doc-self">evaluate</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
-            </dt>
-            <dd><span></span></dd>
             <dt id="a386f2e5861a55976ec6a4e94d4cae38b">
               <span class="m-doc-wrap-bumper">auto <a href="#a386f2e5861a55976ec6a4e94d4cae38b" class="m-doc-self">is_game_over</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="afbdda3d36866e1f5f706ff97546b588e">
-              <span class="m-doc-wrap-bumper">auto <a href="#afbdda3d36866e1f5f706ff97546b588e" class="m-doc-self">is_draw</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a55e23ae05b346501c2fc39fd3140d433">
-              <span class="m-doc-wrap-bumper">auto <a href="#a55e23ae05b346501c2fc39fd3140d433" class="m-doc-self">search</a>(</span><span class="m-doc-wrap">int depth,
-              int search_time = <a href="Constants_8h.html#a870ea5214a0bf14be6314ddbdcc7c178" class="m-doc">DEFAULT_<wbr />SEARCH_<wbr />TIME</a>,
-              int max_nodes_visited = -1,
-              bool xboard = false) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a7baf34077da157bc737026f1d6ff69ab">
-              <span class="m-doc-wrap-bumper">auto <a href="#a7baf34077da157bc737026f1d6ff69ab" class="m-doc-self">minimax</a>(</span><span class="m-doc-wrap">int depth,
-              bool maximizing_player) -&gt; int</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a708d4ae369eb81affe95cf6ca609f416">
-              <span class="m-doc-wrap-bumper">auto <a href="#a708d4ae369eb81affe95cf6ca609f416" class="m-doc-self">minimax_root</a>(</span><span class="m-doc-wrap">int depth,
-              bool maximizing_player) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a9d361bdf115e3840f9b7cf9c6584d615">
-              <span class="m-doc-wrap-bumper">auto <a href="#a9d361bdf115e3840f9b7cf9c6584d615" class="m-doc-self">negamax</a>(</span><span class="m-doc-wrap">int depth) -&gt; int</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="abb7b321cd1ae83e4fd9e3c1aa57fa4bb">
-              <span class="m-doc-wrap-bumper">auto <a href="#abb7b321cd1ae83e4fd9e3c1aa57fa4bb" class="m-doc-self">negamax_root</a>(</span><span class="m-doc-wrap">int depth) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="ac6db07fd5184c45c48a1d99dafefdfb4">
-              <span class="m-doc-wrap-bumper">auto <a href="#ac6db07fd5184c45c48a1d99dafefdfb4" class="m-doc-self">alphabeta</a>(</span><span class="m-doc-wrap">int alpha,
-              int beta,
-              int depth,
-              int is_pv,
-              int can_null) -&gt; int</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a8c3c0c411cb2c285ed64053e2fbfd0f7">
-              <span class="m-doc-wrap-bumper">auto <a href="#a8c3c0c411cb2c285ed64053e2fbfd0f7" class="m-doc-self">quiesce</a>(</span><span class="m-doc-wrap">int alpha,
-              int beta) -&gt; int</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a560edd9c9ff0a21feff57a9a3e4f9a0e">
-              <span class="m-doc-wrap-bumper">auto <a href="#a560edd9c9ff0a21feff57a9a3e4f9a0e" class="m-doc-self">is_search_time_over</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a5fce265977d11fda641d1596e434ac37">
-              <span class="m-doc-wrap-bumper">auto <a href="#a5fce265977d11fda641d1596e434ac37" class="m-doc-self">should_stop_search</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
+            <dt id="a564e912d577656316525f14d80a473e3">
+              <span class="m-doc-wrap-bumper">auto <a href="#a564e912d577656316525f14d80a473e3" class="m-doc-self">is_draw</a>(</span><span class="m-doc-wrap">bool in_search = false) -&gt; bool</span>
             </dt>
             <dd><span></span></dd>
             <dt id="a1da3ed6a3bb90346ebec749a8d4a7e3f">
@@ -224,16 +174,16 @@
               <span class="m-doc-wrap-bumper">void <a href="#a1839c56fbf30665be1c8d92e3c0d1cba" class="m-doc-self">set_hash</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> hash)</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a050c5993a6cb372766d5fbb800259f94">
-              <span class="m-doc-wrap-bumper">auto <a href="#a050c5993a6cb372766d5fbb800259f94" class="m-doc-self">get_searched_moves</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
-            </dt>
-            <dd><span></span></dd>
             <dt id="af8da7e0f20297cfdc5357928ccfb4ca7">
               <span class="m-doc-wrap-bumper">auto <a href="#af8da7e0f20297cfdc5357928ccfb4ca7" class="m-doc-self">get_game_ply</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a5d840f03fbf890880fdb45d03feebde5">
-              <span class="m-doc-wrap-bumper">auto <a href="#a5d840f03fbf890880fdb45d03feebde5" class="m-doc-self">get_search_best_score</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
+            <dt id="aca854ea7306351bfe171298532571fbb">
+              <span class="m-doc-wrap-bumper">auto <a href="#aca854ea7306351bfe171298532571fbb" class="m-doc-self">get_search_ply</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a0be4c7e85a06153170cb55adb759f8b1">
+              <span class="m-doc-wrap-bumper">void <a href="#a0be4c7e85a06153170cb55adb759f8b1" class="m-doc-self">set_search_ply</a>(</span><span class="m-doc-wrap">int ply)</span>
             </dt>
             <dd><span></span></dd>
             <dt id="ad4157f3df52c3268828abb509e332578">
@@ -244,31 +194,12 @@
               <span class="m-doc-wrap-bumper">void <a href="#a931f27e7a3daaf7784639e7dd012aaa3" class="m-doc-self">update_hash</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a5c76e47a21b159cb9a0261dd878034a6">
-              <span class="m-doc-wrap-bumper">auto <a href="#a5c76e47a21b159cb9a0261dd878034a6" class="m-doc-self">probe_hash</a>(</span><span class="m-doc-wrap">int depth,
-              int alpha,
-              int beta,
-              <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a>&amp; best_move) -&gt; int</span>
+            <dt id="a660d3b23320be74a1dc9ce38c06e370c">
+              <span class="m-doc-wrap-bumper">auto <a href="#a660d3b23320be74a1dc9ce38c06e370c" class="m-doc-self">get_tt</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classTranspositionTable.html" class="m-doc">TranspositionTable</a>&amp;</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a2928a08eb8e9855420ca638dd0293379">
-              <span class="m-doc-wrap-bumper">void <a href="#a2928a08eb8e9855420ca638dd0293379" class="m-doc-self">record_hash</a>(</span><span class="m-doc-wrap">int depth,
-              int val,
-              int flags,
-              <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> best_move)</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a90451a62f9434586ffd11a2067635131">
-              <span class="m-doc-wrap-bumper">void <a href="#a90451a62f9434586ffd11a2067635131" class="m-doc-self">store_pv_move</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move)</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="afa13e0838ca17f3b77e20049352000f5">
-              <span class="m-doc-wrap-bumper">void <a href="#afa13e0838ca17f3b77e20049352000f5" class="m-doc-self">print_pv</a>(</span><span class="m-doc-wrap">)</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a0772a4b328c11b90fe7273b100924a16">
-              <span class="m-doc-wrap-bumper">void <a href="#a0772a4b328c11b90fe7273b100924a16" class="m-doc-self">score_pv_move</a>(</span><span class="m-doc-wrap">class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
-              <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> best_move)</span>
+            <dt id="a14eb208f29f5bc738554e8e500b49247">
+              <span class="m-doc-wrap-bumper">auto <a href="#a14eb208f29f5bc738554e8e500b49247" class="m-doc-self">get_evaluator</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classEvaluator.html" class="m-doc">Evaluator</a>&amp;</span>
             </dt>
             <dd><span></span></dd>
             <dt id="a34ec2f2485078f51a4eb2c0da37644ce">

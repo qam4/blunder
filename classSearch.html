@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Output class | blunder</title>
+  <title>Search class | blunder</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,8 +49,8 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          Output <span class="m-thin">class</span>
-          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Output_8h.html">&lt;Output.h&gt;</a></div>
+          Search <span class="m-thin">class</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Search_8h.html">&lt;Search.h&gt;</a></div>
         </h1>
         <p><span></span></p>
         <div class="m-block m-default">
@@ -59,67 +59,78 @@
             <li>
               Reference
               <ul>
-                <li><a href="#pub-static-methods">Public static functions</a></li>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="pub-static-methods">
-          <h2><a href="#pub-static-methods">Public static functions</a></h2>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
-            <dt id="ad109958b1ac5f22bc89a02e391da8d45">
-              <span class="m-doc-wrap-bumper">static auto <a href="#ad109958b1ac5f22bc89a02e391da8d45" class="m-doc-self">board</a>(</span><span class="m-doc-wrap">const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; string</span>
+            <dt id="a5f379d507fa2fe0f1cec7db4c17ff1f3">
+              <span class="m-doc-wrap-bumper"><a href="#a5f379d507fa2fe0f1cec7db4c17ff1f3" class="m-doc-self">Search</a>(</span><span class="m-doc-wrap"><a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="classEvaluator.html" class="m-doc">Evaluator</a>&amp; evaluator,
+              <a href="classTranspositionTable.html" class="m-doc">TranspositionTable</a>&amp; tt)</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="ad74d89cf4d9b2a067dceed79e9a2a7b3">
-              <span class="m-doc-wrap-bumper">static auto <a href="#ad74d89cf4d9b2a067dceed79e9a2a7b3" class="m-doc-self">bitboard</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a24c386d3758eba951eb7532fdbb45804" class="m-doc">U64</a> bb) -&gt; string</span>
+          </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt id="ad803d42a2bac2b66b50e5c3e22f21902">
+              <span class="m-doc-wrap-bumper">auto <a href="#ad803d42a2bac2b66b50e5c3e22f21902" class="m-doc-self">search</a>(</span><span class="m-doc-wrap">int depth,
+              int search_time = <a href="Constants_8h.html#a870ea5214a0bf14be6314ddbdcc7c178" class="m-doc">DEFAULT_<wbr />SEARCH_<wbr />TIME</a>,
+              int max_nodes_visited = -1,
+              bool xboard = false) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="aebada6394093d315252b57601f7a7d06">
-              <span class="m-doc-wrap-bumper">static auto <a href="#aebada6394093d315252b57601f7a7d06" class="m-doc-self">move</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move,
-              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; string</span>
+            <dt id="ae33fe90e1d9549abbc887f3c595c1033">
+              <span class="m-doc-wrap-bumper">auto <a href="#ae33fe90e1d9549abbc887f3c595c1033" class="m-doc-self">alphabeta</a>(</span><span class="m-doc-wrap">int alpha,
+              int beta,
+              int depth,
+              int is_pv,
+              int can_null) -&gt; int</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="ad5c3afb0abf894d123833ba99aae2085">
-              <span class="m-doc-wrap-bumper">static auto <a href="#ad5c3afb0abf894d123833ba99aae2085" class="m-doc-self">move_san</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a> move,
-              class <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; string</span>
+            <dt id="a3a9a7d5958cb7d25bf21a93742919188">
+              <span class="m-doc-wrap-bumper">auto <a href="#a3a9a7d5958cb7d25bf21a93742919188" class="m-doc-self">quiesce</a>(</span><span class="m-doc-wrap">int alpha,
+              int beta) -&gt; int</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a71041e78c21d42b3d695ad2353cf7ba3">
-              <span class="m-doc-wrap-bumper">static auto <a href="#a71041e78c21d42b3d695ad2353cf7ba3" class="m-doc-self">movelist</a>(</span><span class="m-doc-wrap">const class <a href="classMoveList.html" class="m-doc">MoveList</a>&amp; list,
-              const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; string</span>
+            <dt id="a93a8ebdc5f13ba54504a9f90188ebe8d">
+              <span class="m-doc-wrap-bumper">auto <a href="#a93a8ebdc5f13ba54504a9f90188ebe8d" class="m-doc-self">negamax</a>(</span><span class="m-doc-wrap">int depth) -&gt; int</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a7321f08bbaf3701c4a1443480ee827a1">
-              <span class="m-doc-wrap-bumper">static auto <a href="#a7321f08bbaf3701c4a1443480ee827a1" class="m-doc-self">square</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> square) -&gt; string</span>
+            <dt id="abf09a378ba8f3620785f07a7cca697ba">
+              <span class="m-doc-wrap-bumper">auto <a href="#abf09a378ba8f3620785f07a7cca697ba" class="m-doc-self">negamax_root</a>(</span><span class="m-doc-wrap">int depth) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a93c72aaa87e589324ff5c0d1047608ce">
-              <span class="m-doc-wrap-bumper">static auto <a href="#a93c72aaa87e589324ff5c0d1047608ce" class="m-doc-self">piece</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> piece) -&gt; string</span>
+            <dt id="af8076eca76d6d151bbb37d0b61c30a6a">
+              <span class="m-doc-wrap-bumper">auto <a href="#af8076eca76d6d151bbb37d0b61c30a6a" class="m-doc-self">minimax</a>(</span><span class="m-doc-wrap">int depth,
+              bool maximizing_player) -&gt; int</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a7cf1058eec48eda576797c2bbef206f7">
-              <span class="m-doc-wrap-bumper">static auto <a href="#a7cf1058eec48eda576797c2bbef206f7" class="m-doc-self">castling_rights</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a3cb25ca6f51f003950f9625ff05536fc" class="m-doc">U8</a> castling_rights) -&gt; string</span>
+            <dt id="af5e8efd5111fc966bf56b624f0eeef5a">
+              <span class="m-doc-wrap-bumper">auto <a href="#af5e8efd5111fc966bf56b624f0eeef5a" class="m-doc-self">minimax_root</a>(</span><span class="m-doc-wrap">int depth,
+              bool maximizing_player) -&gt; <a href="Move_8h.html#a5db0acaa0ed15a66740fd0182605dd40" class="m-doc">Move_<wbr />t</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="ab3ff8cb835e4ddb3343d64cd8238d6b8">
-              <span class="m-doc-wrap-bumper">static auto <a href="#ab3ff8cb835e4ddb3343d64cd8238d6b8" class="m-doc-self">board_to_fen</a>(</span><span class="m-doc-wrap">const class <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; string</span>
+            <dt id="a37d24a4d3651d5e551eda5f5edc6e29b">
+              <span class="m-doc-wrap-bumper">auto <a href="#a37d24a4d3651d5e551eda5f5edc6e29b" class="m-doc-self">get_searched_moves</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="ab626e621559614d82031aa42e7d8c837">
-              <span class="m-doc-wrap-bumper">static void <a href="#ab626e621559614d82031aa42e7d8c837" class="m-doc-self">set_colors_enabled</a>(</span><span class="m-doc-wrap">bool enable)</span>
+            <dt id="ac6779e40e2803174f11ab3f58b7d3bcb">
+              <span class="m-doc-wrap-bumper">auto <a href="#ac6779e40e2803174f11ab3f58b7d3bcb" class="m-doc-self">get_search_best_score</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a3962b90c646bef03a043b412f4420a85">
-              <span class="m-doc-wrap-bumper">static auto <a href="#a3962b90c646bef03a043b412f4420a85" class="m-doc-self">is_colors_enabled</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
+            <dt id="a04ca1e275669de21ac3a7b4ccc82737e">
+              <span class="m-doc-wrap-bumper">auto <a href="#a04ca1e275669de21ac3a7b4ccc82737e" class="m-doc-self">get_pv</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classPrincipalVariation.html" class="m-doc">PrincipalVariation</a>&amp;</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a0bfe7cb2bd6ef7744629348130b62c53">
-              <span class="m-doc-wrap-bumper">static void <a href="#a0bfe7cb2bd6ef7744629348130b62c53" class="m-doc-self">set_unicode_enabled</a>(</span><span class="m-doc-wrap">bool enable)</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a59f806c219805ddaea3583a823f9fbf4">
-              <span class="m-doc-wrap-bumper">static auto <a href="#a59f806c219805ddaea3583a823f9fbf4" class="m-doc-self">is_unicode_enabled</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
+            <dt id="a62966a93f9dac8dc6afcc7a932647ec7">
+              <span class="m-doc-wrap-bumper">auto <a href="#a62966a93f9dac8dc6afcc7a932647ec7" class="m-doc-self">get_tm</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classTimeManager.html" class="m-doc">TimeManager</a>&amp;</span>
             </dt>
             <dd><span></span></dd>
           </dl>
