@@ -28,13 +28,9 @@ add_library(
     source/MoveList.cpp
     source/Output.cpp
     source/Parser.cpp
-    source/MiniMax.cpp
-    source/NegaMax.cpp
-    source/AlphaBeta.cpp
-    source/Quiesce.cpp
+    source/Search.cpp
     source/Zobrist.cpp
     source/ValidateMove.cpp
-    source/Hash.cpp
     source/PrincipalVariation.cpp
     source/TranspositionTable.cpp
     source/Perft.cpp

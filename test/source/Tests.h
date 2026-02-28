@@ -12,5 +12,6 @@
 #include "MoveList.h"
 #include "Parser.h"
 #include "Perft.h"
+#include "Search.h"
 
 #endif /* TESTS_H */

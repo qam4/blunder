@@ -77,6 +77,7 @@ void Board::reset()
     irrev_.side_to_move = WHITE;
     game_ply_ = 0;
     search_ply_ = 0;
+    max_search_ply_ = 0;
     update_hash();
 }
 
@@ -399,96 +400,6 @@ bool Board::is_draw(bool in_search)
         }
     }
     return (repetition_count > (in_search ? 0 : 1)) ? true : false;
-}
-
-Move_t Board::search(int depth,
-                     int search_time /*=DEFAULT_SEARCH_TIME*/,
-                     int max_nodes_visited /*=-1*/,
-                     bool xboard /*=false*/)
-{
-    tm_.start(search_time, max_nodes_visited);
-    search_ply_ = 0;
-    pv_.reset();
-
-    // Iterative deepening
-    Move_t last_best_move = 0U;
-    searched_moves_ = 0;
-    nodes_visited_ = 0;
-
-    int alpha = -MAX_SCORE;
-    int beta = MAX_SCORE;
-
-    for (int current_depth = 1; current_depth <= depth; current_depth++)
-    {
-        follow_pv_ = 1;
-        max_search_ply_ = 0;
-
-#if 1
-        int value = alphabeta(alpha, beta, current_depth, IS_PV, DO_NULL);
-
-        // Aspiration window
-        if ((value <= alpha) || (value >= beta))
-        {
-            alpha = -MAX_SCORE;  // We fell outside the window, so try again with a
-            beta = MAX_SCORE;    //  full-width window (and the same depth).
-            follow_pv_ = 1;      // Reset PV-following so move ordering works on re-search.
-            value = alphabeta(alpha, beta, current_depth, IS_PV, DO_NULL);
-        }
-        else
-        {
-            alpha = value - ASPIRATION_WINDOW;  // Set up the window for the next iteration.
-            beta = value + ASPIRATION_WINDOW;
-        }
-#    ifndef NDEBUG
-        assert(value <= MAX_SCORE);
-        assert(value >= -MAX_SCORE);
-#    endif
-        search_best_move_ = pv_.get_best_move();
-#else
-        search_best_move = negamax_root(current_depth);
-        int value = 0;
-#endif
-        clock_t current_time = clock();
-        int elapsed_csecs = int((100 * double(current_time - tm_.start_time())) / CLOCKS_PER_SEC);
-
-        if (xboard)
-        {
-            // DEPTH SCORE TIME NODES PV
-            cout << current_depth << " ";   // search depth
-            cout << value << " ";           // score in centi-Pawn
-            cout << elapsed_csecs << " ";   // time searched in centi-seconds
-            cout << nodes_visited_ << " ";  // node visited
-            pv_.print(*this);
-            cout << endl;
-        }
-        else
-        {
-            cout << "depth=" << current_depth;
-            cout << ", search ply=" << max_search_ply_;
-            cout << ", searched moves=" << searched_moves_;
-            cout << ", time=" << double(elapsed_csecs / 100.0) << "s";
-            cout << ", score=" << value;
-            cout << ", pv=";
-            pv_.print(*this);
-            cout << endl;
-        }
-        last_best_move = search_best_move_;
-        search_best_score_ = value;
-
-        // Stop early if we found a forced mate — no point searching deeper
-        if (abs(value) >= MATE_SCORE - MAX_SEARCH_PLY)
-        {
-            break;
-        }
-
-        if (tm_.should_stop(nodes_visited_))
-        {
-            break;
-        }
-    }
-
-    move_reset_score(&last_best_move);
-    return last_best_move;
 }
 
 void Board::update_hash()

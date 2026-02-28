@@ -12,7 +12,10 @@
 #include "Parser.h"
 #include "ValidateMove.h"
 
-Xboard::Xboard() {}
+Xboard::Xboard()
+    : search_(board_, board_.get_evaluator(), board_.get_tt())
+{
+}
 
 int Xboard::make_move(int stm, Move_t move)
 {
@@ -96,10 +99,10 @@ int Xboard::search_best_move(int stm,
         time_for_this_move = 100;
     }
 
-    Move_t best_move = board_.search(max_depth, time_for_this_move * 10000, -1, true);
+    Move_t best_move = search_.search(max_depth, time_for_this_move * 10000, -1, true);
     *move = best_move;
 
-    return board_.get_search_best_score();
+    return search_.get_search_best_score();
 }
 
 void Xboard::ponder_until_input(int stm)

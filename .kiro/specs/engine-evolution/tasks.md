@@ -75,16 +75,16 @@
   - [x] 11.3 Update all evaluate() and side_relative_eval() call sites to use Evaluator& reference
     - _Requirements: 34.3_
 
-- [ ] 12. Extract Search class (Req 34, 35)
-  - [ ] 12.1 Create source/Search.h with Search class taking Board&, Evaluator&, TranspositionTable&, TimeManager& and owning PrincipalVariation, search counters (nodes_visited_, searched_moves_, search_ply_, max_search_ply_, follow_pv_)
+- [x] 12. Extract Search class (Req 34, 35)
+  - [x] 12.1 Create source/Search.h with Search class taking Board&, Evaluator&, TranspositionTable&, TimeManager& and owning PrincipalVariation, search counters (nodes_visited_, searched_moves_, search_ply_, max_search_ply_, follow_pv_)
     - _Requirements: 34.2, 35.3_
-  - [ ] 12.2 Create source/Search.cpp by moving alphabeta, negamax, minimax, quiesce, search() logic from source/Board.cpp, source/AlphaBeta.cpp, source/NegaMax.cpp, source/MiniMax.cpp, source/Quiesce.cpp into Search methods
+  - [x] 12.2 Create source/Search.cpp by moving alphabeta, negamax, minimax, quiesce, search() logic from source/Board.cpp, source/AlphaBeta.cpp, source/NegaMax.cpp, source/MiniMax.cpp, source/Quiesce.cpp into Search methods
     - _Requirements: 34.2, 35.3_
-  - [ ] 12.3 Strip Board class down to game state only: piece placement, bitboards, side_to_move, castling_rights, ep_square, half_move_count, full_move_count, do_move, undo_move
+  - [x] 12.3 Strip Board class down to game state only: piece placement, bitboards, side_to_move, castling_rights, ep_square, half_move_count, full_move_count, do_move, undo_move
     - _Requirements: 34.1_
-  - [ ] 12.4 Update source/Xboard.cpp to create and wire Search, Evaluator, TranspositionTable, TimeManager objects and call Search::search() instead of Board::search()
+  - [x] 12.4 Update source/Xboard.cpp to create and wire Search, Evaluator, TranspositionTable, TimeManager objects and call Search::search() instead of Board::search()
     - _Requirements: 34.2_
-  - [ ] 12.5 Verify the engine builds and all existing tests pass after decomposition
+  - [x] 12.5 Verify the engine builds and all existing tests pass after decomposition
     - _Requirements: 34.1, 34.2, 34.3, 34.4, 34.5, 34.6, 35.1, 35.2, 35.3, 35.4_
 
 - [ ] 13. Checkpoint — Verify decomposition

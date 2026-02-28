@@ -8,6 +8,7 @@
 #include "Board.h"
 #include "Common.h"
 #include "Move.h"
+#include "Search.h"
 
 // four different constants, with values for WHITE and BLACK that suit your engine
 #define STM_WHITE    0
@@ -44,6 +45,7 @@ class Xboard
     void print_result(int stm, int score);
 
     Board board_;
+    Search search_;
 
     int move_nr_;                // part of game state; incremented by make_move
     Move_t game_move_[MAXMOVES]; // holds the game history

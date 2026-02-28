@@ -8,6 +8,7 @@
 #include "Move.h"
 #include "MoveGenerator.h"
 #include "Parser.h"
+#include "Search.h"
 
 // Test positions
 // https://www.chessprogramming.org/Test-Positions
@@ -107,7 +108,8 @@ double test_positions(string path_to_epd)
         }
 
         // Search with max depth, infinite time, max 1000000 moves searched
-        Move_t move = board.search(MAX_SEARCH_PLY, -1, TEST_POSITIONS_MAX_NODES_VISITED);
+        Search search(board, board.get_evaluator(), board.get_tt());
+        Move_t move = search.search(MAX_SEARCH_PLY, -1, TEST_POSITIONS_MAX_NODES_VISITED);
         for (auto best_move : best_moves)
         {
             if (move == std::get<0>(best_move))

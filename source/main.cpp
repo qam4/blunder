@@ -20,6 +20,7 @@
 #include "Output.h"
 #include "Parser.h"
 #include "Perft.h"
+#include "Search.h"
 #include "TestPositions.h"
 #include "ValidateMove.h"
 #include "Xboard.h"
@@ -80,6 +81,7 @@ int main(int argc, char** argv)
 
     string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     Board board = Parser::parse_fen(fen);
+    Search search(board, board.get_evaluator(), board.get_tt());
 
     while (true)
     {
@@ -107,12 +109,12 @@ int main(int argc, char** argv)
             cout << "Thinking..." << endl;
 
             Move_t move;
-            move = board.search(MAX_SEARCH_PLY);
+            move = search.search(MAX_SEARCH_PLY);
             clock_t toc = clock();
             double elapsed_secs = double(toc - tic) / CLOCKS_PER_SEC;
             cout << "time: " << elapsed_secs << "s" << endl;
-            cout << "searched moves: " << board.get_searched_moves() << endl;
-            cout << "searched moves per second: " << int(board.get_searched_moves() / elapsed_secs)
+            cout << "searched moves: " << search.get_searched_moves() << endl;
+            cout << "searched moves per second: " << int(search.get_searched_moves() / elapsed_secs)
                  << endl;
 
             cout << "Computer move: " << Output::move_san(move, board) << endl;
