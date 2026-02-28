@@ -4,11 +4,10 @@
  */
 #include "ValidateMove.h"
 
+#include "Log.h"
 #include "MoveGenerator.h"
 #include "Output.h"
 
-using std::cerr;
-using std::endl;
 using std::string;
 
 string static is_legal_move_err(Move_t move, const class Board& board);
@@ -16,14 +15,13 @@ string static is_valid_move_err(Move_t move, const class Board& board);
 
 bool is_valid_move(Move_t move, const class Board& board, bool check_legal)
 {
-    // cout << "Validating " << Output::move(move, board) << "..." << endl;
     string error = is_valid_move_err(move, board);
-    if (error == "")
+    if (error.empty())
     {
         if (check_legal)
         {
             error = is_legal_move_err(move, board);
-            if (error == "")
+            if (error.empty())
             {
                 return true;
             }
@@ -33,9 +31,9 @@ bool is_valid_move(Move_t move, const class Board& board, bool check_legal)
             return true;
         }
     }
-    cerr << "INVALID_MOVE MOVE " << Output::move(move, board) << ": " << error << endl;
-    cerr << Output::board(board);
-    cerr << "fen=" << Output::board_to_fen(board) << endl;
+    Log::warning("INVALID MOVE " + Output::move(move, board) + ": " + error);
+    Log::debug("Board:\n" + Output::board(board));
+    Log::debug("FEN: " + Output::board_to_fen(board));
     return false;
 }
 

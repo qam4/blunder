@@ -119,12 +119,12 @@
   - [x] 16.3 Migrate all Move_t call sites (source/MoveGenerator.cpp, source/MoveList.cpp, source/AlphaBeta.cpp, source/See.cpp, etc.) to use the new Move class
     - _Requirements: 38.1, 38.2, 38.3_
 
-- [ ] 17. Implement consistent error handling (Req 39)
-  - [ ] 17.1 Define a consistent error reporting strategy: assert() for invariant violations, std::optional or error codes for Parser functions, a logging utility for runtime warnings
+- [x] 17. Implement consistent error handling (Req 39)
+  - [x] 17.1 Define a consistent error reporting strategy: assert() for invariant violations, std::optional or error codes for Parser functions, a logging utility for runtime warnings
     - _Requirements: 39.2_
-  - [ ] 17.2 Update source/Parser.cpp to return error information (std::optional or error codes) on invalid FEN / invalid move text instead of silently producing corrupt state
+  - [x] 17.2 Update source/Parser.cpp to return error information (std::optional or error codes) on invalid FEN / invalid move text instead of silently producing corrupt state
     - _Requirements: 39.3_
-  - [ ] 17.3 Update source/ValidateMove.cpp to use the same error reporting mechanism instead of raw cerr
+  - [x] 17.3 Update source/ValidateMove.cpp to use the same error reporting mechanism instead of raw cerr
     - _Requirements: 39.4_
 
 - [ ] 18. Checkpoint — Verify Phase 2 complete

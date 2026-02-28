@@ -1,28 +1,27 @@
 /*
  * File:   Parser.h
- *
  */
 
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "Common.h"
+#include <optional>
+
 #include "Board.h"
+#include "Common.h"
 #include "Move.h"
 
 class Parser
 {
-public:
-    static class Board parse_fen(std::string fen);
-    static class Board parse_epd(std::string epd);
-    static Move_t parse_san(std::string str, const Board &board);
+  public:
+    static Board parse_fen(const std::string& fen);
+    static Board parse_epd(std::string epd);
+    static std::optional<Move_t> parse_san(const std::string& str, const Board& board);
     static U8 parse_piece(char piece);
     static U8 side(char c);
     static U8 castling_right(char c);
-    static U8 square(char sq[]);
-    static Move_t move(std::string str, const Board &board);
-
-private:
+    static U8 square(const char sq[]);
+    static std::optional<Move_t> move(const std::string& str, const Board& board);
 };
 
 #endif /* PARSER_H */

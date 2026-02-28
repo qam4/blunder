@@ -150,10 +150,10 @@ int main(int argc, char** argv)
                 cout << "Usage: move <move>" << endl;
                 continue;
             }
-            Move_t move = Parser::move(tokens[1], board);
-            if (is_valid_move(move, board, true))
+            auto opt = Parser::move(tokens[1], board);
+            if (opt && is_valid_move(*opt, board, true))
             {
-                board.do_move(move);
+                board.do_move(*opt);
             }
         }
         else if (tokens[0] == "play")

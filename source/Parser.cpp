@@ -1,6 +1,5 @@
 /*
  * File:   Parser.cpp
- *
  */
 
 #include <cstring>
@@ -8,6 +7,7 @@
 #include "Parser.h"
 
 #include "CLIUtils.h"
+#include "Log.h"
 #include "MoveGenerator.h"
 #include "MoveList.h"
 
@@ -19,7 +19,7 @@ using std::vector;
 
 // FEN (Forsyth Edwards Notation) parser
 // https://www.chessprogramming.org/Forsyth-Edwards_Notation
-class Board Parser::parse_fen(string fen)
+class Board Parser::parse_fen(const std::string& fen)
 {
     Board board = Board();
 
@@ -247,18 +247,15 @@ class Board Parser::parse_epd(string epd)
 
 // SAN
 // https://cfajohnson.com/chess/SAN/
-// TODO: better error handling
-Move_t Parser::parse_san(string str, const Board& board)
+std::optional<Move_t> Parser::parse_san(const std::string& str, const Board& board)
 {
-    // cout << Output::board(board) << endl;
-    Move_t move_found = 0;
     size_t len = str.length();
 
-    if ((str.compare("0-0") == 0) || (str.compare("O-O") == 0))
+    if (str == "0-0" || str == "O-O")
     {
         return build_castle(KING_CASTLE);
     }
-    if ((str.compare("0-0-0") == 0) || (str.compare("O-O-O") == 0))
+    if (str == "0-0-0" || str == "O-O-O")
     {
         return build_castle(QUEEN_CASTLE);
     }
@@ -275,7 +272,7 @@ Move_t Parser::parse_san(string str, const Board& board)
     {
         piece = Parser::parse_piece(c) & (0xFEU);
         if (pos++ >= len)
-            return move_found;
+            return std::nullopt;
     }
 
     // optional "from" rank
@@ -284,68 +281,60 @@ Move_t Parser::parse_san(string str, const Board& board)
     {
         from_rank = c - '1';
         if (pos++ >= len)
-            return move_found;
+            return std::nullopt;
     }
 
     // optional 'x'
     if (str[pos] == 'x')
     {
         if (pos++ >= len)
-            return move_found;
+            return std::nullopt;
     }
 
     c = str[pos];
     if (c >= 'a' && c <= 'h')
     {
-        // This could be
-        // - an optional "from" file, then the next char should be the "to" file
-        // - or the "to" file, then the next char should be the "to" rank
-        // so, we need to look ahead
         from_file = c - 'a';
 
         if (pos++ >= len)
-            return move_found;
-        // ignore 'x'
+            return std::nullopt;
         if (str[pos] == 'x')
         {
             if (pos++ >= len)
-                return move_found;
+                return std::nullopt;
         }
         c = str[pos];
         if (c >= '1' && c <= '8')
         {
-            // found the "to" rank
-            from_file = 0;  // reset this
+            from_file = 0;
             to = square(&str[pos - 1]);
         }
         else if (c >= 'a' && c <= 'h')
         {
-            // found the "to" file
             if (pos++ >= len)
-                return move_found;
+                return std::nullopt;
             c = str[pos];
             if (c < '1' && c > '8')
-                return move_found;
+                return std::nullopt;
             to = square(&str[pos - 1]);
         }
         else
         {
-            return move_found;
+            return std::nullopt;
         }
     }
     else
     {
-        return move_found;
+        return std::nullopt;
     }
 
     U8 promo = 0;
     if (pos++ < len)
     {
-        // optional '='
         if (str[pos] == '=')
         {
             if (pos++ >= len)
-                return move_found;
+                return std::nullopt;
         }
         c = str[pos];
         if (c == 'Q' || c == 'N' || c == 'B' || c == 'R')
@@ -353,7 +342,6 @@ Move_t Parser::parse_san(string str, const Board& board)
             promo = Parser::parse_piece(c) & (0xFEU);
         }
     }
-    // ignore the rest of the string
 
     MoveList list;
     MoveGenerator::add_all_moves(list, board, board.side_to_move());
@@ -362,37 +350,21 @@ Move_t Parser::parse_san(string str, const Board& board)
     for (int i = 0; i < n; i++)
     {
         Move_t move = list[i];
-        // cout << Output::move(move, board) << endl;
-        // check if same "to" square
         if (move_to(move) != to)
-        {
             continue;
-        }
-        // check if same piece moved
         U8 from = move_from(move);
         if ((board[from] & (0xFEU)) != piece)
-        {
             continue;
-        }
-        // check promotion
         if (promo && ((move_promote_to(move) & (0xFEU)) != promo))
-        {
             continue;
-        }
-        // check "from" file
         if (from_file && (from & 7) != from_file)
-        {
             continue;
-        }
-        // check "from" rank
         if (from_rank && (from >> 3) != from_rank)
-        {
             continue;
-        }
-        move_found = move;
-        break;
+        return move;
     }
-    return move_found;
+    Log::warning("parse_san: no matching move for '" + str + "'");
+    return std::nullopt;
 }
 
 U8 Parser::parse_piece(char piece)
@@ -428,24 +400,22 @@ U8 Parser::castling_right(char c)
     return 0U;
 }
 
-U8 Parser::square(char sq[])
+U8 Parser::square(const char sq[])
 {
     int col = sq[0] - 'a';
     int row = sq[1] - '1';
     return static_cast<U8>((row * 8) + col);
 }
 
-Move_t Parser::move(string str, const Board& board)
+std::optional<Move_t> Parser::move(const std::string& str, const Board& board)
 {
-    // cout << Output::board(board) << endl;
-    Move_t move_found = 0;
     size_t len = str.length();
 
-    if ((str.compare("0-0") == 0) || (str.compare("O-O") == 0))
+    if (str == "0-0" || str == "O-O")
     {
         return build_castle(KING_CASTLE);
     }
-    if ((str.compare("0-0-0") == 0) || (str.compare("O-O-O") == 0))
+    if (str == "0-0-0" || str == "O-O-O")
     {
         return build_castle(QUEEN_CASTLE);
     }
@@ -455,13 +425,13 @@ Move_t Parser::move(string str, const Board& board)
     U8 to = square(&str[2]);
     U8 piece = board[from];
 
-    if (((side == WHITE) && (piece == WHITE_KING) && (str.compare("e1g1") == 0))
-        || ((side == BLACK) && (piece == BLACK_KING) && (str.compare("e8g8") == 0)))
+    if (((side == WHITE) && (piece == WHITE_KING) && (str == "e1g1"))
+        || ((side == BLACK) && (piece == BLACK_KING) && (str == "e8g8")))
     {
         return build_castle(KING_CASTLE);
     }
-    if (((side == WHITE) && (piece == WHITE_KING) && (str.compare("e1c1") == 0))
-        || ((side == BLACK) && (piece == BLACK_KING) && (str.compare("e8c8") == 0)))
+    if (((side == WHITE) && (piece == WHITE_KING) && (str == "e1c1"))
+        || ((side == BLACK) && (piece == BLACK_KING) && (str == "e8c8")))
     {
         return build_castle(QUEEN_CASTLE);
     }
@@ -475,7 +445,6 @@ Move_t Parser::move(string str, const Board& board)
             promo = Parser::parse_piece(c) & (0xFEU);
         }
     }
-    // ignore the rest of the string
 
     MoveList list;
     MoveGenerator::add_all_moves(list, board, board.side_to_move());
@@ -484,24 +453,14 @@ Move_t Parser::move(string str, const Board& board)
     for (int i = 0; i < n; i++)
     {
         Move_t move = list[i];
-        // cout << Output::move(move, board) << endl;
-        // check if same "to" square
         if (move_to(move) != to)
-        {
             continue;
-        }
-        // check if same "from" square
         if (move_from(move) != from)
-        {
             continue;
-        }
-        // check promotion
         if (promo && ((move_promote_to(move) & (0xFEU)) != promo))
-        {
             continue;
-        }
-        move_found = move;
-        break;
+        return move;
     }
-    return move_found;
+    Log::warning("move: no matching move for '" + str + "'");
+    return std::nullopt;
 }

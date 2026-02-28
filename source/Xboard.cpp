@@ -53,10 +53,10 @@ std::string Xboard::move_to_text(Move_t move)
 
 Move_t Xboard::parse_move(const std::string& move_text)
 {
-    Move_t move = Parser::move(move_text, board_);
-    if (is_valid_move(move, board_, true))
+    auto opt = Parser::move(move_text, board_);
+    if (opt && is_valid_move(*opt, board_, true))
     {
-        return move;
+        return *opt;
     }
     return INVALID_MOVE;
 }

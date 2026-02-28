@@ -132,25 +132,19 @@ TEST_CASE("parser_can_parse_san_1", "[parser]")
     Board board = Parser::parse_fen(fen);
 
     string san;
-    Move_t move;
 
     san = "f3";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_move(F2, F3));
+    REQUIRE(Parser::parse_san(san, board).value() == build_move(F2, F3));
     san = "e4";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_pawn_double_push(E2, E4));
+    REQUIRE(Parser::parse_san(san, board).value() == build_pawn_double_push(E2, E4));
     san = "Nc3";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_move(B1, C3));
+    REQUIRE(Parser::parse_san(san, board).value() == build_move(B1, C3));
     san = "Nf3";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_move(G1, F3));
+    REQUIRE(Parser::parse_san(san, board).value() == build_move(G1, F3));
 
     // non existent move
     san = "Bc4";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == 0U);
+    REQUIRE_FALSE(Parser::parse_san(san, board).has_value());
 }
 
 TEST_CASE("parser_can_parse_san_2", "[parser]")
@@ -159,63 +153,51 @@ TEST_CASE("parser_can_parse_san_2", "[parser]")
     Board board = Parser::parse_fen(fen);
 
     string san;
-    Move_t move;
 
     // check 2 pieces on same file: Ngf3, Nef3, Ngxf3, Nexf3
     san = "Naxb4";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_capture(A2, B4, BLACK_PAWN));
+    REQUIRE(Parser::parse_san(san, board).value() == build_capture(A2, B4, BLACK_PAWN));
     san = "Ncb4";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_capture(C2, B4, BLACK_PAWN));
+    REQUIRE(Parser::parse_san(san, board).value() == build_capture(C2, B4, BLACK_PAWN));
 
     // check 2 pieces on same rank: N5f3, N1f3, N5xf3, N1xf3
     san = "N2xe3";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_capture(C2, E3, BLACK_PAWN));
+    REQUIRE(Parser::parse_san(san, board).value() == build_capture(C2, E3, BLACK_PAWN));
     san = "N4e3";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_capture(C4, E3, BLACK_PAWN));
+    REQUIRE(Parser::parse_san(san, board).value() == build_capture(C4, E3, BLACK_PAWN));
 
     // check 2 pieces different rank and file: Nhf3, Ndf3, Nhxf3, Ndxf3
     san = "Ncxe5";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_capture(C4, E5, BLACK_PAWN));
+    REQUIRE(Parser::parse_san(san, board).value() == build_capture(C4, E5, BLACK_PAWN));
     san = "Nge5";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_capture(G6, E5, BLACK_PAWN));
+    REQUIRE(Parser::parse_san(san, board).value() == build_capture(G6, E5, BLACK_PAWN));
 
     // pawn capture: ed4, exd4
     san = "fxe3";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_capture(F2, E3, BLACK_PAWN));
+    REQUIRE(Parser::parse_san(san, board).value() == build_capture(F2, E3, BLACK_PAWN));
     san = "fe3";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_capture(F2, E3, BLACK_PAWN));
+    REQUIRE(Parser::parse_san(san, board).value() == build_capture(F2, E3, BLACK_PAWN));
 
     // check castles
     san = "O-O";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_castle(KING_CASTLE));
+    REQUIRE(Parser::parse_san(san, board).value() == build_castle(KING_CASTLE));
     san = "O-O-O";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_castle(QUEEN_CASTLE));
+    REQUIRE(Parser::parse_san(san, board).value() == build_castle(QUEEN_CASTLE));
 
     // check promo
     san = "c8Q";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_promotion(C7, C8, WHITE_QUEEN));
+    REQUIRE(Parser::parse_san(san, board).value() == build_promotion(C7, C8, WHITE_QUEEN));
     san = "cd8R";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_capture_promotion(C7, D8, BLACK_BISHOP, WHITE_ROOK));
+    REQUIRE(Parser::parse_san(san, board).value()
+            == build_capture_promotion(C7, D8, BLACK_BISHOP, WHITE_ROOK));
     san = "cxd8B";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_capture_promotion(C7, D8, BLACK_BISHOP, WHITE_BISHOP));
+    REQUIRE(Parser::parse_san(san, board).value()
+            == build_capture_promotion(C7, D8, BLACK_BISHOP, WHITE_BISHOP));
 
     // check ignoring trailing +, ++, #, e.p.
     san = "cxd8Q+";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_capture_promotion(C7, D8, BLACK_BISHOP, WHITE_QUEEN));
+    REQUIRE(Parser::parse_san(san, board).value()
+            == build_capture_promotion(C7, D8, BLACK_BISHOP, WHITE_QUEEN));
 }
 
 TEST_CASE("parser_can_parse_san_3", "[parser]")
@@ -223,8 +205,8 @@ TEST_CASE("parser_can_parse_san_3", "[parser]")
     // Black side to move
     string epd = "8/7p/5k2/5p2/p1p2P2/Pr1pPK2/1P1R3P/8 b - - bm Rxb2;";
     Board board = Parser::parse_epd(epd);
-    Move_t best_move = Parser::parse_san(board.epd_op("bm"), board);
-    REQUIRE(best_move != 0U);
+    auto best_move = Parser::parse_san(board.epd_op("bm"), board);
+    REQUIRE(best_move.has_value());
 }
 
 TEST_CASE("parser_can_parse_san_black_side", "[parser]")
@@ -233,22 +215,21 @@ TEST_CASE("parser_can_parse_san_black_side", "[parser]")
     Board board = Parser::parse_fen(fen);
 
     string san;
-    Move_t move;
 
     // check promo
     san = "e1Q";
-    move = Parser::parse_san(san, board);
-    REQUIRE(move == build_promotion(E2, E1, BLACK_QUEEN));
+    REQUIRE(Parser::parse_san(san, board).value() == build_promotion(E2, E1, BLACK_QUEEN));
 }
 
 static Move_t moveParseTest(string fen, string move_str)
 {
     Board board = Parser::parse_fen(fen);
     cout << Output::board(board);
-    Move_t move = Parser::move(move_str, board);
+    auto opt = Parser::move(move_str, board);
+    REQUIRE(opt.has_value());
+    Move_t move = *opt;
     cout << "move=" << Output::move(move, board) << endl;
     cout << "san=" << Output::move_san(move, board) << endl;
-    CHECK(move != 0U);
     return move;
 }
 
