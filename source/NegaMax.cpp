@@ -26,7 +26,7 @@ int Board::negamax(int depth)
     // Leaf node
     if (depth == 0)
     {
-        return side_relative_eval();
+        return evaluator_.side_relative_eval(*this);
     }
 
     bestvalue = -MAX_SCORE;

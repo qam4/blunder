@@ -86,8 +86,9 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     // https://web.archive.org/web/20040427014629/http://brucemo.com/compchess/programming/nullmove.htm
     // Zugzwang guard: skip null move when side has only king + pawns
     U8 stm = side_to_move();
-    bool has_pieces = (bitboards_[KNIGHT + stm] | bitboards_[BISHOP + stm] |
-                       bitboards_[ROOK + stm] | bitboards_[QUEEN + stm]) != 0;
+    bool has_pieces = (bitboards_[KNIGHT + stm] | bitboards_[BISHOP + stm] | bitboards_[ROOK + stm]
+                       | bitboards_[QUEEN + stm])
+        != 0;
     if ((can_null) && (depth > 2) && !is_pv && !in_check && has_pieces)
     {
         int R = (depth > 6) ? 3 : 2;

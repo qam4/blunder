@@ -15,6 +15,7 @@
 #include "TranspositionTable.h"
 #include "PrincipalVariation.h"
 #include "TimeManager.h"
+#include "Evaluator.h"
 
 #define NO_PV 0  // Not a PV node
 #define IS_PV 1
@@ -53,6 +54,7 @@ private:
     std::shared_ptr<TranspositionTable> tt_;
     PrincipalVariation pv_;
     TimeManager tm_;
+    HandCraftedEvaluator evaluator_;
     U64 hash_history_[MAX_GAME_PLY];
 
     int searched_moves_;
@@ -77,8 +79,6 @@ public:
     void undo_move(Move_t move);
     void do_null_move();
     void undo_null_move();
-    int evaluate();
-    int side_relative_eval();
     bool is_game_over();
     bool is_draw(bool in_search = false);
     // Algos
@@ -115,6 +115,7 @@ public:
     TranspositionTable& get_tt() { return *tt_; }
     PrincipalVariation& get_pv() { return pv_; }
     TimeManager& get_tm() { return tm_; }
+    Evaluator& get_evaluator() { return evaluator_; }
 
     // EPD
     void set_epd_op(const string& opcode, const string& operand) { epd_[opcode] = operand; }

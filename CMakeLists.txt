@@ -41,6 +41,7 @@ add_library(
     source/TestPositions.cpp
     source/Xboard.cpp
     source/See.cpp
+    source/Evaluator.cpp
 )
 
 target_include_directories(

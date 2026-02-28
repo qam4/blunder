@@ -24,7 +24,7 @@ int Board::quiesce(int alpha, int beta)
         return DRAW_SCORE;
     }
 
-    int stand_pat = side_relative_eval();
+    int stand_pat = evaluator_.side_relative_eval(*this);
 
     if (search_ply_ > MAX_SEARCH_PLY - 1)
     {

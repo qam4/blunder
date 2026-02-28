@@ -67,12 +67,12 @@
   - [x] 10.3 Update Board::search() and AlphaBeta to use TimeManager& instead of Board member time fields
     - _Requirements: 34.5_
 
-- [ ] 11. Extract Evaluator interface and HandCraftedEvaluator (Req 34)
-  - [ ] 11.1 Create source/Evaluator.h with abstract Evaluator base class (virtual evaluate(), virtual side_relative_eval()) and HandCraftedEvaluator subclass
+- [x] 11. Extract Evaluator interface and HandCraftedEvaluator (Req 34)
+  - [x] 11.1 Create source/Evaluator.h with abstract Evaluator base class (virtual evaluate(), virtual side_relative_eval()) and HandCraftedEvaluator subclass
     - _Requirements: 34.3_
-  - [ ] 11.2 Move evaluate() logic and piece-square tables from source/Board.cpp into HandCraftedEvaluator
+  - [x] 11.2 Move evaluate() logic and piece-square tables from source/Board.cpp into HandCraftedEvaluator
     - _Requirements: 34.3_
-  - [ ] 11.3 Update all evaluate() and side_relative_eval() call sites to use Evaluator& reference
+  - [x] 11.3 Update all evaluate() and side_relative_eval() call sites to use Evaluator& reference
     - _Requirements: 34.3_
 
 - [ ] 12. Extract Search class (Req 34, 35)

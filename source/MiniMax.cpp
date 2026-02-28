@@ -33,7 +33,7 @@ int Board::minimax(int depth, bool maximizing_player)
     // Leaf node
     if (depth == 0)
     {
-        return evaluate();
+        return evaluator_.evaluate(*this);
     }
 
     if (maximizing_player == true)

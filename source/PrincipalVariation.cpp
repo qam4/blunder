@@ -58,7 +58,6 @@ void PrincipalVariation::print(Board& board)
     }
 }
 
-
 // store PV move
 void PrincipalVariation::store_move(int search_ply, Move_t move)
 {
@@ -72,7 +71,10 @@ void PrincipalVariation::store_move(int search_ply, Move_t move)
 }
 
 // score PV and best move
-void PrincipalVariation::score_move(MoveList& list, int search_ply, Move_t best_move, int& follow_pv)
+void PrincipalVariation::score_move(MoveList& list,
+                                    int search_ply,
+                                    Move_t best_move,
+                                    int& follow_pv)
 {
     // score hash table move
     for (int i = 0; i < list.length(); i++)
