@@ -7,11 +7,14 @@
 #define BOARD_H
 
 #include <map>
+#include <memory>
 
 #include "Common.h"
 #include "Move.h"
 #include "Zobrist.h"
-#include "Hash.h"
+#include "TranspositionTable.h"
+#include "PrincipalVariation.h"
+#include "TimeManager.h"
 
 #define NO_PV 0  // Not a PV node
 #define IS_PV 1
@@ -47,6 +50,9 @@ private:
     map<string, string> epd_;
 
     Zobrist zobrist_;
+    std::shared_ptr<TranspositionTable> tt_;
+    PrincipalVariation pv_;
+    TimeManager tm_;
     U64 hash_history_[MAX_GAME_PLY];
 
     int searched_moves_;
@@ -54,11 +60,8 @@ private:
     int game_ply_;
     int search_ply_;
     int max_search_ply_;
-    clock_t search_start_time_;
     Move_t search_best_move_;
     int search_best_score_;
-    int search_time_;       // search time in usec
-    int max_nodes_visited_;
 
     int follow_pv_;
 
@@ -86,8 +89,6 @@ public:
     Move_t negamax_root(int depth);
     int alphabeta(int alpha, int beta, int depth, int is_pv, int can_null);
     int quiesce(int alpha, int beta);
-    bool is_search_time_over();
-    bool should_stop_search();
 
     U8 operator[](const int square) const; // return piece on that square
     U64 bitboard(const int type) const;
@@ -111,10 +112,9 @@ public:
     void update_hash();
     int probe_hash(int depth, int alpha, int beta, Move_t &best_move);
     void record_hash(int depth, int val, int flags, Move_t best_move);
-
-    void store_pv_move(Move_t move);
-    void print_pv();
-    void score_pv_move(class MoveList &list, Move_t best_move);
+    TranspositionTable& get_tt() { return *tt_; }
+    PrincipalVariation& get_pv() { return pv_; }
+    TimeManager& get_tm() { return tm_; }
 
     // EPD
     void set_epd_op(const string& opcode, const string& operand) { epd_[opcode] = operand; }

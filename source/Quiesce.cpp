@@ -1,7 +1,6 @@
 #include "Board.h"
 #include "MoveGenerator.h"
 #include "MoveList.h"
-#include "PrincipalVariation.h"
 
 // https://www.chessprogramming.org/Quiescence_Search
 int Board::quiesce(int alpha, int beta)
@@ -10,10 +9,10 @@ int Board::quiesce(int alpha, int beta)
     int i, n, value;
     Move_t move;
 
-    pv_length[search_ply_] = search_ply_;
+    pv_.set_length(search_ply_, search_ply_);
 
     // Check time left every 2048 nodes
-    if (((nodes_visited_ & 2047) == 0) && is_search_time_over())
+    if (((nodes_visited_ & 2047) == 0) && tm_.is_time_over(nodes_visited_))
     {
         return 0;
     }
@@ -46,7 +45,7 @@ int Board::quiesce(int alpha, int beta)
     n = list.length();
 
     // score PV move
-    score_pv_move(list, 0);
+    pv_.score_move(list, search_ply_, 0, follow_pv_);
 
     for (i = 0; i < n; i++)
     {
@@ -61,7 +60,7 @@ int Board::quiesce(int alpha, int beta)
             if (value > alpha)
             {
                 alpha = value;
-                store_pv_move(move);
+                pv_.store_move(search_ply_, move);
                 if (value >= beta)
                 {
                     return beta;

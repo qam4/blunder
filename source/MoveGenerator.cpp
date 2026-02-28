@@ -1058,7 +1058,9 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
 
     // return (king_attacks_count > 0)
 
+#ifdef EXPENSIVE_ASSERTS
     assert(list.contains_valid_moves(board, true));
+#endif
 }
 
 /// Adds 'loud' legal moves to the move list.
@@ -1152,7 +1154,9 @@ void MoveGenerator::add_loud_moves(class MoveList& list, const class Board& boar
         add_slider_legal_attacks(list, board, capture_mask, pinned, king_sq, side);
         add_king_legal_attacks(list, board, king_capture_mask, side);
     }
+#ifdef EXPENSIVE_ASSERTS
     assert(list.contains_valid_moves(board, true));
+#endif
 }
 
 #ifdef MVVLVA

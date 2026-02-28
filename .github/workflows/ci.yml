@@ -114,7 +114,7 @@ jobs:
     strategy:
       matrix:
         target: [
-          {arch: macos-x64, os: macos, runs-on: macos-12},
+          {arch: macos-x64, os: macos, runs-on: macos-latest},
           {arch: linux-x64, os: ubuntu, runs-on: ubuntu-22.04},
           {arch: win-x64, os: windows, runs-on: windows-2022}
         ]

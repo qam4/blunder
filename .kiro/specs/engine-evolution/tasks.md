@@ -35,36 +35,36 @@
 
 ## Phase 2: Code Quality & Architecture Refactoring
 
-- [ ] 8. Extract TranspositionTable class from global state (Req 34, 35)
-  - [ ] 8.1 Create source/TranspositionTable.h with TranspositionTable class owning the hash table vector, with clear(), probe(), and record() methods
+- [x] 8. Extract TranspositionTable class from global state (Req 34, 35)
+  - [x] 8.1 Create source/TranspositionTable.h with TranspositionTable class owning the hash table vector, with clear(), probe(), and record() methods
     - Replace `#define` constants (HASH_TABLE_SIZE, HASH_EXACT, HASH_ALPHA, HASH_BETA) with `constexpr` / `enum class HashFlag`
     - Replace `typedef struct HASHE_s { ... } HASHE;` with plain `struct HASHE { ... };`
     - _Requirements: 34.6, 35.2, 36.3, 36.6_
-  - [ ] 8.2 Create source/TranspositionTable.cpp implementing probe() and record() by moving logic from source/Hash.cpp
+  - [x] 8.2 Create source/TranspositionTable.cpp implementing probe() and record() by moving logic from source/Hash.cpp
     - _Requirements: 34.6, 35.2_
-  - [ ] 8.3 Update Board class to use TranspositionTable& instead of global hash_table array; update all probe_hash/record_hash call sites in source/Board.cpp, source/AlphaBeta.cpp
+  - [x] 8.3 Update Board class to use TranspositionTable& instead of global hash_table array; update all probe_hash/record_hash call sites in source/Board.cpp, source/AlphaBeta.cpp
     - _Requirements: 34.6, 35.2_
-  - [ ] 8.4 Remove global hash_table array from source/Hash.cpp and source/Hash.h
+  - [x] 8.4 Remove global hash_table array from source/Hash.cpp and source/Hash.h
     - _Requirements: 35.2_
   - [ ]* 8.5 Write unit tests for TranspositionTable in test/source/TestTranspositionTable.cpp
     - Test probe returns UNKNOWN_SCORE on miss
     - Test record + probe round-trip for EXACT, ALPHA, BETA flags
     - **Validates: Requirements 10.1, 10.2, 10.3, 10.4, 10.5**
 
-- [ ] 9. Extract PrincipalVariation class from global state (Req 34, 35)
-  - [ ] 9.1 Refactor source/PrincipalVariation.h to make PrincipalVariation a class owning pv_table_ and pv_length_ arrays as member data, with reset(), store_move(), score_move(), print(), get_best_move(), length() methods
+- [x] 9. Extract PrincipalVariation class from global state (Req 34, 35)
+  - [x] 9.1 Refactor source/PrincipalVariation.h to make PrincipalVariation a class owning pv_table_ and pv_length_ arrays as member data, with reset(), store_move(), score_move(), print(), get_best_move(), length() methods
     - _Requirements: 34.4, 35.1_
-  - [ ] 9.2 Update source/PrincipalVariation.cpp to implement member functions instead of free functions operating on globals
+  - [x] 9.2 Update source/PrincipalVariation.cpp to implement member functions instead of free functions operating on globals
     - _Requirements: 34.4, 35.1_
-  - [ ] 9.3 Update all PV call sites in source/Board.cpp, source/AlphaBeta.cpp to use PrincipalVariation object instead of global arrays
+  - [x] 9.3 Update all PV call sites in source/Board.cpp, source/AlphaBeta.cpp to use PrincipalVariation object instead of global arrays
     - _Requirements: 34.4, 35.1_
 
-- [ ] 10. Extract TimeManager class (Req 34, 35)
-  - [ ] 10.1 Create source/TimeManager.h with TimeManager class owning start_time_, search_time_, max_nodes_ with start(), is_time_over(), should_stop() methods
+- [x] 10. Extract TimeManager class (Req 34, 35)
+  - [x] 10.1 Create source/TimeManager.h with TimeManager class owning start_time_, search_time_, max_nodes_ with start(), is_time_over(), should_stop() methods
     - _Requirements: 34.5_
-  - [ ] 10.2 Move time management logic from Board (is_search_time_over, should_stop_search) into TimeManager methods
+  - [x] 10.2 Move time management logic from Board (is_search_time_over, should_stop_search) into TimeManager methods
     - _Requirements: 34.5_
-  - [ ] 10.3 Update Board::search() and AlphaBeta to use TimeManager& instead of Board member time fields
+  - [x] 10.3 Update Board::search() and AlphaBeta to use TimeManager& instead of Board member time fields
     - _Requirements: 34.5_
 
 - [ ] 11. Extract Evaluator interface and HandCraftedEvaluator (Req 34)

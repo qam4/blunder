@@ -74,8 +74,14 @@ void MoveGenerator::init_bishop_magic_table()
 
 void MoveGenerator::init_magic_tables()
 {
+    static bool initialized = false;
+    if (initialized)
+    {
+        return;
+    }
     init_rook_magic_table();
     init_bishop_magic_table();
+    initialized = true;
 }
 
 U64 MoveGenerator::rook_attacks_magic(U64 occ, int sq)

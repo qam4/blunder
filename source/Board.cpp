@@ -7,7 +7,6 @@
 
 #include "MoveGenerator.h"
 #include "MoveList.h"
-#include "PrincipalVariation.h"
 
 // Count number of bits set to 1 in 64 bit word
 int pop_count(U64 x)
@@ -59,6 +58,10 @@ void Board::reset()
 {
     MoveGenerator::init_magic_tables();
     zobrist_ = Zobrist();
+    if (!tt_)
+    {
+        tt_ = std::make_shared<TranspositionTable>();
+    }
     for (int i = 0; i < 64; i++)
     {
         board_array_[i] = EMPTY;
@@ -74,7 +77,6 @@ void Board::reset()
     irrev_.side_to_move = WHITE;
     game_ply_ = 0;
     search_ply_ = 0;
-    search_time_ = DEFAULT_SEARCH_TIME;
     update_hash();
 }
 
@@ -235,7 +237,9 @@ void Board::do_move(Move_t move)
     max_search_ply_ = max(max_search_ply_, search_ply_);
     // update_hash();
     assert(game_ply_ < MAX_GAME_PLY);
+#ifdef EXPENSIVE_ASSERTS
     assert(irrev_.board_hash == zobrist_.get_zobrist_key(*this));
+#endif
     hash_history_[game_ply_] = irrev_.board_hash;
 }
 
@@ -345,7 +349,9 @@ void Board::do_null_move()
     search_ply_++;
     max_search_ply_ = max(max_search_ply_, search_ply_);
     assert(game_ply_ < MAX_GAME_PLY);
+#ifdef EXPENSIVE_ASSERTS
     assert(irrev_.board_hash == zobrist_.get_zobrist_key(*this));
+#endif
     hash_history_[game_ply_] = irrev_.board_hash;
 }
 
@@ -529,11 +535,9 @@ Move_t Board::search(int depth,
                      int max_nodes_visited /*=-1*/,
                      bool xboard /*=false*/)
 {
-    search_time_ = search_time;
-    max_nodes_visited_ = max_nodes_visited;
-    search_start_time_ = clock();
+    tm_.start(search_time, max_nodes_visited);
     search_ply_ = 0;
-    reset_pv_table();
+    pv_.reset();
 
     // Iterative deepening
     Move_t last_best_move = 0U;
@@ -568,13 +572,13 @@ Move_t Board::search(int depth,
         assert(value <= MAX_SCORE);
         assert(value >= -MAX_SCORE);
 #    endif
-        search_best_move_ = pv_table[0];
+        search_best_move_ = pv_.get_best_move();
 #else
         search_best_move = negamax_root(current_depth);
         int value = 0;
 #endif
         clock_t current_time = clock();
-        int elapsed_csecs = int((100 * double(current_time - search_start_time_)) / CLOCKS_PER_SEC);
+        int elapsed_csecs = int((100 * double(current_time - tm_.start_time())) / CLOCKS_PER_SEC);
 
         if (xboard)
         {
@@ -583,7 +587,7 @@ Move_t Board::search(int depth,
             cout << value << " ";           // score in centi-Pawn
             cout << elapsed_csecs << " ";   // time searched in centi-seconds
             cout << nodes_visited_ << " ";  // node visited
-            print_pv();
+            pv_.print(*this);
             cout << endl;
         }
         else
@@ -594,62 +598,26 @@ Move_t Board::search(int depth,
             cout << ", time=" << double(elapsed_csecs / 100.0) << "s";
             cout << ", score=" << value;
             cout << ", pv=";
-            print_pv();
+            pv_.print(*this);
             cout << endl;
-        }
-        if (should_stop_search())
-        {
-            break;
         }
         last_best_move = search_best_move_;
         search_best_score_ = value;
+
+        // Stop early if we found a forced mate — no point searching deeper
+        if (abs(value) >= MATE_SCORE - MAX_SEARCH_PLY)
+        {
+            break;
+        }
+
+        if (tm_.should_stop(nodes_visited_))
+        {
+            break;
+        }
     }
 
     move_reset_score(&last_best_move);
     return last_best_move;
-}
-
-bool Board::is_search_time_over()
-{
-    // Check if max number of nodes visited is reached
-    if ((max_nodes_visited_ != -1) && (nodes_visited_ > max_nodes_visited_))
-    {
-        return true;
-    }
-
-    // Special case to allow infinite search time
-    if (search_time_ == -1)
-    {
-        return false;
-    }
-
-    clock_t current_time = clock();
-    int elapsed_time = int((1000000 * double(current_time - search_start_time_)) / CLOCKS_PER_SEC);
-
-    return (elapsed_time > search_time_);
-}
-
-bool Board::should_stop_search()
-{
-    // Check if max number of nodes visited is reached
-    if ((max_nodes_visited_ != -1) && (nodes_visited_ > max_nodes_visited_))
-    {
-        return true;
-    }
-
-    // Special case to allow infinite search time
-    if (search_time_ == -1)
-    {
-        return false;
-    }
-
-    clock_t current_time = clock();
-    clock_t elapsed_time = current_time - search_start_time_;
-
-    // https://mediocrechess.blogspot.com/2007/01/guide-time-management.html
-    // check to see if we have enough time left to search
-    // for 2 times the last depth's time
-    return (2 * elapsed_time > search_time_);
 }
 
 void Board::update_hash()
@@ -658,3 +626,5 @@ void Board::update_hash()
     set_hash(zobrist_.get_zobrist_key(*this));
     hash_history_[game_ply_] = irrev_.board_hash;
 }
+
+

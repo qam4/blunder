@@ -36,6 +36,7 @@ add_library(
     source/ValidateMove.cpp
     source/Hash.cpp
     source/PrincipalVariation.cpp
+    source/TranspositionTable.cpp
     source/Perft.cpp
     source/TestPositions.cpp
     source/Xboard.cpp

@@ -653,6 +653,41 @@ test/source/
 └── TestUCI.cpp                   (Phase 9 — Req 33)
 ```
 
+## Performance Budget & Regression Policy
+
+A core tension in chess engine development is that making the engine "smarter" (better evaluation, deeper search techniques) can also make it slower per node. Every change must be evaluated against this tradeoff.
+
+### Guiding Principle
+
+A change is only beneficial if the strength gained from better decisions outweighs the strength lost from reduced search speed. A 10% slower evaluation that improves positional understanding by 50 Elo is a win. A 10% slower evaluation that gains 5 Elo is probably not.
+
+### Performance Baselines
+
+Before and after any change that touches the hot path (evaluate, move generation, search loop, do_move/undo_move), measure:
+- **NPS** (nodes per second) on a fixed position at a fixed depth
+- **Perft speed** for move generation changes (starting position depth 5 is a good benchmark)
+- **Search depth reached** in a fixed time budget (e.g., 5 seconds on the starting position)
+
+### Hot Path Rules
+
+These functions are called millions of times per search. Changes here must be zero-cost or justified by measurable strength gains:
+- `evaluate()` / `side_relative_eval()` — called at every leaf node and quiescence node
+- `do_move()` / `undo_move()` — called at every node in the search tree
+- `MoveGenerator::add_all_moves()` — called at every non-leaf node
+- `alphabeta()` / `quiesce()` — the search loop itself
+
+### Architecture Overhead
+
+The Phase 2 decomposition (extracting Search, Evaluator, TranspositionTable, etc.) introduces virtual function calls and indirection. This is acceptable because:
+- Virtual dispatch overhead is negligible compared to the work done per node
+- The Evaluator interface enables swapping HandCrafted ↔ NNUE without code changes
+- But: avoid adding virtual calls inside tight inner loops (e.g., per-square evaluation loops)
+
+### Memory Considerations
+
+- The TranspositionTable is now owned by Board, meaning each Board instance allocates ~24MB. This is fine for the engine (one Board in play) but wasteful in tests that construct many Boards. Consider making TT a shared/external resource when extracting the Search class.
+- NNUE accumulators add memory per search stack frame. Keep accumulator updates incremental to avoid per-node allocation.
+
 ## Build System Changes
 
 - Add new source files to `CMakeLists.txt` as they are created

@@ -1,7 +1,6 @@
 #include "Board.h"
 #include "MoveGenerator.h"
 #include "MoveList.h"
-#include "PrincipalVariation.h"
 
 /*
     https://www.chessprogramming.org/Alpha-Beta
@@ -37,10 +36,10 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     int found_pv = 0;
     int in_check = 0;
 
-    pv_length[search_ply_] = search_ply_;
+    pv_.set_length(search_ply_, search_ply_);
 
     // Check time left every 2048 nodes
-    if (((nodes_visited_ & 2047) == 0) && is_search_time_over())
+    if (((nodes_visited_ & 2047) == 0) && tm_.is_time_over(nodes_visited_))
     {
         return 0;
     }
@@ -107,7 +106,7 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     n = list.length();
 
     // score PV move
-    score_pv_move(list, best_move);
+    pv_.score_move(list, search_ply_, best_move, follow_pv_);
 
     for (i = 0; i < n; i++)
     {
@@ -116,13 +115,6 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
         do_move(move);
         if (found_pv)
         {
-            // Principal Variation Search
-            // https://web.archive.org/web/20040427015506/brucemo.com/compchess/programming/pvs.htm
-            // Wait until a move is found that improves alpha, and then searches every move after
-            // that with a zero window around alpha The idea is that if the move ordering is good,
-            // the 1st move that raises alpha (left most) should be the best. So, we try to test
-            // that by doing a search on the other nodes that just checks if the node raises alpha
-            // or not.
             value = -alphabeta(-alpha - 1, -alpha, depth - 1, NO_PV, DO_NULL);
             if ((value > alpha) && (value < beta))  // Check for failure.
             {
@@ -141,7 +133,7 @@ int Board::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
             hash_flag = HASH_EXACT;
             best_move = move;
             alpha = value;
-            store_pv_move(move);
+            pv_.store_move(search_ply_, move);
 
             if (value >= beta)
             {
