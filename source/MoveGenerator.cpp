@@ -1166,7 +1166,7 @@ void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
 
     for (int i = 0; i < n; i++)
     {
-        Move_t move = list[i];
+        Move move = list[i];
 
         if (is_castle(move))
         {
@@ -1179,8 +1179,7 @@ void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
         {
             score = MVVLVA[PAWN >> 1][PAWN >> 1];
         }
-        move_set_score(&move, score);
-        list.set_move(i, move);
+        list.set_score(i, score);
     }
 }
 #else
@@ -1190,7 +1189,7 @@ void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
 
     for (int i = 0; i < n; i++)
     {
-        Move_t move = list[i];
+        Move move = list[i];
         U8 score = 0;
 
         if (is_capture(move))
@@ -1222,8 +1221,7 @@ void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
             score = static_cast<U8>(score + 70);
         }
 
-        move_set_score(&move, score);
-        list.set_move(i, move);
+        list.set_score(i, score);
     }
 }
 #endif

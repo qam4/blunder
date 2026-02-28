@@ -117,7 +117,6 @@ Move_t Search::search(int depth,
         }
     }
 
-    move_reset_score(&last_best_move);
     return last_best_move;
 }
 

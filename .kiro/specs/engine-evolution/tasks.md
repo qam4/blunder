@@ -111,12 +111,12 @@
   - [x] 15.3 Replace raw char arrays, sscanf, and `#define _CRT_SECURE_NO_WARNINGS` with `std::string`, `std::getline`, and `std::istringstream`
     - _Requirements: 37.3, 36.5_
 
-- [ ] 16. Refactor Move encoding (Req 38)
-  - [ ] 16.1 Create a Move class (or struct with methods) wrapping the internal U32, with member functions from(), to(), captured(), flags(), is_capture(), is_promotion(), etc.
+- [x] 16. Refactor Move encoding (Req 38)
+  - [x] 16.1 Create a Move class (or struct with methods) wrapping the internal U32, with member functions from(), to(), captured(), flags(), is_capture(), is_promotion(), etc.
     - _Requirements: 38.1, 38.2, 38.3_
-  - [ ] 16.2 Separate move score into a ScoredMove wrapper used only in MoveList, so score is not packed into the move identity bits
+  - [x] 16.2 Separate move score into a ScoredMove wrapper used only in MoveList, so score is not packed into the move identity bits
     - _Requirements: 38.4_
-  - [ ] 16.3 Migrate all Move_t call sites (source/MoveGenerator.cpp, source/MoveList.cpp, source/AlphaBeta.cpp, source/See.cpp, etc.) to use the new Move class
+  - [x] 16.3 Migrate all Move_t call sites (source/MoveGenerator.cpp, source/MoveList.cpp, source/AlphaBeta.cpp, source/See.cpp, etc.) to use the new Move class
     - _Requirements: 38.1, 38.2, 38.3_
 
 - [ ] 17. Implement consistent error handling (Req 39)

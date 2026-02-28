@@ -82,12 +82,11 @@ void PrincipalVariation::score_move(MoveList& list,
     // score hash table move
     for (int i = 0; i < list.length(); i++)
     {
-        Move_t move = list[i];
+        Move move = list[i];
         if (move == best_move)
         {
             assert(move != 0U);
-            move_set_score(&move, 255U);
-            list.set_move(i, move);
+            list.set_score(i, 255U);
             return;
         }
     }
@@ -98,12 +97,11 @@ void PrincipalVariation::score_move(MoveList& list,
         follow_pv = 0;
         for (int i = 0; i < list.length(); i++)
         {
-            Move_t move = list[i];
+            Move move = list[i];
             if (move == pv_table_[search_ply])
             {
                 follow_pv = 1;
-                move_set_score(&move, 128U);
-                list.set_move(i, move);
+                list.set_score(i, 128U);
             }
         }
     }
