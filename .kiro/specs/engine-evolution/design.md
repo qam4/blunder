@@ -628,6 +628,42 @@ if (first_line == "uci") {
 }
 ```
 
+## Phase 10 Design: Strength Regression Testing (Req 48, 49)
+
+### 10.1 Automated Cutechess SPRT Script (Req 48)
+
+Enhance the existing `scripts/run-cutechess.sh` into a more robust, configurable regression testing tool:
+
+```bash
+scripts/regression-test.sh [options]
+  --baseline <path>    Path to baseline engine binary (default: build/rel/blunder)
+  --candidate <path>   Path to candidate engine binary (default: build/dev-mingw/blunder)
+  --tc <time_control>  Time control (default: 10+0.1)
+  --book <path>        Opening book (default: books/i-gm1950.bin)
+  --rounds <n>         Max rounds (default: 2500)
+  --concurrency <n>    Parallel games (default: 4)
+  --elo0 <n>           SPRT null hypothesis (default: 0)
+  --elo1 <n>           SPRT alternative hypothesis (default: 10)
+```
+
+The script:
+1. Validates both engine binaries exist and are executable
+2. Creates a timestamped output directory under `scripts/output/`
+3. Runs cutechess-cli with SPRT and captures the log
+4. Parses the final SPRT result (H0 accepted = regression, H1 accepted = improvement, inconclusive)
+5. Exits with code 0 on pass (H1 or inconclusive), non-zero on regression (H0)
+
+### 10.2 WAC/STS Solve Rate Tracking (Req 49)
+
+Add a test target or script that:
+1. Runs the engine on each WAC position at a fixed depth (e.g., depth 8) or time (e.g., 1s)
+2. Compares the engine's best move against the known solution
+3. Reports solve count / total and percentage
+4. Similarly for STS: runs each position, scores according to the STS scoring system
+5. Logs results with git commit hash for historical tracking
+
+The existing `test/data/test-positions/WAC.epd` and `STS1-STS15_LAN_v6.epd` files provide the test data.
+
 ## Testing Strategy
 
 All phases include tests. The test structure:

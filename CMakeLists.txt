@@ -18,6 +18,7 @@ include(cmake/variables.cmake)
 add_library(
     blunder_lib OBJECT
     source/Board.cpp
+    source/Book.cpp
     source/CLIUtils.cpp
     source/CmdLineArgs.cpp
     source/Common.cpp

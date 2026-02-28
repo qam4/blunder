@@ -10,6 +10,7 @@
 #include <unordered_map>
 
 #include "Board.h"
+#include "Book.h"
 #include "Common.h"
 #include "Move.h"
 #include "Search.h"
@@ -32,6 +33,13 @@ class Xboard
   public:
     Xboard();
     void run();
+
+    /// Transfer an already-opened Book into the Xboard instance.
+    void set_book(Book&& book)
+    {
+        book_ = std::move(book);
+        book_enabled_ = book_.is_open();
+    }
 
   private:
     // Mutable state shared across command handlers during the main loop
@@ -77,6 +85,8 @@ class Xboard
 
     Board board_;
     Search search_;
+    Book book_;
+    bool book_enabled_ = false;
 
     int move_nr_ = 0;
     Move_t game_move_[MAXMOVES] {};

@@ -249,34 +249,36 @@
   - [x] 31.3 Add a verbose/debug mode to Search that logs per-depth statistics (depth, score, nodes, nps, pv) during iterative deepening
     - _Requirements: 23.2_
 
-- [ ] 32. Expand perft regression tests (Req 24)
+- [x] 32. Expand perft regression tests (Req 24)
   - [x] 32.1 In test/source/TestPerft.cpp, add Catch2 test cases validating perft for the initial position at depths 1–5 against published correct node counts
     - _Requirements: 24.1_
   - [x] 32.2 Add perft test cases for at least 5 tricky positions: Kiwipete, en-passant edge cases, promotion positions, castling edge cases
     - _Requirements: 24.2, 24.3_
 
-- [ ] 33. Checkpoint — Verify Phase 5 complete
+- [x] 33. Checkpoint — Verify Phase 5 complete
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Phase 6: Opening Book Support
 
-- [ ] 34. Implement Polyglot book reader (Req 25, 26)
-  - [ ] 34.1 Create source/Book.h with Book class: open(), has_move(), get_move(), close(), and internal PolyglotEntry struct and polyglot_hash() method
+- [x] 34. Implement Polyglot book reader (Req 25, 26)
+  - [x] 34.1 Create source/Book.h with Book class: open(), has_move(), get_move(), close(), and internal PolyglotEntry struct and polyglot_hash() method
     - _Requirements: 25.1, 26.3_
-  - [ ] 34.2 Create source/Book.cpp implementing Polyglot .bin file parsing (big-endian 16-byte entries), binary search lookup by key, and weighted random selection among multiple book moves
+  - [x] 34.2 Create source/Book.cpp implementing Polyglot .bin file parsing (big-endian 16-byte entries), binary search lookup by key, and weighted random selection among multiple book moves
     - _Requirements: 25.1, 25.3_
-  - [ ] 34.3 Implement polyglot_hash() that computes Polyglot-compatible Zobrist keys from board state (may differ from engine's internal Zobrist scheme)
+  - [x] 34.3 Implement polyglot_hash() that computes Polyglot-compatible Zobrist keys from board state (may differ from engine's internal Zobrist scheme)
     - _Requirements: 26.1, 26.2, 26.3_
-  - [ ]* 34.4 Write unit tests for Book in test/source/TestBook.cpp: verify polyglot_hash matches published values for initial position and common openings, verify book lookup returns valid moves
+  - [x]* 34.4 Write unit tests for Book in test/source/TestBook.cpp: verify polyglot_hash matches published values for initial position and common openings, verify book lookup returns valid moves
     - **Validates: Requirements 25.1, 25.3, 26.1, 26.2**
 
-- [ ] 35. Integrate book with search and Xboard (Req 25)
-  - [ ] 35.1 In Xboard (or Search entry point), check book for a move before starting search; if found, return book move directly
+- [x] 35. Integrate book with search and Xboard (Req 25)
+  - [x] 35.1 In Xboard::search_best_move(), check book for a move before starting search; if found, return book move directly
     - _Requirements: 25.2, 25.4_
-  - [ ] 35.2 Add a command-line flag or xboard command to enable/disable book usage
+  - [x] 35.2 Add CLI flags: --book <path>, --no-book, --book-depth <N>; wire into Xboard and interactive mode
+    - _Requirements: 25.5_
+  - [x] 35.3 Add book depth limit to Book class (stop consulting book after N plies)
     - _Requirements: 25.5_
 
-- [ ] 36. Checkpoint — Verify Phase 6 complete
+- [x] 36. Checkpoint — Verify Phase 6 complete
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Phase 7: Engine Strength Features
@@ -364,6 +366,27 @@
     - **Validates: Requirements 33.1, 33.2, 33.3**
 
 - [ ] 46. Final checkpoint — Verify all phases complete
+  - Ensure all tests pass, ask the user if questions arise.
+
+## Phase 10: Strength Regression Testing
+
+- [ ] 47. Implement automated cutechess SPRT regression script (Req 48)
+  - [ ] 47.1 Refactor scripts/run-cutechess.sh into a configurable regression-test.sh with CLI options for baseline, candidate, time control, book, rounds, concurrency, and SPRT bounds
+    - _Requirements: 48.1, 48.2, 48.3, 48.5_
+  - [ ] 47.2 Add result parsing: extract SPRT conclusion (H0/H1/inconclusive), Elo difference, and confidence interval from cutechess-cli output
+    - _Requirements: 48.4, 48.6_
+  - [ ] 47.3 Add a summary report output and non-zero exit code on regression detection
+    - _Requirements: 48.4, 48.6_
+
+- [ ] 48. Implement WAC/STS solve rate tracking (Req 49)
+  - [ ] 48.1 Create a script or test target that runs the engine on WAC positions at a fixed depth/time and reports solve rate
+    - _Requirements: 49.1_
+  - [ ] 48.2 Create a script or test target that runs the engine on STS positions and reports aggregate score
+    - _Requirements: 49.2_
+  - [ ] 48.3 Log results with git commit hash for historical tracking
+    - _Requirements: 49.3, 49.4_
+
+- [ ] 49. Checkpoint — Verify Phase 10 complete
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

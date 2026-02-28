@@ -18,6 +18,7 @@ The requirements in this spec are driven by a structured code review process:
 8. **Engine Strength Features** (Phase 7) — tablebases, time management
 9. **Neural Network / ML / MCTS** (Phase 8) — NNUE evaluation, MCTS, AlphaZero-style self-play
 10. **Protocol & Interoperability** (Phase 9) — UCI protocol support
+11. **Strength Regression Testing** (Phase 10) — automated cutechess SPRT testing, WAC/STS solve rate tracking
 
 Each phase builds on the previous one. Bug fixes and architecture cleanup come first because they establish a solid, testable foundation for everything that follows.
 
@@ -702,3 +703,31 @@ This phase documents the findings from a systematic review of the entire codebas
 2. THE engine SHALL report search info (depth, score, nodes, nps, pv) via UCI info strings during search
 3. THE engine SHALL support UCI options for hash size, threads, and book usage
 4. THE engine SHALL auto-detect whether the GUI is speaking UCI or xboard based on the initial handshake
+
+---
+
+## Phase 10: Strength Regression Testing
+
+### Requirement 48: Automated Cutechess SPRT Regression Testing
+
+**User Story:** As a developer, I want an automated workflow that runs cutechess-cli SPRT matches between the current build and a baseline build, so that I can detect strength regressions before merging changes.
+
+#### Acceptance Criteria
+
+1. THE engine SHALL provide a CMake target or script that builds both a baseline (old) and candidate (new) engine binary
+2. THE script SHALL invoke cutechess-cli with SPRT parameters (elo0=0, elo1=10, alpha=0.05, beta=0.05) to determine if the candidate is a regression
+3. THE script SHALL use the existing Polyglot opening books (books/ directory) for game diversity
+4. THE script SHALL produce a summary report with Elo difference, confidence interval, and pass/fail result
+5. THE script SHALL support configurable parameters: time control, number of concurrent games, opening book, and SPRT bounds
+6. THE script SHALL exit with a non-zero code if the SPRT test concludes the candidate is weaker (regression detected)
+
+### Requirement 49: WAC/STS Solve Rate Tracking
+
+**User Story:** As a developer, I want to track WAC and STS solve rates across versions so that I have a quick tactical/positional sanity check alongside the full SPRT regression test.
+
+#### Acceptance Criteria
+
+1. THE engine SHALL provide a script or test target that runs the WAC test suite at a fixed depth or time and reports the solve rate
+2. THE engine SHALL provide a script or test target that runs the STS test suite and reports the aggregate score
+3. THE solve rates SHALL be logged with version/commit information so trends can be tracked over time
+4. A significant drop in solve rate (e.g., >5% on WAC or >50 points on STS) SHALL be flagged as a warning

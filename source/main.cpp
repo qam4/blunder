@@ -13,6 +13,7 @@
 #endif
 
 #include "Board.h"
+#include "Book.h"
 #include "CLIUtils.h"
 #include "CmdLineArgs.h"
 #include "MoveGenerator.h"
@@ -60,9 +61,33 @@ int main(int argc, char** argv)
         return 0;
     }
 
+    // Parse book configuration (shared across all modes)
+    Book book;
+    bool book_enabled = false;
+    if (!cmd_line_args.cmd_option_exists("--no-book") && cmd_line_args.cmd_option_exists("--book"))
+    {
+        string book_path = cmd_line_args.get_cmd_option("--book");
+        if (!book_path.empty() && book.open(book_path))
+        {
+            book_enabled = true;
+        }
+    }
+    if (cmd_line_args.cmd_option_exists("--book-depth"))
+    {
+        string depth_str = cmd_line_args.get_cmd_option("--book-depth");
+        if (!depth_str.empty())
+        {
+            book.set_max_depth(std::stoi(depth_str));
+        }
+    }
+
     if (cmd_line_args.cmd_option_exists("--xboard"))
     {
         Xboard xboard;
+        if (book_enabled)
+        {
+            xboard.set_book(std::move(book));
+        }
         xboard.run();
         return 0;
     }
@@ -82,6 +107,7 @@ int main(int argc, char** argv)
     }
 
     bool computer_plays[2] = { false };
+    int game_ply = 0;
 
     string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     Board board = Parser::parse_fen(fen);
@@ -109,6 +135,19 @@ int main(int argc, char** argv)
 
         if (computer_plays[board.side_to_move()])
         {
+            // Check opening book first
+            if (book_enabled && book.within_depth(game_ply) && book.has_move(board))
+            {
+                Move_t book_move = book.get_move(board);
+                if (book_move != Move(0))
+                {
+                    cout << "Book move: " << Output::move_san(book_move, board) << endl;
+                    board.do_move(book_move);
+                    game_ply++;
+                    continue;
+                }
+            }
+
             clock_t tic = clock();
             cout << "Thinking..." << endl;
 
@@ -123,6 +162,7 @@ int main(int argc, char** argv)
 
             cout << "Computer move: " << Output::move_san(move, board) << endl;
             board.do_move(move);
+            game_ply++;
             continue;
         }
 
@@ -154,6 +194,7 @@ int main(int argc, char** argv)
             if (opt && is_valid_move(*opt, board, true))
             {
                 board.do_move(*opt);
+                game_ply++;
             }
         }
         else if (tokens[0] == "play")
@@ -234,5 +275,8 @@ void usage(const string& prog_name)
             "--gen-lookup-tables              Generate lookup tables\n"
             "--perft                          Run perft benchmark\n"
             "--xboard                         xboard interface\n"
-            "--test-positions path-to-epd     Run test positions\n";
+            "--test-positions path-to-epd     Run test positions\n"
+            "--book <path>                    Use opening book at <path>\n"
+            "--no-book                        Disable opening book\n"
+            "--book-depth <N>                 Stop using book after N plies\n";
 }

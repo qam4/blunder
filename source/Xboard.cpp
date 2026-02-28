@@ -77,6 +77,17 @@ int Xboard::search_best_move(int stm,
     (void)time_per_move;
     (void)ponder_move;
 
+    // Check the opening book first
+    if (book_enabled_ && book_.within_depth(move_nr_) && book_.has_move(board_))
+    {
+        Move_t book_move = book_.get_move(board_);
+        if (book_move != Move(0))
+        {
+            *move = book_move;
+            return 0;  // book move, score is 0
+        }
+    }
+
     // https://mediocrechess.blogspot.com/2007/01/guide-time-management.html
     // Use 2.25% of the time + half of the increment
     int time_for_this_move = time_left / 40 + (static_cast<int>(inc * 100) / 2);
