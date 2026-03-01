@@ -3,11 +3,18 @@
  *
  * Owns search timing state: start time, time budget, and node limits.
  * Extracted from Board to separate time management from game state.
+ *
+ * Smart time management (Req 28):
+ *   - allocate() computes soft and hard time limits from clock state
+ *   - Instability detection: extend time when best move changes
+ *   - Score-based adjustment: reduce time when clearly winning/losing
+ *   - Hard limit is never exceeded
  */
 
 #ifndef TIMEMANAGER_H
 #define TIMEMANAGER_H
 
+#include <algorithm>
 #include <ctime>
 
 #include "Constants.h"
@@ -15,15 +22,91 @@
 class TimeManager
 {
 public:
+    /// Allocate time for a move based on clock state.
+    /// @param time_left_cs  Remaining time in centiseconds
+    /// @param inc_cs        Increment per move in centiseconds
+    /// @param moves_to_go   Moves until next time control (0 = sudden death)
+    void allocate(int time_left_cs, int inc_cs, int moves_to_go)
+    {
+        // Convert to microseconds for internal use
+        int time_left_us = time_left_cs * 10000;
+        int inc_us = inc_cs * 10000;
+
+        // Estimate moves remaining: use moves_to_go if set, otherwise assume 30
+        int moves_est = (moves_to_go > 0) ? (std::max)(moves_to_go, 1) : 30;
+
+        // Base time: fraction of remaining time + 3/4 of increment
+        int base = time_left_us / moves_est + inc_us * 3 / 4;
+
+        // Safety margin: never use more than 90% of remaining time
+        int max_allowed = time_left_us * 9 / 10;
+
+        // Ensure max_allowed is at least a small amount if we have any time
+        if (max_allowed < 100000 && time_left_us > 100000)
+        {
+            max_allowed = 100000;  // 0.1s floor
+        }
+
+        // Clamp base to max_allowed
+        if (base > max_allowed)
+        {
+            base = max_allowed;
+        }
+
+        // Ensure base is at least 0.1s if we have time
+        if (base < 100000 && time_left_us > 100000)
+        {
+            base = 100000;
+        }
+        else if (base < 0)
+        {
+            base = 100000;
+        }
+
+        soft_limit_ = base;
+
+        // Hard limit: 3x soft limit, but never more than max_allowed
+        hard_limit_ = (std::min)(soft_limit_ * 3, max_allowed);
+        if (hard_limit_ < soft_limit_)
+        {
+            hard_limit_ = soft_limit_;
+        }
+
+        start_time_ = clock();
+        max_nodes_ = -1;
+    }
+
+    /// Legacy start method for non-clock-based searches (fixed time, node limit).
     void start(int search_time, int max_nodes = -1)
     {
         search_time_ = search_time;
+        soft_limit_ = search_time;
+        hard_limit_ = search_time;
         max_nodes_ = max_nodes;
         start_time_ = clock();
     }
 
-    // Called every 2048 nodes in alphabeta/quiesce to check hard time limit.
-    // search_time_ is in microseconds; -1 means infinite.
+    /// Extend soft limit when best move is unstable between iterations.
+    void extend_for_instability()
+    {
+        soft_limit_ = soft_limit_ * 3 / 2;
+        if (soft_limit_ > hard_limit_)
+        {
+            soft_limit_ = hard_limit_;
+        }
+    }
+
+    /// Reduce soft limit when position is clearly won or lost.
+    /// @param score_cp  Score in centipawns from side-to-move perspective
+    void adjust_for_score(int score_cp)
+    {
+        if (score_cp > 500 || score_cp < -500)
+        {
+            soft_limit_ = soft_limit_ * 3 / 5;
+        }
+    }
+
+    /// Called every 2048 nodes in alphabeta/quiesce to check hard time limit.
     bool is_time_over(int nodes_visited) const
     {
         if ((max_nodes_ != -1) && (nodes_visited > max_nodes_))
@@ -31,20 +114,21 @@ public:
             return true;
         }
 
-        if (search_time_ == -1)
+        int limit = hard_limit_;
+        if (limit == -1)
         {
             return false;
         }
 
         clock_t current_time = clock();
-        int elapsed_time = int((1000000 * double(current_time - start_time_)) / CLOCKS_PER_SEC);
+        int elapsed_us = static_cast<int>(
+            (1000000.0 * static_cast<double>(current_time - start_time_)) / CLOCKS_PER_SEC);
 
-        return (elapsed_time > search_time_);
+        return (elapsed_us > limit);
     }
 
-    // Called between iterative deepening iterations to decide whether
-    // there is enough time for another depth. Uses the heuristic that
-    // the next iteration will take ~2x the elapsed time so far.
+    /// Called between iterative deepening iterations to decide whether
+    /// there is enough time for another depth.
     bool should_stop(int nodes_visited) const
     {
         if ((max_nodes_ != -1) && (nodes_visited > max_nodes_))
@@ -52,26 +136,29 @@ public:
             return true;
         }
 
-        if (search_time_ == -1)
+        int limit = soft_limit_;
+        if (limit == -1)
         {
             return false;
         }
 
         clock_t current_time = clock();
-        clock_t elapsed_time = current_time - start_time_;
+        int elapsed_us = static_cast<int>(
+            (1000000.0 * static_cast<double>(current_time - start_time_)) / CLOCKS_PER_SEC);
 
-        // https://mediocrechess.blogspot.com/2007/01/guide-time-management.html
-        // check to see if we have enough time left to search
-        // for 2 times the last depth's time
-        return (2 * elapsed_time > search_time_);
+        return (elapsed_us > limit);
     }
 
     clock_t start_time() const { return start_time_; }
     int search_time() const { return search_time_; }
+    int soft_limit() const { return soft_limit_; }
+    int hard_limit() const { return hard_limit_; }
 
 private:
     clock_t start_time_ = 0;
     int search_time_ = DEFAULT_SEARCH_TIME;
+    int soft_limit_ = DEFAULT_SEARCH_TIME;
+    int hard_limit_ = DEFAULT_SEARCH_TIME;
     int max_nodes_ = -1;
 };
 

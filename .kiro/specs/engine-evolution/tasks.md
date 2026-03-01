@@ -291,14 +291,14 @@
   - [ ] 37.3 Add a command-line option or config to set the Syzygy tablebase path
     - _Requirements: 27.3_
 
-- [ ] 38. Implement smart time management (Req 28)
-  - [ ] 38.1 Extend TimeManager with allocate() method that computes time based on remaining clock, increment, and expected moves remaining
+- [x] 38. Implement smart time management (Req 28)
+  - [x] 38.1 Extend TimeManager with allocate() method that computes time based on remaining clock, increment, and expected moves remaining
     - _Requirements: 28.1_
-  - [ ] 38.2 Allocate more time when the best move changes between iterative deepening iterations (instability detection)
+  - [x] 38.2 Allocate more time when the best move changes between iterative deepening iterations (instability detection)
     - _Requirements: 28.2_
-  - [ ] 38.3 Allocate less time when the position evaluation is clearly won or lost
+  - [x] 38.3 Allocate less time when the position evaluation is clearly won or lost
     - _Requirements: 28.3_
-  - [ ] 38.4 Enforce a hard time limit that is never exceeded
+  - [x] 38.4 Enforce a hard time limit that is never exceeded
     - _Requirements: 28.4_
 
 - [ ] 39. Implement pondering — think on opponent's time (Req 50)

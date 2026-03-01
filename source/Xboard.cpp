@@ -88,25 +88,11 @@ int Xboard::search_best_move(int stm,
         }
     }
 
-    // https://mediocrechess.blogspot.com/2007/01/guide-time-management.html
-    // Use 2.25% of the time + half of the increment
-    int time_for_this_move = time_left / 40 + (static_cast<int>(inc * 100) / 2);
+    // Smart time allocation: delegate to TimeManager
+    int inc_cs = static_cast<int>(inc * 100);
+    search_.get_tm().allocate(time_left, inc_cs, mps);
 
-    // If the increment puts us above the total time left
-    // use the timeleft - 0.5 seconds
-    if (time_for_this_move >= time_left)
-    {
-        time_for_this_move = time_left - 500;
-    }
-
-    // If 0.5 seconds puts us below 0
-    // use 0.1 seconds to at least get some move.
-    if (time_for_this_move < 0)
-    {
-        time_for_this_move = 100;
-    }
-
-    Move_t best_move = search_.search(max_depth, time_for_this_move * 10000, -1, true);
+    Move_t best_move = search_.search(max_depth, -1, -1, true);
     *move = best_move;
 
     return search_.get_search_best_score();

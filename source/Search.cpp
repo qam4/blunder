@@ -85,7 +85,12 @@ Move_t Search::search(int depth,
                       int max_nodes_visited /*=-1*/,
                       bool xboard /*=false*/)
 {
-    tm_.start(search_time, max_nodes_visited);
+    // If search_time is -1 and max_nodes is -1, assume allocate() was already
+    // called by the caller (smart time management). Otherwise use legacy start().
+    if (search_time != -1 || max_nodes_visited != -1)
+    {
+        tm_.start(search_time, max_nodes_visited);
+    }
     board_.set_search_ply(0);
     pv_.reset();
     std::memset(killers_, 0, sizeof(killers_));
@@ -160,8 +165,20 @@ Move_t Search::search(int depth,
                 cout << std::defaultfloat << endl;
             }
         }
+        // Instability detection: if best move changed, extend time
+        if (last_best_move != 0U && search_best_move_ != last_best_move && current_depth >= 4)
+        {
+            tm_.extend_for_instability();
+        }
+
         last_best_move = search_best_move_;
         search_best_score_ = value;
+
+        // Score-based time adjustment after a few depths
+        if (current_depth >= 6)
+        {
+            tm_.adjust_for_score(value);
+        }
 
         if (abs(value) >= MATE_SCORE - MAX_SEARCH_PLY)
         {
