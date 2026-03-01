@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Xboard class | blunder</title>
+  <title>Book class | blunder</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,8 +49,8 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          Xboard <span class="m-thin">class</span>
-          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Xboard_8h.html">&lt;Xboard.h&gt;</a></div>
+          Book <span class="m-thin">class</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Book_8h.html">&lt;Book.h&gt;</a></div>
         </h1>
         <p><span></span></p>
         <div class="m-block m-default">
@@ -59,33 +59,72 @@
             <li>
               Reference
               <ul>
-                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
+                <li><a href="#pub-static-methods">Public static functions</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="typeless-methods">
-          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+        <section id="pub-static-methods">
+          <h2><a href="#pub-static-methods">Public static functions</a></h2>
           <dl class="m-doc">
-            <dt id="ad89b28026fa1915ef0a55ea8e68bd75a">
-              <span class="m-doc-wrap-bumper"><a href="#ad89b28026fa1915ef0a55ea8e68bd75a" class="m-doc-self">Xboard</a>(</span><span class="m-doc-wrap">)</span>
+            <dt>
+              <span class="m-doc-wrap-bumper">static auto <a href="#ab6212eb0ad178203dc839b579a2dfd11" class="m-doc">polyglot_hash</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; <a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a></span>
             </dt>
-            <dd><span></span></dd>
+            <dd></dd>
           </dl>
         </section>
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
-            <dt id="a8d9d6b376f2bea63e88e5ae1b8b73054">
-              <span class="m-doc-wrap-bumper">void <a href="#a8d9d6b376f2bea63e88e5ae1b8b73054" class="m-doc-self">run</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="a057bca07995f18b5d42315c23e71277c">
+              <span class="m-doc-wrap-bumper">auto <a href="#a057bca07995f18b5d42315c23e71277c" class="m-doc-self">open</a>(</span><span class="m-doc-wrap">const std::string&amp; path) -&gt; bool</span>
+            </dt>
+            <dd>Open a Polyglot .bin book file. Returns true on success.</dd>
+            <dt id="a88adf887da21adb2a76e6379045d5ef5">
+              <span class="m-doc-wrap-bumper">auto <a href="#a88adf887da21adb2a76e6379045d5ef5" class="m-doc-self">is_open</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Returns true if the book is loaded and has entries.</dd>
+            <dt id="ab999e8aa54291fc2bddc9b9d08ad0203">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab999e8aa54291fc2bddc9b9d08ad0203" class="m-doc-self">has_move</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) const -&gt; bool</span>
+            </dt>
+            <dd>Returns true if the book contains at least one move for the given board.</dd>
+            <dt id="ab85d19d6d4822a8f184496a358e79917">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab85d19d6d4822a8f184496a358e79917" class="m-doc-self">get_move</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) const -&gt; <a href="Move_8h.html#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc">Move_<wbr />t</a></span>
+            </dt>
+            <dd>Returns a weighted-random book move for the given board, or <a href="structMove.html" class="m-doc">Move(0)</a> if none found.</dd>
+            <dt id="aefc6e92e15360cd591dc655f15bbaea2">
+              <span class="m-doc-wrap-bumper">void <a href="#aefc6e92e15360cd591dc655f15bbaea2" class="m-doc-self">close</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Close the book and free memory.</dd>
+            <dt id="a6effbc3c0871d4defef26510f940698d">
+              <span class="m-doc-wrap-bumper">void <a href="#a6effbc3c0871d4defef26510f940698d" class="m-doc-self">set_max_depth</a>(</span><span class="m-doc-wrap">int depth)</span>
+            </dt>
+            <dd>Set the maximum ply depth for book usage. 0 = unlimited.</dd>
+            <dt id="a8a76c69d3602d636ad5a20604a558fd0">
+              <span class="m-doc-wrap-bumper">auto <a href="#a8a76c69d3602d636ad5a20604a558fd0" class="m-doc-self">max_depth</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a05b48a0556dff44a2da1be06305de105">
-              <span class="m-doc-wrap-bumper">void <a href="#a05b48a0556dff44a2da1be06305de105" class="m-doc-self">set_book</a>(</span><span class="m-doc-wrap"><a href="classBook.html" class="m-doc">Book</a>&amp;&amp; book)</span>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a420e071df30bdb67bce01de731f63ddc" class="m-doc">within_depth</a>(</span><span class="m-doc-wrap">int game_ply) const -&gt; bool</span>
             </dt>
-            <dd>Transfer an already-opened <a href="classBook.html" class="m-doc">Book</a> into the <a href="classXboard.html" class="m-doc">Xboard</a> instance.</dd>
+            <dd></dd>
           </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="ab6212eb0ad178203dc839b579a2dfd11"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">static <a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a> Book::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab6212eb0ad178203dc839b579a2dfd11" class="m-doc-self">polyglot_hash</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board)</span></span>
+            </h3>
+<p>Compute the Polyglot-compatible <a href="classZobrist.html" class="m-doc">Zobrist</a> hash for a board position. This uses the published Polyglot random numbers, NOT the engine&#x27;s internal keys.</p>
+          </div></section>
+          <section class="m-doc-details" id="a420e071df30bdb67bce01de731f63ddc"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">bool Book::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a420e071df30bdb67bce01de731f63ddc" class="m-doc-self">within_depth</a>(</span><span class="m-doc-wrap">int game_ply) const</span></span>
+            </h3>
+<p>Check if the book should be consulted at the given ply (full move count). ply here is the game ply (number of half-moves played from start).</p>
+          </div></section>
         </section>
       </div>
     </div>

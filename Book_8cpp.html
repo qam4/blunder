@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Xboard class | blunder</title>
+  <title>source/Book.cpp file | blunder</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,8 +49,7 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          Xboard <span class="m-thin">class</span>
-          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Xboard_8h.html">&lt;Xboard.h&gt;</a></div>
+          <span class="m-breadcrumb"><a href="dir_b2f33c71d4aa5e7af42a1ca61ff5af1b.html">source</a>/</span>Book.cpp <span class="m-thin">file</span>
         </h1>
         <p><span></span></p>
         <div class="m-block m-default">
@@ -59,32 +58,56 @@
             <li>
               Reference
               <ul>
-                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
-                <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#func-members">Functions</a></li>
+                <li><a href="#var-members">Variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="typeless-methods">
-          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+        <section id="func-members">
+          <h2><a href="#func-members">Functions</a></h2>
           <dl class="m-doc">
-            <dt id="ad89b28026fa1915ef0a55ea8e68bd75a">
-              <span class="m-doc-wrap-bumper"><a href="#ad89b28026fa1915ef0a55ea8e68bd75a" class="m-doc-self">Xboard</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="a08588ef7c2cdc11edab95844a7f83dae">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a08588ef7c2cdc11edab95844a7f83dae" class="m-doc-self">engine_piece_to_polyglot</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> piece) -&gt; int</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="aff91f1c8c7137497a31cca98a3459c8b">
+              <span class="m-doc-wrap-bumper">static auto <a href="#aff91f1c8c7137497a31cca98a3459c8b" class="m-doc-self">read_u64_be</a>(</span><span class="m-doc-wrap">const unsigned char* p) -&gt; <a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a></span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a87082ed254949a490d3600c7bebbb7f7">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a87082ed254949a490d3600c7bebbb7f7" class="m-doc-self">read_u16_be</a>(</span><span class="m-doc-wrap">const unsigned char* p) -&gt; <a href="Types_8h.html#a04d64f805bec0593595b82c338f95e33" class="m-doc">U16</a></span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a966c243654cbfa54d6ae85cf19caaa0b">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a966c243654cbfa54d6ae85cf19caaa0b" class="m-doc-self">read_u32_be</a>(</span><span class="m-doc-wrap">const unsigned char* p) -&gt; <a href="Types_8h.html#ab37374d415ba87a0b67431eca2673dba" class="m-doc">U32</a></span>
             </dt>
             <dd><span></span></dd>
           </dl>
         </section>
-        <section id="pub-methods">
-          <h2><a href="#pub-methods">Public functions</a></h2>
+        <section id="var-members">
+          <h2><a href="#var-members">Variables</a></h2>
           <dl class="m-doc">
-            <dt id="a8d9d6b376f2bea63e88e5ae1b8b73054">
-              <span class="m-doc-wrap-bumper">void <a href="#a8d9d6b376f2bea63e88e5ae1b8b73054" class="m-doc-self">run</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="a300cf032d31ed6bcaf2cb9e7910f844f">
+              static const <a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a> <a href="#a300cf032d31ed6bcaf2cb9e7910f844f" class="m-doc-self">Random64</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="a05b48a0556dff44a2da1be06305de105">
-              <span class="m-doc-wrap-bumper">void <a href="#a05b48a0556dff44a2da1be06305de105" class="m-doc-self">set_book</a>(</span><span class="m-doc-wrap"><a href="classBook.html" class="m-doc">Book</a>&amp;&amp; book)</span>
+            <dt id="a79001641c950bd9f5db54c098c62550c">
+              static int <a href="#a79001641c950bd9f5db54c098c62550c" class="m-doc-self">RANDOM_PIECE</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
-            <dd>Transfer an already-opened <a href="classBook.html" class="m-doc">Book</a> into the <a href="classXboard.html" class="m-doc">Xboard</a> instance.</dd>
+            <dd><span></span></dd>
+            <dt id="a521d166ac4ffacb512ba580dce83c262">
+              static int <a href="#a521d166ac4ffacb512ba580dce83c262" class="m-doc-self">RANDOM_CASTLE</a> <span class="m-label m-flat m-primary">constexpr</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a087a39cbbc6f8b44d862fb8e3d7eb630">
+              static int <a href="#a087a39cbbc6f8b44d862fb8e3d7eb630" class="m-doc-self">RANDOM_ENPASSANT</a> <span class="m-label m-flat m-primary">constexpr</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a740862450947b0f9e799a605c4053b3e">
+              static int <a href="#a740862450947b0f9e799a605c4053b3e" class="m-doc-self">RANDOM_TURN</a> <span class="m-label m-flat m-primary">constexpr</span>
+            </dt>
+            <dd><span></span></dd>
           </dl>
         </section>
       </div>
