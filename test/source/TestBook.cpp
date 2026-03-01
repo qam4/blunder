@@ -12,8 +12,9 @@
 #include "Parser.h"
 #include "Tests.h"
 
-// Path to books directory relative to the CTest working directory (build/dev-mingw/test/)
-static const std::string BOOK_PATH = "../../../books/i-gm1950.bin";
+// Path to books directory — use PROJECT_ROOT_DIR from CMake so the path works
+// regardless of the CTest working directory (fixes macOS CI failures).
+static const std::string BOOK_PATH = std::string(PROJECT_ROOT_DIR) + "/books/i-gm1950.bin";
 
 // ============================================================================
 // polyglot_hash tests — verify against published test keys from the Polyglot

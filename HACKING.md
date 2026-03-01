@@ -135,5 +135,24 @@ These targets run the codespell tool on the codebase to check errors and to fix
 them respectively. Customization available using the `SPELL_COMMAND` cache
 variable.
 
+### Slow tests
+
+Some tests (WAC and STS test-position suites) are tagged `[.][slow]` in
+Catch2. The `[.]` tag hides them from the default CTest run, so CI and
+`cmake --build --preset=dev -t test` stay fast.
+
+To run them locally, invoke the test binary directly:
+
+```sh
+# Run only the slow tests
+./build/dev/test/blunder_test [slow]
+
+# Run everything including slow tests
+./build/dev/test/blunder_test "*" [slow]
+```
+
+These tests use `CHECK` instead of `REQUIRE`, so a threshold miss is
+reported without aborting the rest of the suite.
+
 [1]: https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html
 [2]: https://cmake.org/download/

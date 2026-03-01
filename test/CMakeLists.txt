@@ -67,6 +67,12 @@ target_link_libraries(blunder_test PRIVATE blunder_lib)
 target_link_libraries(blunder_test PRIVATE Catch2::Catch2WithMain)
 target_compile_features(blunder_test PRIVATE cxx_std_17)
 
+# Provide the project root so tests can locate data files (books/, test/data/)
+# regardless of the CTest working directory.
+target_compile_definitions(blunder_test PRIVATE
+    PROJECT_ROOT_DIR="${CMAKE_SOURCE_DIR}"
+)
+
 include(CTest)
 include(Catch)
 catch_discover_tests(blunder_test)
