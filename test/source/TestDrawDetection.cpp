@@ -127,7 +127,7 @@ TEST_CASE("search_finds_mate_score", "[mate detection]")
 {
     // Back-rank mate in 1: Rd1-d8#
     Board board = Parser::parse_fen("6k1/5ppp/8/8/8/8/8/3RK3 w - - 0 1");
-    Search search(board, board.get_evaluator(), board.get_tt());
+    Search search(board);
     search.search(4, -1);
     int score = search.get_search_best_score();
     // Score should be near MATE_SCORE (positive, large)

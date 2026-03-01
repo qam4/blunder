@@ -111,7 +111,7 @@ int main(int argc, char** argv)
 
     string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     Board board = Parser::parse_fen(fen);
-    Search search(board, board.get_evaluator(), board.get_tt());
+    Search search(board);
 
     while (true)
     {

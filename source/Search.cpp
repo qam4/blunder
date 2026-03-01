@@ -20,21 +20,19 @@ using std::endl;
 using std::max;
 using std::min;
 
-Search::Search(Board& board, Evaluator& evaluator, TranspositionTable& tt)
+Search::Search(Board& board)
     : board_(board)
-    , evaluator_(evaluator)
-    , tt_(tt)
 {
 }
 
 int Search::probe_hash(int depth, int alpha, int beta, Move_t& best_move)
 {
-    return tt_.probe(board_.get_hash(), depth, alpha, beta, best_move);
+    return board_.get_tt().probe(board_.get_hash(), depth, alpha, beta, best_move);
 }
 
 void Search::record_hash(int depth, int val, int flags, Move_t best_move)
 {
-    tt_.record(board_.get_hash(), depth, val, flags, best_move);
+    board_.get_tt().record(board_.get_hash(), depth, val, flags, best_move);
 }
 
 void Search::store_killer(int ply, Move_t move)
@@ -384,7 +382,7 @@ int Search::quiesce(int alpha, int beta)
         return DRAW_SCORE;
     }
 
-    int stand_pat = evaluator_.side_relative_eval(board_);
+    int stand_pat = board_.get_evaluator().side_relative_eval(board_);
 
     if (search_ply > MAX_SEARCH_PLY - 1)
     {
@@ -448,7 +446,7 @@ int Search::negamax(int depth)
     // Leaf node — return static eval without generating moves
     if (depth == 0)
     {
-        return evaluator_.side_relative_eval(board_);
+        return board_.get_evaluator().side_relative_eval(board_);
     }
 
     if (board_.is_game_over())
@@ -530,7 +528,7 @@ int Search::minimax(int depth, bool maximizing_player)
     // Leaf node — return static eval without generating moves
     if (depth == 0)
     {
-        return evaluator_.evaluate(board_);
+        return board_.get_evaluator().evaluate(board_);
     }
 
     if (board_.is_game_over())

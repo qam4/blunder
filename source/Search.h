@@ -78,7 +78,7 @@ struct SearchStats
 class Search
 {
 public:
-    Search(Board& board, Evaluator& evaluator, TranspositionTable& tt);
+    explicit Search(Board& board);
 
     // Main entry point: iterative deepening search
     Move_t search(int depth,
@@ -113,8 +113,6 @@ private:
     void record_hash(int depth, int val, int flags, Move_t best_move);
 
     Board& board_;
-    Evaluator& evaluator_;
-    TranspositionTable& tt_;
     PrincipalVariation pv_;
     TimeManager tm_;
     SearchStats stats_;

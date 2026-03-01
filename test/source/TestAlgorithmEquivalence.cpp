@@ -33,8 +33,8 @@ TEST_CASE("minimax_negamax_equivalence", "[algorithm equivalence]")
     {
         Board board_mm = Parser::parse_fen(TEST_FENS[i]);
         Board board_nm = Parser::parse_fen(TEST_FENS[i]);
-        Search search_mm(board_mm, board_mm.get_evaluator(), board_mm.get_tt());
-        Search search_nm(board_nm, board_nm.get_evaluator(), board_nm.get_tt());
+        Search search_mm(board_mm);
+        Search search_nm(board_nm);
 
         for (int depth = 1; depth <= 3; depth++)
         {
@@ -58,8 +58,8 @@ TEST_CASE("alphabeta_negamax_best_move_agreement", "[algorithm equivalence]")
         Board board_ab = Parser::parse_fen(TEST_FENS[i]);
         Board board_nm = Parser::parse_fen(TEST_FENS[i]);
         board_ab.get_tt().clear();
-        Search search_ab(board_ab, board_ab.get_evaluator(), board_ab.get_tt());
-        Search search_nm(board_nm, board_nm.get_evaluator(), board_nm.get_tt());
+        Search search_ab(board_ab);
+        Search search_nm(board_nm);
 
         // Use iterative deepening for alphabeta (depth 2 to keep it fast)
         Move_t ab_move = search_ab.search(2, -1);
@@ -81,8 +81,8 @@ TEST_CASE("alphabeta_fewer_nodes_than_negamax", "[algorithm equivalence]")
         Board board_ab = Parser::parse_fen(TEST_FENS[i]);
         Board board_nm = Parser::parse_fen(TEST_FENS[i]);
         board_ab.get_tt().clear();
-        Search search_ab(board_ab, board_ab.get_evaluator(), board_ab.get_tt());
-        Search search_nm(board_nm, board_nm.get_evaluator(), board_nm.get_tt());
+        Search search_ab(board_ab);
+        Search search_nm(board_nm);
 
         search_ab.search(3, -1);
         int ab_moves = search_ab.get_searched_moves();

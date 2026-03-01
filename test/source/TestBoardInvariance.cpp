@@ -70,7 +70,7 @@ TEST_CASE("board_invariant_after_search", "[board invariance]")
         Board board = Parser::parse_fen(INVARIANCE_FENS[i]);
         BoardSnapshot before = BoardSnapshot::capture(board);
 
-        Search search(board, board.get_evaluator(), board.get_tt());
+        Search search(board);
         search.search(4, -1);
 
         BoardSnapshot after = BoardSnapshot::capture(board);

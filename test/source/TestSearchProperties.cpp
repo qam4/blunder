@@ -29,7 +29,7 @@ TEST_CASE("pv_moves_are_legal", "[search properties]")
     {
         Board board = Parser::parse_fen(SEARCH_PROP_FENS[i]);
         board.get_tt().clear();
-        Search search(board, board.get_evaluator(), board.get_tt());
+        Search search(board);
         search.search(4, -1);
 
         PrincipalVariation& pv = search.get_pv();
@@ -79,7 +79,7 @@ TEST_CASE("node_count_monotonic_with_depth", "[search properties]")
         {
             Board board = Parser::parse_fen(SEARCH_PROP_FENS[i]);
             board.get_tt().clear();
-            Search search(board, board.get_evaluator(), board.get_tt());
+            Search search(board);
             search.search(depth, -1);
             int nodes = search.get_searched_moves();
 

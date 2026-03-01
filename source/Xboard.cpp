@@ -13,7 +13,7 @@
 #include "ValidateMove.h"
 
 Xboard::Xboard()
-    : search_(board_, board_.get_evaluator(), board_.get_tt())
+    : search_(board_)
 {
     init_handlers();
 }

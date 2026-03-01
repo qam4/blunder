@@ -141,7 +141,7 @@ TEST_CASE("quiesce_no_side_effects", "[board invariance]")
         for (int i = 0; i < 64; i++)
             pieces_before[i] = board[i];
 
-        Search search(board, board.get_evaluator(), board.get_tt());
+        Search search(board);
         board.set_search_ply(0);
         search.quiesce(-MAX_SCORE, MAX_SCORE);
 
