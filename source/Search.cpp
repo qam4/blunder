@@ -11,6 +11,7 @@
 
 #include "Search.h"
 
+#include "InputDetect.h"
 #include "MoveGenerator.h"
 #include "MoveList.h"
 
@@ -93,6 +94,7 @@ Move_t Search::search(int depth,
     }
     board_.set_search_ply(0);
     pv_.reset();
+    abort_ = false;
     std::memset(killers_, 0, sizeof(killers_));
     std::memset(history_, 0, sizeof(history_));
     stats_.reset();
@@ -221,10 +223,22 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
 
     pv_.set_length(search_ply, search_ply);
 
-    // Check time left every 2048 nodes
-    if (((nodes_visited_ & 2047) == 0) && tm_.is_time_over(nodes_visited_))
+    // Check time left or abort flag every 2048 nodes
+    if ((nodes_visited_ & 2047) == 0)
     {
-        return 0;
+        if (abort_)
+        {
+            return 0;
+        }
+        if (pondering_ && input_available())
+        {
+            abort_ = true;
+            return 0;
+        }
+        if (tm_.is_time_over(nodes_visited_))
+        {
+            return 0;
+        }
     }
     nodes_visited_++;
     stats_.nodes_visited++;
@@ -397,10 +411,22 @@ int Search::quiesce(int alpha, int beta)
 
     pv_.set_length(search_ply, search_ply);
 
-    // Check time left every 2048 nodes
-    if (((nodes_visited_ & 2047) == 0) && tm_.is_time_over(nodes_visited_))
+    // Check time left or abort flag every 2048 nodes
+    if ((nodes_visited_ & 2047) == 0)
     {
-        return 0;
+        if (abort_)
+        {
+            return 0;
+        }
+        if (pondering_ && input_available())
+        {
+            abort_ = true;
+            return 0;
+        }
+        if (tm_.is_time_over(nodes_visited_))
+        {
+            return 0;
+        }
     }
     nodes_visited_++;
     stats_.nodes_visited++;

@@ -8,6 +8,7 @@
 
 #include "Xboard.h"
 
+#include "InputDetect.h"
 #include "Output.h"
 #include "Parser.h"
 #include "ValidateMove.h"
@@ -75,7 +76,6 @@ int Xboard::search_best_move(int stm,
     (void)mps;
     (void)time_control;
     (void)time_per_move;
-    (void)ponder_move;
 
     // Check the opening book first
     if (book_enabled_ && book_.within_depth(move_nr_) && book_.has_move(board_))
@@ -95,12 +95,33 @@ int Xboard::search_best_move(int stm,
     Move_t best_move = search_.search(max_depth, -1, -1, true);
     *move = best_move;
 
+    // Extract ponder move from PV (second move in the principal variation)
+    if (ponder_move != nullptr && search_.get_pv().length() >= 2)
+    {
+        *ponder_move = search_.get_pv().get_move(1);
+    }
+    else if (ponder_move != nullptr)
+    {
+        *ponder_move = INVALID_MOVE;
+    }
+
     return search_.get_search_best_score();
 }
 
 void Xboard::ponder_until_input(int stm)
 {
     (void)stm;
+
+    // Run search in pondering mode: no time limit, aborts when input arrives
+    search_.set_pondering(true);
+    search_.set_abort(false);
+
+    // Use a very deep depth limit; the search will stop when input_available()
+    // triggers the abort flag inside the periodic node check.
+    search_.get_tm().start(-1, -1);  // no time limit, no node limit
+    search_.search(MAX_SEARCH_PLY, -1, -1, false);
+
+    search_.set_pondering(false);
 }
 
 int Xboard::take_back(int n)
@@ -337,21 +358,25 @@ void Xboard::run()
 
         // Pondering
         rs.skip_ponder = false;
+        bool was_pondering = false;
         if (rs.engine_side == STM_ANALYZE)
         {
             ponder_until_input(rs.stm);
+            was_pondering = true;
         }
         else if (rs.engine_side != STM_NONE && ponder_ == ON && move_nr_ != 0)
         {
             if (rs.ponder_move == INVALID_MOVE)
             {
                 ponder_until_input(rs.stm);
+                was_pondering = true;
             }
             else
             {
                 int new_stm = make_move(rs.stm, rs.ponder_move);
                 ponder_until_input(new_stm);
                 un_make(rs.ponder_move);
+                was_pondering = true;
             }
         }
 
@@ -379,6 +404,32 @@ void Xboard::run()
         std::getline(iss, args);
 
         std::cout << "# input command: " << command << std::endl;
+
+        // Handle ponder hit / ponder miss
+        if (was_pondering && rs.ponder_move != INVALID_MOVE && command == "usermove")
+        {
+            Move_t opponent_move = parse_move(args);
+            if (opponent_move != INVALID_MOVE && opponent_move == rs.ponder_move)
+            {
+                // Ponder hit: opponent played the predicted move.
+                // The ponder search results are already useful.
+                std::cout << "# Ponder hit!" << std::endl;
+                rs.stm = make_move(rs.stm, opponent_move);
+                rs.ponder_move = INVALID_MOVE;
+                assert(move_nr_ < MAXMOVES);
+                game_move_[move_nr_++] = opponent_move;
+                // Skip normal command dispatch — go straight to engine's turn
+                continue;
+            }
+            else
+            {
+                // Ponder miss: opponent played a different move.
+                // Ponder search results are discarded (already unrolled above).
+                std::cout << "# Ponder miss" << std::endl;
+                rs.ponder_move = INVALID_MOVE;
+                // Fall through to normal command dispatch for this usermove
+            }
+        }
 
         if (command == "quit")
         {

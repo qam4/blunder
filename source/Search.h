@@ -107,6 +107,14 @@ public:
     // Verbose mode: log per-depth statistics during iterative deepening
     void set_verbose(bool v) { verbose_ = v; }
 
+    // Abort mechanism for pondering: external code sets abort to stop search
+    void set_abort(bool a) { abort_ = a; }
+    bool is_aborted() const { return abort_; }
+
+    // Pondering mode: search checks input_available() every 2048 nodes
+    void set_pondering(bool p) { pondering_ = p; }
+    bool is_pondering() const { return pondering_; }
+
 private:
     // Hash helpers (delegate to TT)
     int probe_hash(int depth, int alpha, int beta, Move_t& best_move);
@@ -117,6 +125,8 @@ private:
     TimeManager tm_;
     SearchStats stats_;
     bool verbose_ = false;
+    bool abort_ = false;
+    bool pondering_ = false;
 
     int searched_moves_ = 0;
     int nodes_visited_ = 0;

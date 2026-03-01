@@ -22,6 +22,7 @@ add_library(
     source/CLIUtils.cpp
     source/CmdLineArgs.cpp
     source/Common.cpp
+    source/InputDetect.cpp
     source/Move.cpp
     source/MoveGenerator.cpp
     source/MoveGeneratorHyperbola.cpp
