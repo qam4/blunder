@@ -8,6 +8,7 @@
 #include "Board.h"
 #include "MoveList.h"
 #include "Output.h"
+#include "ValidateMove.h"
 
 using std::cout;
 using std::endl;
@@ -29,17 +30,22 @@ void PrincipalVariation::reset()
     }
 }
 
-void PrincipalVariation::print(Board& board)
+void PrincipalVariation::print(const Board& board)
 {
+    // We need a mutable copy to advance through the PV moves, since each
+    // move_san call needs the board at that ply.  move_san itself is safe
+    // (uses its own copy for check detection), but we still need to track
+    // the position as we walk the PV.
+    Board copy = board;
+
     int adjust = 0;
-    if ((board.side_to_move() == BLACK) && ((board.get_game_ply() & 1) == 0))
+    if ((copy.side_to_move() == BLACK) && ((copy.get_game_ply() & 1) == 0))
     {
-        // adjust game_ply if BLACK to play and game ply is even
         adjust = 1;
     }
     for (int i = 0; i < pv_length_[0]; i++)
     {
-        int game_ply = board.get_game_ply() + adjust;
+        int game_ply = copy.get_game_ply() + adjust;
         if ((i == 0) || (game_ply & 1) == 0)
         {
             cout << (game_ply + 2) / 2 << ". ";
@@ -51,14 +57,17 @@ void PrincipalVariation::print(Board& board)
         }
 
         Move_t move = pv_table_[i];
-        cout << Output::move_san(move, board) << " ";
-        board.do_move(move);
+
+        // Validate move on the copy; bail on stale/invalid entries
+        if (!is_valid_move(move, copy, false))
+        {
+            break;
+        }
+
+        cout << Output::move_san(move, copy) << " ";
+        copy.do_move(move);
     }
-    for (int i = pv_length_[0] - 1; i >= 0; i--)
-    {
-        Move_t move = pv_table_[i];
-        board.undo_move(move);
-    }
+    // No undo needed — copy is discarded
 }
 
 // store PV move

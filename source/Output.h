@@ -19,7 +19,7 @@ public:
     static std::string board(const class Board &board);
     static std::string bitboard(U64 bb);
     static std::string move(Move_t move, const class Board &board);
-    static std::string move_san(Move_t move, class Board &board);
+    static std::string move_san(Move_t move, const class Board &board);
     static std::string movelist(const class MoveList &list, const class Board &board);
     static std::string square(U8 square);
     static std::string piece(U8 piece);

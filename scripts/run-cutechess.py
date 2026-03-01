@@ -57,6 +57,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--concurrency", type=int, default=4, help="Parallel games")
     p.add_argument("--elo0", type=int, default=0, help="SPRT null hypothesis")
     p.add_argument("--elo1", type=int, default=10, help="SPRT alternative hypothesis")
+    p.add_argument("--ponder", action="store_true", help="Enable pondering")
+    p.add_argument("--debug", action="store_true", help="Show all engine I/O")
     p.add_argument("--cutechess", default=None, help="Path to cutechess-cli")
     return p.parse_args()
 
@@ -81,14 +83,26 @@ def run_sprt(args: argparse.Namespace) -> int:
     pgn_out = str(output_dir / "sprt.pgn")
     log_file = output_dir / "cutechess.log"
 
+    # Build per-engine options
+    ponder_opt = "ponder" if args.ponder else ""
+    engine_opts_candidate = [
+        "-engine", f"name=candidate", f"cmd={args.candidate}",
+        "proto=xboard", "arg=--xboard",
+        f"stderr={output_dir / 'candidate.err.log'}",
+    ]
+    engine_opts_baseline = [
+        "-engine", f"name=baseline", f"cmd={args.baseline}",
+        "proto=xboard", "arg=--xboard",
+        f"stderr={output_dir / 'baseline.err.log'}",
+    ]
+    if args.ponder:
+        engine_opts_candidate.append("ponder")
+        engine_opts_baseline.append("ponder")
+
     cmd = [
         cutechess,
-        "-engine", f"name=candidate", f"cmd={args.candidate}",
-            "proto=xboard", "arg=--xboard",
-            f"stderr={output_dir / 'candidate.err.log'}",
-        "-engine", f"name=baseline", f"cmd={args.baseline}",
-            "proto=xboard", "arg=--xboard",
-            f"stderr={output_dir / 'baseline.err.log'}",
+        *engine_opts_candidate,
+        *engine_opts_baseline,
         "-each",
             f"tc={args.tc}",
             f"book={args.book}",
@@ -104,6 +118,8 @@ def run_sprt(args: argparse.Namespace) -> int:
         "-pgnout", pgn_out,
         "-srand", "0",
     ]
+    if args.debug:
+        cmd.insert(1, "-debug")
 
     print("=== SPRT Regression Test ===")
     print(f"Cutechess:   {cutechess}")
@@ -114,6 +130,7 @@ def run_sprt(args: argparse.Namespace) -> int:
     print(f"Rounds:      {args.rounds}")
     print(f"Concurrency: {args.concurrency}")
     print(f"SPRT:        elo0={args.elo0} elo1={args.elo1}")
+    print(f"Ponder:      {'ON' if args.ponder else 'OFF'}")
     print(f"Output:      {output_dir}")
     print("============================")
     print()
@@ -123,6 +140,8 @@ def run_sprt(args: argparse.Namespace) -> int:
         proc = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             text=True, encoding="utf-8", errors="replace",
+            # On Windows, use shell=False (default) — Python handles quoting.
+            # The -debug flag works fine when not going through PowerShell.
         )
         assert proc.stdout is not None
         for line in proc.stdout:

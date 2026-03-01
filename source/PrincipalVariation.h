@@ -21,7 +21,7 @@ public:
     void reset();
     void store_move(int search_ply, Move_t move);
     void score_move(MoveList& list, int search_ply, Move_t best_move, int& follow_pv);
-    void print(Board& board);
+    void print(const Board& board);
     Move_t get_best_move() const;
     Move_t get_move(int index) const;
     int length() const;

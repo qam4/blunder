@@ -283,7 +283,7 @@
 
 ## Phase 7: Engine Strength Features
 
-- [ ] 37. Integrate Syzygy tablebases (Req 27)
+- [ ]* 37. Integrate Syzygy tablebases (Req 27)
   - [ ] 37.1 Add the Fathom library as a vendored dependency or git submodule; update CMakeLists.txt
     - _Requirements: 27.1_
   - [ ] 37.2 Implement Syzygy WDL probing in Search: at root and during search, when piece count <= 6, probe tablebases and use the result instead of searching
@@ -301,19 +301,19 @@
   - [x] 38.4 Enforce a hard time limit that is never exceeded
     - _Requirements: 28.4_
 
-- [ ] 39. Implement pondering — think on opponent's time (Req 50)
-  - [ ] 39.1 Create source/InputDetect.h and source/InputDetect.cpp with input_available() function using PeekNamedPipe on Windows and select() on POSIX
+- [x] 39. Implement pondering — think on opponent's time (Req 50)
+  - [x] 39.1 Create source/InputDetect.h and source/InputDetect.cpp with input_available() function using PeekNamedPipe on Windows and select() on POSIX
     - _Requirements: 50.5_
-  - [ ] 39.2 Add abort mechanism to Search: set_abort()/is_aborted() flag, checked every 2048 nodes in alphabeta/quiesce
+  - [x] 39.2 Add abort mechanism to Search: set_abort()/is_aborted() flag, checked every 2048 nodes in alphabeta/quiesce
     - _Requirements: 50.6_
-  - [ ] 39.3 Implement Xboard::ponder_until_input() — run search on ponder position, periodically check input_available(), abort search when input arrives
+  - [x] 39.3 Implement Xboard::ponder_until_input() — run search on ponder position, periodically check input_available(), abort search when input arrives
     - _Requirements: 50.2, 50.3, 50.4, 50.6_
-  - [ ] 39.4 Handle ponder hit (opponent played predicted move) and ponder miss (different move) in the Xboard command loop
+  - [x] 39.4 Handle ponder hit (opponent played predicted move) and ponder miss (different move) in the Xboard command loop
     - _Requirements: 50.3, 50.4_
-  - [ ] 39.5 Add InputDetect.cpp to CMakeLists.txt; verify build on Windows (MinGW)
+  - [x] 39.5 Add InputDetect.cpp to CMakeLists.txt; verify build on Windows (MinGW)
     - _Requirements: 50.5, 50.7_
 
-- [ ] 40_chk. Checkpoint — Verify Phase 7 complete
+- [x] 40_chk. Checkpoint — Verify Phase 7 complete
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Phase 8: Neural Network / ML / MCTS

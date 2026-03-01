@@ -9,8 +9,8 @@
 
 #ifdef _WIN32
 
-#include <io.h>
-#include <windows.h>
+#    include <io.h>
+#    include <windows.h>
 
 bool input_available()
 {
@@ -50,15 +50,15 @@ bool input_available()
 
 #else  // POSIX
 
-#include <sys/select.h>
-#include <unistd.h>
+#    include <sys/select.h>
+#    include <unistd.h>
 
 bool input_available()
 {
     fd_set fds;
     FD_ZERO(&fds);
     FD_SET(STDIN_FILENO, &fds);
-    struct timeval tv = {0, 0};
+    struct timeval tv = { 0, 0 };
     return select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv) > 0;
 }
 

@@ -116,11 +116,17 @@ void Xboard::ponder_until_input(int stm)
     search_.set_pondering(true);
     search_.set_abort(false);
 
+    // search() resets search_ply_ to 0, which would corrupt the move_stack_
+    // entries saved by the caller (e.g. the ponder move applied before this
+    // call).  Save and restore so undo_move finds the right stack slot.
+    int saved_search_ply = board_.get_search_ply();
+
     // Use a very deep depth limit; the search will stop when input_available()
     // triggers the abort flag inside the periodic node check.
     search_.get_tm().start(-1, -1);  // no time limit, no node limit
     search_.search(MAX_SEARCH_PLY, -1, -1, false);
 
+    board_.set_search_ply(saved_search_ply);
     search_.set_pondering(false);
 }
 
@@ -200,7 +206,7 @@ void Xboard::init_handlers()
     handlers_["protover"] = [](const std::string& /*args*/, RunState& /*rs*/)
     {
         std::cout << "feature done=0 myname=\"blunder\" ping=1 memory=1 setboard=1 debug=1"
-                     " sigint=0 sigterm=0"
+                     " ponder=1 sigint=0 sigterm=0"
                   << std::endl;
         std::cout << "feature name=1 ics=1" << std::endl;
         std::cout << "feature usermove=1" << std::endl;
@@ -287,13 +293,14 @@ void Xboard::init_handlers()
     handlers_["usermove"] = [this](const std::string& args, RunState& rs)
     {
         rs.move = parse_move(args);
-        std::cout << "# parsed usermove=" << Output::move_san(rs.move, board_) << std::endl;
         if (rs.move == INVALID_MOVE)
         {
+            std::cout << "# parsed usermove=" << args << " -> Illegal move" << std::endl;
             std::cout << "Illegal move" << std::endl;
         }
         else
         {
+            std::cout << "# parsed usermove=" << Output::move(rs.move, board_) << std::endl;
             rs.stm = make_move(rs.stm, rs.move);
             rs.ponder_move = INVALID_MOVE;
             assert(move_nr_ < MAXMOVES);
@@ -356,34 +363,35 @@ void Xboard::run()
 
         std::cout.flush();
 
-        // Pondering
-        rs.skip_ponder = false;
+        // Pondering: search on opponent's time, abort when input arrives
         bool was_pondering = false;
-        if (rs.engine_side == STM_ANALYZE)
+        if (!rs.skip_ponder)
         {
-            ponder_until_input(rs.stm);
-            was_pondering = true;
-        }
-        else if (rs.engine_side != STM_NONE && ponder_ == ON && move_nr_ != 0)
-        {
-            if (rs.ponder_move == INVALID_MOVE)
+            if (rs.engine_side == STM_ANALYZE)
             {
                 ponder_until_input(rs.stm);
                 was_pondering = true;
             }
-            else
+            else if (rs.engine_side != STM_NONE && ponder_ == ON && move_nr_ != 0)
             {
-                int new_stm = make_move(rs.stm, rs.ponder_move);
-                ponder_until_input(new_stm);
-                un_make(rs.ponder_move);
-                was_pondering = true;
+                if (rs.ponder_move != INVALID_MOVE && is_valid_move(rs.ponder_move, board_, true))
+                {
+                    int new_stm = make_move(rs.stm, rs.ponder_move);
+                    ponder_until_input(new_stm);
+                    un_make(rs.ponder_move);
+                    was_pondering = true;
+                }
+                else
+                {
+                    // No valid ponder move — ponder on current position
+                    rs.ponder_move = INVALID_MOVE;
+                    ponder_until_input(rs.stm);
+                    was_pondering = true;
+                }
             }
         }
-
-        if (rs.skip_ponder)
-        {
-            // Time commands already set skip_ponder; fall through to read input
-        }
+        // Reset skip_ponder after the decision — handlers may set it again
+        rs.skip_ponder = false;
 
         // Read a line of input
         std::string line;

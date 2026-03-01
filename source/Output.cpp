@@ -283,7 +283,7 @@ string Output::board_to_fen(const class Board& board)
     return fen.str();
 }
 
-string Output::move_san(Move_t move, class Board& board)
+string Output::move_san(Move_t move, const class Board& board)
 {
     const string ROWS = "12345678";
     const string FILES = "abcdefgh";
@@ -298,7 +298,8 @@ string Output::move_san(Move_t move, class Board& board)
     }
     U8 from = move_from(move);
     U8 to = move_to(move);
-    U8 piece = board[from] & (0xFEU);
+    U8 mover = board[from];
+    U8 piece = mover & (0xFEU);
 
     bool pawn_capture = false;
     if (piece == PAWN)
@@ -371,19 +372,20 @@ string Output::move_san(Move_t move, class Board& board)
         ss << Output::piece(move_promote_to(move) & (0xFEU));
     }
 
-    board.do_move(move);
-    if (MoveGenerator::in_check(board, board.side_to_move()))
+    // Use a copy for check/checkmate detection so we never mutate the caller's board
+    Board copy = board;
+    copy.do_move(move);
+    if (MoveGenerator::in_check(copy, copy.side_to_move()))
     {
         ss << '+';
 
         list.reset();
-        MoveGenerator::add_all_moves(list, board, board.side_to_move());
+        MoveGenerator::add_all_moves(list, copy, copy.side_to_move());
         if (list.length() == 0)
         {
             ss << '+';
         }
     }
-    board.undo_move(move);
 
     return ss.str();
 }

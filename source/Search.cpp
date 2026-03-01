@@ -113,6 +113,13 @@ Move_t Search::search(int depth,
 
         int value = alphabeta(alpha, beta, current_depth, IS_PV, DO_NULL);
 
+        // If search was aborted (time or input), stop immediately and use
+        // the best move from the last completed iteration.
+        if (abort_)
+        {
+            break;
+        }
+
         // Aspiration window
         if ((value <= alpha) || (value >= beta))
         {
@@ -120,6 +127,11 @@ Move_t Search::search(int depth,
             beta = MAX_SCORE;
             follow_pv_ = 1;
             value = alphabeta(alpha, beta, current_depth, IS_PV, DO_NULL);
+
+            if (abort_)
+            {
+                break;
+            }
         }
         else
         {
