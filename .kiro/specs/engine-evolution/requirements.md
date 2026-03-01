@@ -636,6 +636,20 @@ This phase documents the findings from a systematic review of the entire codebas
 3. WHEN the position is clearly won or lost, THE engine SHALL spend less time searching
 4. THE engine SHALL never exceed the allocated time (hard time limit)
 
+### Requirement 50: Pondering (Think on Opponent's Time)
+
+**User Story:** As a developer, I want the engine to think during the opponent's turn (pondering) so that it uses idle time productively and plays stronger under time controls.
+
+#### Acceptance Criteria
+
+1. WHEN the Xboard "hard" command is received, THE engine SHALL enable pondering; "easy" SHALL disable it
+2. WHEN pondering is enabled and the engine has a predicted opponent move (ponder move from PV), THE engine SHALL make the ponder move on the board and begin searching on the resulting position while waiting for input
+3. WHEN the opponent plays the predicted move (ponder hit), THE engine SHALL continue the search seamlessly and use the accumulated results
+4. WHEN the opponent plays a different move (ponder miss), THE engine SHALL abort the ponder search, unmake the ponder move, and search the actual position from scratch
+5. THE engine SHALL detect incoming stdin input without blocking, using platform-specific mechanisms (PeekNamedPipe on Windows, select/poll on POSIX)
+6. THE engine SHALL periodically check for input during the ponder search (e.g., every N nodes) and stop promptly when input arrives
+7. PONDERING SHALL only be supported in Xboard mode (and future UCI mode); interactive mode does not require pondering
+
 ---
 
 ## Phase 8: Neural Network / Machine Learning Evaluation

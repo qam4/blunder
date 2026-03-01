@@ -513,7 +513,104 @@ Integrate the Fathom library (MIT license) for Syzygy probing:
 - Probe WDL at root and during search when piece count ≤ 6
 - Use DTZ (Distance To Zeroing) at root for optimal play
 
-### 7.2 Time Management (Req 28)
+### 7.2 Pondering — Think on Opponent's Time (Req 50)
+
+The Xboard loop already has scaffolding for pondering: `ponder_` flag, `easy`/`hard` handlers, `ponder_move` tracking, and `make_move`/`un_make` around `ponder_until_input()`. The stub is currently a no-op.
+
+#### Platform-Specific Non-Blocking Input
+
+Pondering requires detecting stdin input without blocking:
+
+```cpp
+// source/InputDetect.h
+#ifndef INPUTDETECT_H
+#define INPUTDETECT_H
+
+/// Returns true if there is data waiting on stdin (non-blocking).
+bool input_available();
+
+#endif
+```
+
+```cpp
+// source/InputDetect.cpp
+#include "InputDetect.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#include <io.h>
+
+bool input_available()
+{
+    // Check if stdin is a pipe (redirected) or console
+    HANDLE h = GetStdHandle(STD_INPUT_HANDLE);
+    DWORD avail = 0;
+    if (GetFileType(h) == FILE_TYPE_PIPE)
+    {
+        PeekNamedPipe(h, nullptr, 0, nullptr, &avail, nullptr);
+        return avail > 0;
+    }
+    // Console: check for pending input events
+    INPUT_RECORD rec;
+    DWORD count = 0;
+    while (PeekConsoleInput(h, &rec, 1, &count) && count > 0)
+    {
+        if (rec.EventType == KEY_EVENT && rec.Event.KeyEvent.bKeyDown)
+        {
+            return true;
+        }
+        ReadConsoleInput(h, &rec, 1, &count);  // discard non-key events
+    }
+    return false;
+}
+
+#else
+#include <sys/select.h>
+#include <unistd.h>
+
+bool input_available()
+{
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(STDIN_FILENO, &fds);
+    struct timeval tv = {0, 0};
+    return select(STDIN_FILENO + 1, &fds, nullptr, nullptr, &tv) > 0;
+}
+#endif
+```
+
+#### Search Abort Mechanism
+
+The Search class needs a way to be interrupted externally:
+
+```cpp
+// In Search.h:
+void set_abort(bool a) { abort_ = a; }
+bool is_aborted() const { return abort_; }
+
+// In alphabeta/quiesce, check periodically (every 2048 nodes):
+if (abort_) return 0;
+```
+
+#### Ponder Flow
+
+```
+Engine makes move → extract ponder_move from PV[1]
+  → make_move(ponder_move)
+  → search_.set_abort(false)
+  → start search in ponder_until_input()
+  → periodically check input_available()
+  → if input arrives:
+      → search_.set_abort(true)  // stop search
+      → read the input line
+      → if opponent played ponder_move: "ponder hit" — use partial results
+      → else: "ponder miss" — discard results
+  → un_make(ponder_move)
+```
+
+Pondering is only supported in Xboard mode (and future UCI). Interactive mode does not ponder.
+
+### 7.3 Time Management (Req 28)
 
 Replace the simple `time_left / 40 + inc / 2` formula with:
 

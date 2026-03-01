@@ -138,7 +138,7 @@ void Xboard::print_result(int stm, int score)
     {
         std::cout << "1/2-1/2" << std::endl;
     }
-    if (((score > 0) && (stm == WHITE)) || ((score < 0) && (stm == BLACK)))
+    else if (((score > 0) && (stm == WHITE)) || ((score < 0) && (stm == BLACK)))
     {
         std::cout << "1-0" << std::endl;
     }

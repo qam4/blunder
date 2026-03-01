@@ -174,6 +174,18 @@ Move_t Search::search(int depth,
         }
     }
 
+    // Fallback: if search found no move (e.g. time expired before depth 1
+    // completed), pick the first legal move so we never return 0.
+    if (last_best_move == 0U)
+    {
+        MoveList fallback;
+        MoveGenerator::add_all_moves(fallback, board_, board_.side_to_move());
+        if (fallback.length() > 0)
+        {
+            last_best_move = fallback[0];
+        }
+    }
+
     return last_best_move;
 }
 
