@@ -6,5 +6,6 @@ cmake-build-*/
 prefix/
 **/.DS_Store
 scripts/output/
+baselines/
 CMakeLists.txt.user
 CMakeUserPresets.json
