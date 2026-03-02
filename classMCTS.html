@@ -84,6 +84,10 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a1a81efe6b28fca3b935ba38a3baefd4f" class="m-doc">search</a>(</span><span class="m-doc-wrap"><a href="classTimeManager.html" class="m-doc">TimeManager</a>* tm = nullptr) -&gt; <a href="Move_8h.html#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc">Move_<wbr />t</a></span>
             </dt>
             <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a94b89409abd89846ec663715ae4a8cdd" class="m-doc">search_return_root</a>(</span><span class="m-doc-wrap"><a href="classTimeManager.html" class="m-doc">TimeManager</a>* tm = nullptr) -&gt; std::unique_ptr&lt;<a href="structMCTSNode.html" class="m-doc">MCTSNode</a>&gt;</span>
+            </dt>
+            <dd></dd>
             <dt id="adeff16db92f08a0edd7270f418a06847">
               <span class="m-doc-wrap-bumper">auto <a href="#adeff16db92f08a0edd7270f418a06847" class="m-doc-self">get_simulations</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
             </dt>
@@ -155,6 +159,12 @@
               </tbody>
             </table>
 <p>Run <a href="classMCTS.html" class="m-doc">MCTS</a> and return the best move.</p>
+          </div></section>
+          <section class="m-doc-details" id="a94b89409abd89846ec663715ae4a8cdd"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">std::unique_ptr&lt;<a href="structMCTSNode.html" class="m-doc">MCTSNode</a>&gt; MCTS::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a94b89409abd89846ec663715ae4a8cdd" class="m-doc-self">search_return_root</a>(</span><span class="m-doc-wrap"><a href="classTimeManager.html" class="m-doc">TimeManager</a>* tm = nullptr)</span></span>
+            </h3>
+<p>Run <a href="classMCTS.html" class="m-doc">MCTS</a> and return the root node (caller owns the tree). Use this to inspect visit counts for training data generation.</p>
           </div></section>
         </section>
       </div>
