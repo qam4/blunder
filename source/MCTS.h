@@ -71,6 +71,10 @@ public:
     /// @param tm  Optional time manager for time-based termination
     Move_t search(TimeManager* tm = nullptr);
 
+    /// Run MCTS and return the root node (caller owns the tree).
+    /// Use this to inspect visit counts for training data generation.
+    std::unique_ptr<MCTSNode> search_return_root(TimeManager* tm = nullptr);
+
     /// Accessors
     int get_simulations() const { return simulations_; }
     void set_simulations(int n) { simulations_ = n; }

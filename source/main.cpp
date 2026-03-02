@@ -206,9 +206,69 @@ int main(int argc, char** argv)
         }
         Search search(board);
 
-        // Generate training data
-        SelfPlay selfplay(board, search);
-        selfplay.generate_training_data(num_games, search_depth, randomization, output_path);
+        // Check if MCTS self-play mode
+        if (cmd_line_args.cmd_option_exists("--mcts"))
+        {
+            int mcts_sims = 800;
+            double mcts_cpuct = 1.41;
+            double mcts_temp = 1.0;
+            int mcts_temp_drop = 30;
+            double dirichlet_alpha = 0.3;
+            double dirichlet_eps = 0.25;
+
+            if (cmd_line_args.cmd_option_exists("--mcts-simulations"))
+            {
+                string s = cmd_line_args.get_cmd_option("--mcts-simulations");
+                if (!s.empty())
+                    mcts_sims = std::stoi(s);
+            }
+            if (cmd_line_args.cmd_option_exists("--mcts-cpuct"))
+            {
+                string s = cmd_line_args.get_cmd_option("--mcts-cpuct");
+                if (!s.empty())
+                    mcts_cpuct = std::stod(s);
+            }
+            if (cmd_line_args.cmd_option_exists("--selfplay-temperature"))
+            {
+                string s = cmd_line_args.get_cmd_option("--selfplay-temperature");
+                if (!s.empty())
+                    mcts_temp = std::stod(s);
+            }
+            if (cmd_line_args.cmd_option_exists("--selfplay-temp-drop"))
+            {
+                string s = cmd_line_args.get_cmd_option("--selfplay-temp-drop");
+                if (!s.empty())
+                    mcts_temp_drop = std::stoi(s);
+            }
+            if (cmd_line_args.cmd_option_exists("--selfplay-dirichlet-alpha"))
+            {
+                string s = cmd_line_args.get_cmd_option("--selfplay-dirichlet-alpha");
+                if (!s.empty())
+                    dirichlet_alpha = std::stod(s);
+            }
+            if (cmd_line_args.cmd_option_exists("--selfplay-dirichlet-eps"))
+            {
+                string s = cmd_line_args.get_cmd_option("--selfplay-dirichlet-eps");
+                if (!s.empty())
+                    dirichlet_eps = std::stod(s);
+            }
+
+            SelfPlay selfplay(board, search);
+            selfplay.generate_mcts_training_data(num_games,
+                                                 mcts_sims,
+                                                 mcts_cpuct,
+                                                 mcts_temp,
+                                                 mcts_temp_drop,
+                                                 dirichlet_alpha,
+                                                 dirichlet_eps,
+                                                 output_path);
+        }
+        else
+        {
+            // AlphaBeta self-play (original)
+            SelfPlay selfplay(board, search);
+            selfplay.generate_training_data(num_games, search_depth, randomization, output_path);
+        }
 
         return 0;
     }
@@ -395,9 +455,18 @@ void usage(const string& prog_name)
             "--mcts                           Use MCTS search instead of AlphaBeta\n"
             "--mcts-simulations <N>           MCTS simulations per move (default: 800)\n"
             "--mcts-cpuct <F>                 MCTS exploration constant (default: 1.41)\n"
+            "\n"
+            "Self-play (AlphaBeta):\n"
             "--selfplay                       Generate training data via self-play\n"
             "--selfplay-games <N>             Number of self-play games (default: 100)\n"
             "--selfplay-depth <D>             Search depth per move (default: 6)\n"
             "--selfplay-randomization <T>     Temperature for move selection (default: 0.5)\n"
-            "--selfplay-output <path>         Output file path (default: training_data.bin)\n";
+            "--selfplay-output <path>         Output file path (default: training_data.bin)\n"
+            "\n"
+            "Self-play (MCTS) — combine --selfplay with --mcts:\n"
+            "--selfplay --mcts                MCTS self-play with policy+value targets\n"
+            "--selfplay-temperature <T>       Initial temperature (default: 1.0)\n"
+            "--selfplay-temp-drop <N>         Ply to drop temperature (default: 30)\n"
+            "--selfplay-dirichlet-alpha <F>   Dirichlet noise alpha (default: 0.3)\n"
+            "--selfplay-dirichlet-eps <F>     Noise mixing fraction (default: 0.25)\n";
 }

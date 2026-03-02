@@ -368,14 +368,14 @@
   - [ ]* 42.5 Write unit tests verifying MCTS produces legal moves and visit counts increase with more simulations
     - **Validates: Requirements 31.1, 31.4, 31.5, 31.6**
 
-- [ ] 43. Implement self-play training pipeline (Req 32)
-  - [ ] 43.1 Add a self-play mode using MCTS + neural network that plays complete games, recording board state, MCTS visit count distribution (policy target), and game outcome (value target) for each position
+- [x] 43. Implement self-play training pipeline (Req 32)
+  - [x] 43.1 Add a self-play mode using MCTS + neural network that plays complete games, recording board state, MCTS visit count distribution (policy target), and game outcome (value target) for each position
     - _Requirements: 32.1, 32.2_
-  - [ ] 43.2 Export training data in a format consumable by a Python training script (e.g., NumPy arrays or protobuf)
+  - [x] 43.2 Export training data in a format consumable by a Python training script (e.g., NumPy arrays or protobuf)
     - _Requirements: 32.3_
-  - [ ] 43.3 Support runtime loading of updated network weights without recompilation
+  - [x] 43.3 Support runtime loading of updated network weights without recompilation
     - _Requirements: 32.4_
-  - [ ] 43.4 Add configuration for: number of self-play games, simulations per move, temperature schedule, and Dirichlet noise for exploration
+  - [x] 43.4 Add configuration for: number of self-play games, simulations per move, temperature schedule, and Dirichlet noise for exploration
     - _Requirements: 32.5_
 
 - [ ] 44. Checkpoint — Verify Phase 8 complete

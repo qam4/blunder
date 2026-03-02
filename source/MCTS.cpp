@@ -24,6 +24,25 @@ MCTS::MCTS(Board& board, Evaluator& evaluator, double c_puct, int simulations)
 
 Move_t MCTS::search(TimeManager* tm)
 {
+    auto root = search_return_root(tm);
+
+    // Select the child with the most visits (robust child selection)
+    MCTSNode* best = nullptr;
+    int best_visits = -1;
+    for (auto& child : root->children)
+    {
+        if (child->visits > best_visits)
+        {
+            best_visits = child->visits;
+            best = child.get();
+        }
+    }
+
+    return best ? best->move : Move(0);
+}
+
+std::unique_ptr<MCTSNode> MCTS::search_return_root(TimeManager* tm)
+{
     nodes_visited_ = 0;
 
     // Create root node
@@ -34,7 +53,7 @@ Move_t MCTS::search(TimeManager* tm)
 
     if (root->children.empty())
     {
-        return Move(0);  // No legal moves
+        return root;
     }
 
     // Run simulations
@@ -80,19 +99,7 @@ Move_t MCTS::search(TimeManager* tm)
         }
     }
 
-    // Select the child with the most visits (robust child selection)
-    MCTSNode* best = nullptr;
-    int best_visits = -1;
-    for (auto& child : root->children)
-    {
-        if (child->visits > best_visits)
-        {
-            best_visits = child->visits;
-            best = child.get();
-        }
-    }
-
-    return best ? best->move : Move(0);
+    return root;
 }
 
 MCTSNode* MCTS::select(MCTSNode* root, int& depth)
