@@ -24,9 +24,9 @@
 // The file layout must match NNUEEvaluator::load() exactly.
 // Returns the file path.  Caller should std::remove() it when done.
 // ---------------------------------------------------------------------------
-static std::string generate_test_weights()
+static std::string generate_test_weights(const std::string& name = "default")
 {
-    std::string path = "test_nnue_weights.bin";
+    std::string path = "test_nnue_weights_" + name + ".bin";
     std::ofstream f(path, std::ios::binary);
 
     auto write_val = [&](int16_t val)
@@ -107,7 +107,7 @@ TEST_CASE("NNUE evaluate returns 0 when not loaded", "[nnue]")
 // ===========================================================================
 TEST_CASE("NNUE load succeeds with valid weights file", "[nnue]")
 {
-    auto path = generate_test_weights();
+    auto path = generate_test_weights("load");
     NNUEEvaluator nnue;
     REQUIRE(nnue.load(path));
     REQUIRE(nnue.is_loaded());
@@ -119,7 +119,7 @@ TEST_CASE("NNUE load succeeds with valid weights file", "[nnue]")
 // ===========================================================================
 TEST_CASE("NNUE evaluate returns non-zero with loaded weights", "[nnue]")
 {
-    auto path = generate_test_weights();
+    auto path = generate_test_weights("eval");
     NNUEEvaluator nnue;
     REQUIRE(nnue.load(path));
 
@@ -138,7 +138,7 @@ TEST_CASE("NNUE evaluate returns non-zero with loaded weights", "[nnue]")
 // ===========================================================================
 TEST_CASE("NNUE incremental update matches full refresh", "[nnue]")
 {
-    auto path = generate_test_weights();
+    auto path = generate_test_weights("incremental");
 
     // Primary evaluator wired to the board — uses push/refresh via do_move
     NNUEEvaluator nnue;
@@ -182,7 +182,7 @@ TEST_CASE("NNUE incremental update matches full refresh", "[nnue]")
 // ===========================================================================
 TEST_CASE("NNUE push/pop restores accumulator state", "[nnue]")
 {
-    auto path = generate_test_weights();
+    auto path = generate_test_weights("pushpop");
 
     NNUEEvaluator nnue;
     REQUIRE(nnue.load(path));
@@ -235,7 +235,7 @@ TEST_CASE("NNUE fallback: get_evaluator returns HandCrafted when no NNUE", "[nnu
 // ===========================================================================
 TEST_CASE("NNUE fallback: get_evaluator returns NNUE when loaded", "[nnue]")
 {
-    auto path = generate_test_weights();
+    auto path = generate_test_weights("fallback");
 
     NNUEEvaluator nnue;
     REQUIRE(nnue.load(path));

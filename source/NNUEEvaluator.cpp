@@ -55,7 +55,7 @@ bool NNUEEvaluator::load(const std::string& weights_path)
     auto read = [&](void* dst, std::size_t bytes) -> bool
     {
         file.read(reinterpret_cast<char*>(dst), static_cast<std::streamsize>(bytes));
-        return file.good();
+        return !file.fail();
     };
 
     if (!read(l1_weights_, sizeof(l1_weights_)))
