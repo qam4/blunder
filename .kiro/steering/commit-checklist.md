@@ -46,8 +46,8 @@ If any of these apply, fix them before committing.
 
 After pushing (when the user approves a push):
 
-1. Run `gh run list --limit 3` to check CI status
-2. If the run is still in progress, keep polling with `gh run list --limit 3`
+1. Run `gh run list --limit 3; Start-Sleep -Seconds 60` to check CI status
+2. If the run is still in progress, keep polling with `gh run list --limit 3; Start-Sleep -Seconds 60`
    (no sleep — just re-run the command) until it completes
 3. If CI fails, immediately investigate with `gh run view <id> --log-failed`
 4. Report the failure to the user with a root-cause summary

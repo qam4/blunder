@@ -6,6 +6,7 @@ cmake-build-*/
 prefix/
 **/.DS_Store
 scripts/output/
+scripts/__pycache__/
 baselines/
 CMakeLists.txt.user
 CMakeUserPresets.json
@@ -14,3 +15,4 @@ CMakeUserPresets.json
 *.bin
 weights/*.bin
 training_data/
+

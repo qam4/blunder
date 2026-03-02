@@ -28,11 +28,20 @@ from typing import Tuple
 class NNUEDataset(Dataset):
     """Dataset for NNUE training data."""
     
-    def __init__(self, data_path: str):
+    def __init__(self, data_path: str, target: str = "score", blend: float = 0.0):
         """Load training data from binary file.
         
         Format: [768 floats: features][1 float: search score][1 float: game result]
         Each entry is 3080 bytes (768×4 + 4 + 4)
+        
+        Args:
+            data_path: Path to binary training data.
+            target: What to use as the training target:
+                "score"  - search evaluation (self-play data)
+                "result" - game result 0.0/0.5/1.0 (PGN data)
+                "blend"  - weighted mix of score and result
+            blend: Weight for game result when target="blend" (0.0-1.0).
+                   Final target = (1-blend)*score + blend*result
         """
         self.entry_size = 768 * 4 + 4 + 4  # 3080 bytes
         
@@ -55,12 +64,18 @@ class NNUEDataset(Dataset):
             game_result = struct.unpack('f', entry[768*4+4:768*4+8])[0]
             
             self.features.append(features)
-            # Use search score as target (could also blend with game result)
-            self.targets.append(search_score)
+            
+            if target == "result":
+                self.targets.append(game_result)
+            elif target == "blend":
+                self.targets.append((1.0 - blend) * search_score + blend * game_result)
+            else:  # "score"
+                self.targets.append(search_score)
         
         self.features = torch.tensor(self.features, dtype=torch.float32)
         self.targets = torch.tensor(self.targets, dtype=torch.float32).unsqueeze(1)
         
+        print(f"Target mode: {target}" + (f" (blend={blend})" if target == "blend" else ""))
         print(f"Features shape: {self.features.shape}")
         print(f"Targets shape: {self.targets.shape}")
         print(f"Target range: [{self.targets.min():.2f}, {self.targets.max():.2f}]")
@@ -133,6 +148,8 @@ def train_nnue(
     epochs: int = 10,
     batch_size: int = 256,
     learning_rate: float = 0.001,
+    target: str = 'score',
+    blend: float = 0.0,
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
 ):
     """Train NNUE network on self-play data."""
@@ -140,7 +157,7 @@ def train_nnue(
     print(f"Using device: {device}")
     
     # Load dataset
-    dataset = NNUEDataset(data_path)
+    dataset = NNUEDataset(data_path, target=target, blend=blend)
     
     # Split into train/validation (90/10)
     train_size = int(0.9 * len(dataset))
@@ -246,6 +263,19 @@ def main():
         default=0.001,
         help='Learning rate (default: 0.001)'
     )
+    parser.add_argument(
+        '--target',
+        type=str,
+        choices=['score', 'result', 'blend'],
+        default='score',
+        help='Training target: score (self-play eval), result (game outcome), blend (default: score)'
+    )
+    parser.add_argument(
+        '--blend',
+        type=float,
+        default=0.5,
+        help='Blend weight for game result when --target=blend (0.0-1.0, default: 0.5)'
+    )
     
     args = parser.parse_args()
     
@@ -262,7 +292,9 @@ def main():
         output_path=args.output,
         epochs=args.epochs,
         batch_size=args.batch_size,
-        learning_rate=args.learning_rate
+        learning_rate=args.learning_rate,
+        target=args.target,
+        blend=args.blend
     )
 
 
