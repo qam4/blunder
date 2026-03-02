@@ -23,6 +23,7 @@
 #include "Parser.h"
 #include "Perft.h"
 #include "Search.h"
+#include "SelfPlay.h"
 #include "TestPositions.h"
 #include "ValidateMove.h"
 #include "Xboard.h"
@@ -128,6 +129,62 @@ int main(int argc, char** argv)
         }
 
         test_positions_benchmark(epd_path);
+
+        return 0;
+    }
+
+    if (cmd_line_args.cmd_option_exists("--selfplay"))
+    {
+        // Parse self-play parameters
+        int num_games = 100;  // Default
+        if (cmd_line_args.cmd_option_exists("--selfplay-games"))
+        {
+            string games_str = cmd_line_args.get_cmd_option("--selfplay-games");
+            if (!games_str.empty())
+            {
+                num_games = std::stoi(games_str);
+            }
+        }
+
+        int search_depth = 6;  // Default
+        if (cmd_line_args.cmd_option_exists("--selfplay-depth"))
+        {
+            string depth_str = cmd_line_args.get_cmd_option("--selfplay-depth");
+            if (!depth_str.empty())
+            {
+                search_depth = std::stoi(depth_str);
+            }
+        }
+
+        double randomization = 0.5;  // Default temperature
+        if (cmd_line_args.cmd_option_exists("--selfplay-randomization"))
+        {
+            string rand_str = cmd_line_args.get_cmd_option("--selfplay-randomization");
+            if (!rand_str.empty())
+            {
+                randomization = std::stod(rand_str);
+            }
+        }
+
+        string output_path = "training_data.bin";  // Default
+        if (cmd_line_args.cmd_option_exists("--selfplay-output"))
+        {
+            output_path = cmd_line_args.get_cmd_option("--selfplay-output");
+        }
+
+        // Create board and search
+        string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        Board board = Parser::parse_fen(fen);
+        if (nnue_loaded)
+        {
+            board.set_nnue(&nnue);
+            nnue.refresh(board);
+        }
+        Search search(board);
+
+        // Generate training data
+        SelfPlay selfplay(board, search);
+        selfplay.generate_training_data(num_games, search_depth, randomization, output_path);
 
         return 0;
     }
@@ -310,5 +367,10 @@ void usage(const string& prog_name)
             "--book <path>                    Use opening book at <path>\n"
             "--no-book                        Disable opening book\n"
             "--book-depth <N>                 Stop using book after N plies\n"
-            "--nnue <path>                    Use NNUE weights file at <path>\n";
+            "--nnue <path>                    Use NNUE weights file at <path>\n"
+            "--selfplay                       Generate training data via self-play\n"
+            "--selfplay-games <N>             Number of self-play games (default: 100)\n"
+            "--selfplay-depth <D>             Search depth per move (default: 6)\n"
+            "--selfplay-randomization <T>     Temperature for move selection (default: 0.5)\n"
+            "--selfplay-output <path>         Output file path (default: training_data.bin)\n";
 }

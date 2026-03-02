@@ -31,6 +31,7 @@ add_library(
     source/Output.cpp
     source/Parser.cpp
     source/Search.cpp
+    source/SelfPlay.cpp
     source/Zobrist.cpp
     source/ValidateMove.cpp
     source/PrincipalVariation.cpp

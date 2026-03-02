@@ -9,3 +9,8 @@ scripts/output/
 baselines/
 CMakeLists.txt.user
 CMakeUserPresets.json
+
+# Training data and model weights (but keep README)
+*.bin
+weights/*.bin
+training_data/

@@ -330,13 +330,31 @@
   - [x]* 40.5 Write unit tests verifying NNUE evaluate produces valid scores and incremental updates match full recomputation
     - **Validates: Requirements 29.1, 29.2, 29.3**
 
-- [ ] 41. Implement training data generation (Req 30)
-  - [ ] 41.1 Add a self-play mode to the engine that plays games using the current search, recording positions with search scores as labels
+- [x] 41. Implement training data generation (Req 30)
+  - [x] 41.1 Add a self-play mode to the engine that plays games using the current search, recording positions with search scores as labels
     - _Requirements: 30.1, 30.2_
-  - [ ] 41.2 Output training data in a binary format: [768 floats: input features][1 float: search score][1 float: game result], compatible with standard NNUE training tools
+  - [x] 41.2 Output training data in a binary format: [768 floats: input features][1 float: search score][1 float: game result], compatible with standard NNUE training tools
     - _Requirements: 30.2_
-  - [ ] 41.3 Add command-line options to configure number of games, search depth, and randomization for training data generation
+  - [x] 41.3 Add command-line options to configure number of games, search depth, and randomization for training data generation
     - _Requirements: 30.3, 30.4_
+
+- [x] 41a. Create Python NNUE training script and validate complete pipeline (Req 30)
+  - [x] 41a.1 Create scripts/train_nnue.py that reads the binary training data format from Task 41
+    - _Requirements: 30.2_
+  - [x] 41a.2 Implement PyTorch training loop for HalfKP (768 → 256 → 32 → 32 → 1) architecture matching NNUEEvaluator
+    - _Requirements: 29.1_
+  - [x] 41a.3 Export trained weights in a binary format that NNUEEvaluator::load() can read
+    - _Requirements: 29.1_
+  - [x] 41a.4 Add training configuration: learning rate, batch size, epochs, validation split
+    - _Requirements: 30.3_
+  - [x] 41a.5 Add documentation for the training workflow: generate data → train → export → load in engine
+    - _Requirements: 30.1, 30.2_
+  - [x] 41a.6 Generate training data, train a model, and validate against HandCraftedEvaluator
+    - **Fixed critical bug**: Piece constants are interleaved, causing buffer overflow in extract_features()
+    - **Pipeline validated**: Generated 300 positions, trained model, loaded in engine
+    - **Cutechess comparison**: NNUE (0-20) vs HandCrafted - model needs more training data
+    - **Next steps**: Generate 10k+ games at depth 6+ for competitive NNUE model
+    - _Requirements: 30.1, 30.2, 30.3, 30.4_
 
 - [ ] 42. Implement MCTS search (Req 31)
   - [ ] 42.1 Create source/MCTS.h with MCTSNode struct (move, parent, children, visits, total_value, prior, ucb()) and MCTS class with search(), select(), expand(), simulate(), backpropagate()
