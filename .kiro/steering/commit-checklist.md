@@ -1,6 +1,6 @@
 ---
 inclusion: auto
-description: Pre-commit checklist, CI portability review, and post-push verification rules
+description: Pre-commit checklist, CI portability review, post-push verification, and tagging/release rules
 ---
 
 # Pre-Commit Checklist
@@ -47,7 +47,8 @@ If any of these apply, fix them before committing.
 After pushing (when the user approves a push):
 
 1. Run `gh run list --limit 3` to check CI status
-2. If CI is still running, wait a reasonable time and check again
+2. If the run is still in progress, keep polling with `gh run list --limit 3`
+   (no sleep — just re-run the command) until it completes
 3. If CI fails, immediately investigate with `gh run view <id> --log-failed`
 4. Report the failure to the user with a root-cause summary
 5. Propose a fix — do not leave main broken
@@ -57,5 +58,32 @@ After pushing (when the user approves a push):
 - Build command is `cmake --build --preset=dev-mingw` (not `dev`)
 - Commit between phases for clean rollback points
 - Delete files that are no longer compiled — don't leave dead code on disk
-- Tag releases at milestones when GitHub builds pass
+- Tag releases at milestones when GitHub builds pass (see Tagging section below)
 - Do not reveal spec file paths, internal task counts, or mention subagents to the user
+
+# Tagging
+
+Tag after a milestone (spec phase checkpoint, major feature, or release) once
+CI is green on main.
+
+1. Wait for CI to pass — NEVER tag a red build
+2. Use annotated tags with semantic versioning: `git tag -a vX.Y.Z -m "description"`
+   - Major (X): breaking changes or architectural rewrites
+   - Minor (Y): new features (e.g. NNUE, UCI, pondering)
+   - Patch (Z): bug fixes, refactors, test additions
+3. Wait for user approval — NEVER tag or push tags without explicit user consent
+4. Push the tag: `git push origin vX.Y.Z`
+5. Verify the release workflow triggers: `gh run list --limit 3`
+6. The release workflow creates a draft release — remind the user to manually
+   publish (undraft) it on GitHub so the build artifacts are accessible for
+   A/B testing with cutechess
+
+7. If the release includes gameplay-affecting changes (search, evaluation, move
+   ordering, time management, etc.), run a cutechess SPRT regression test after
+   the user undrafts the release:
+   a. Download the new artifact: `gh release download vX.Y.Z -p "*.exe" -D baselines/`
+   b. Run: `python scripts/run-cutechess.py --baseline baselines/<previous>.exe --candidate baselines/<new>.exe`
+
+When suggesting a tag, propose the version number and a short description based
+on what changed since the last tag. Check the last tag with `git describe --tags --abbrev=0`
+(if no tags exist yet, start at v0.1.0).
