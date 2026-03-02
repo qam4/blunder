@@ -6,24 +6,34 @@ techniques used in the Blunder chess engine.
 ## Overview
 
 Blunder is a chess engine that communicates via the Xboard protocol. Its core
-loop is: generate legal moves, order them, search the game tree with
-alpha-beta pruning, and return the best move found within the time budget.
+loop is: generate legal moves, search the game tree, and return the best move
+found within the time budget. The engine supports two search algorithms:
+alpha-beta pruning (default) with iterative deepening and move ordering, or
+Monte Carlo Tree Search (MCTS), selectable via the `--mcts` flag.
 
 ```
 Xboard protocol
-  └─ Search (iterative deepening)
-       ├─ Alpha-Beta with aspiration windows
+  └─ Search
+       ├─ [default] Alpha-Beta (iterative deepening)
+       │    ├─ Aspiration windows
        │    ├─ Transposition Table (probe/record)
        │    ├─ Null Move Pruning
        │    ├─ Late Move Reductions
-       │    └─ Quiescence Search
-       ├─ Move Ordering
-       │    ├─ PV / Hash move
-       │    ├─ Captures (SEE + MVV-LVA)
-       │    ├─ Killer moves
-       │    ├─ History heuristic
-       │    └─ Quiet moves
-       └─ Evaluation (hand-crafted, piece-square tables)
+       │    ├─ Quiescence Search
+       │    └─ Move Ordering
+       │         ├─ PV / Hash move
+       │         ├─ Captures (SEE + MVV-LVA)
+       │         ├─ Killer moves
+       │         ├─ History heuristic
+       │         └─ Quiet moves
+       │
+       └─ [--mcts] Monte Carlo Tree Search
+            ├─ Selection (UCB1)
+            ├─ Expansion (uniform priors)
+            ├─ Leaf evaluation (Evaluator)
+            └─ Backpropagation (negamax sign flip)
+
+  Evaluation: hand-crafted (piece-square tables) or NNUE
 ```
 
 ## Search Algorithms
@@ -158,6 +168,113 @@ Moves that are excluded from reduction:
 
 LMR allows the engine to search significantly deeper in the same time budget
 by spending less effort on moves that are statistically unlikely to matter.
+
+## Monte Carlo Tree Search (MCTS)
+
+MCTS is an alternative search algorithm selectable via the `--mcts` CLI flag.
+Instead of exhaustively searching the game tree with alpha-beta pruning, MCTS
+builds a search tree incrementally by running many simulations, each consisting
+of four phases: selection, expansion, evaluation, and backpropagation.
+
+### Why MCTS?
+
+Alpha-beta is strong with good evaluation and move ordering, but it requires
+hand-tuned pruning heuristics and struggles in positions where tactical depth
+matters less than strategic understanding. MCTS naturally balances exploration
+and exploitation without needing move ordering or pruning heuristics, and it
+pairs well with neural network evaluation (NNUE or future policy nets).
+
+### The Four Phases
+
+Each simulation proceeds as follows:
+
+```
+Root
+ ├─ Selection:  Walk down the tree picking the child with highest UCB
+ ├─ Expansion:  At a leaf, generate all legal moves as new children
+ ├─ Evaluation: Score the leaf position using the Evaluator
+ └─ Backprop:   Send the value back up the tree, flipping sign each level
+```
+
+**Selection** — Starting from the root, the algorithm descends the tree by
+always picking the child with the highest Upper Confidence Bound (UCB1) score.
+This balances visiting promising nodes (exploitation) with trying under-explored
+nodes (exploration). Unvisited children get a UCB of +infinity, guaranteeing
+they are tried at least once.
+
+**Expansion** — When selection reaches a leaf node that has been visited before,
+all legal moves from that position are generated and added as children. Each
+child receives a uniform prior probability (1/N where N is the number of legal
+moves). This prior slot is designed for a future policy network that would
+assign non-uniform priors based on move quality.
+
+**Evaluation** — The leaf position is evaluated using the engine's Evaluator
+(hand-crafted or NNUE). The centipawn score is converted to a value in [-1, 1]
+using `tanh(score / 400)`. This mapping gives roughly:
+
+| Centipawns | Value |
+|------------|-------|
+| ±100 cp    | ±0.24 |
+| ±300 cp    | ±0.64 |
+| ±600 cp    | ±0.93 |
+
+Terminal positions return exact values: 0.0 for draws, +1.0 for checkmate
+(from the winner's perspective).
+
+The value is negated before backpropagation because `side_relative_eval`
+returns the score from the current side-to-move's perspective, but
+backpropagation needs it from the perspective of the side that just moved.
+
+**Backpropagation** — The evaluation result is propagated back up the tree from
+the leaf to the root. At each node, the visit count is incremented and the
+value is added to the node's running total. The value is negated at each level
+(negamax convention) because what is good for one side is bad for the other.
+
+### UCB Formula
+
+The UCB score for a child node is:
+
+```
+UCB = (total_value / visits) + c_puct * prior * sqrt(parent_visits) / (1 + visits)
+```
+
+- First term (exploitation): average value of this node
+- Second term (exploration): bonus for under-visited nodes, scaled by the prior
+  and the exploration constant `c_puct`
+
+The default `c_puct` is 1.41 (approximately √2), the theoretically optimal
+value for UCB1. Higher values favor exploration; lower values favor
+exploitation.
+
+### Move Selection
+
+After all simulations complete, the engine selects the root child with the
+most visits (robust child selection), not the highest average value. Visit
+count is more stable than average value because a node with few visits might
+have a misleadingly high average due to sampling noise.
+
+### Time Management
+
+MCTS checks the TimeManager every 64 simulations. If time is up, the search
+stops early and returns the best move found so far. This is coarser-grained
+than alpha-beta's node-based time checks, but sufficient because individual
+MCTS simulations are fast.
+
+### Configuration
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--mcts` | off | Enable MCTS instead of alpha-beta |
+| `--mcts-simulations` | 800 | Number of simulations per search |
+| `--mcts-cpuct` | 1.41 | Exploration constant (UCB1) |
+
+### Future Extensions
+
+- **Policy network priors**: Replace uniform priors with a neural network that
+  predicts move probabilities, focusing search on promising moves earlier.
+- **Pondering**: Run MCTS simulations during the opponent's thinking time.
+- **Tree reuse**: Keep the subtree from the opponent's move between searches
+  instead of rebuilding from scratch.
 
 ## Transposition Table
 

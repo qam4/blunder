@@ -12,6 +12,7 @@
 #include "Board.h"
 #include "Book.h"
 #include "Common.h"
+#include "MCTS.h"
 #include "Move.h"
 #include "NNUEEvaluator.h"
 #include "Search.h"
@@ -40,6 +41,14 @@ class Xboard
     {
         book_ = std::move(book);
         book_enabled_ = book_.is_open();
+    }
+
+    /// Enable MCTS search mode with given simulation count and exploration constant.
+    void set_mcts_mode(int simulations, double c_puct)
+    {
+        use_mcts_ = true;
+        mcts_simulations_ = simulations;
+        mcts_c_puct_ = c_puct;
     }
 
     /// Set the NNUE evaluator for the engine.
@@ -101,6 +110,11 @@ class Xboard
     Book book_;
     bool book_enabled_ = false;
     NNUEEvaluator* nnue_ = nullptr;
+
+    // MCTS configuration
+    bool use_mcts_ = false;
+    int mcts_simulations_ = 800;
+    double mcts_c_puct_ = 1.41;
 
     int move_nr_ = 0;
     Move_t game_move_[MAXMOVES] {};

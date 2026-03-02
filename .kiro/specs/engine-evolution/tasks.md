@@ -356,14 +356,14 @@
     - **Next steps**: Generate 10k+ games at depth 6+ for competitive NNUE model
     - _Requirements: 30.1, 30.2, 30.3, 30.4_
 
-- [ ] 42. Implement MCTS search (Req 31)
-  - [ ] 42.1 Create source/MCTS.h with MCTSNode struct (move, parent, children, visits, total_value, prior, ucb()) and MCTS class with search(), select(), expand(), simulate(), backpropagate()
+- [-] 42. Implement MCTS search (Req 31)
+  - [x] 42.1 Create source/MCTS.h with MCTSNode struct (move, parent, children, visits, total_value, prior, ucb()) and MCTS class with search(), select(), expand(), simulate(), backpropagate()
     - _Requirements: 31.1, 31.6_
-  - [ ] 42.2 Create source/MCTS.cpp implementing UCB1 selection, expansion with neural network policy priors, value head evaluation at leaves, and backpropagation
+  - [x] 42.2 Create source/MCTS.cpp implementing UCB1 selection, expansion with neural network policy priors, value head evaluation at leaves, and backpropagation
     - _Requirements: 31.1, 31.2, 31.3_
-  - [ ] 42.3 Add configuration for number of simulations per move and exploration constant (C_puct)
+  - [x] 42.3 Add configuration for number of simulations per move and exploration constant (C_puct)
     - _Requirements: 31.5_
-  - [ ] 42.4 Add a command-line flag or config option to switch between AlphaBeta and MCTS search
+  - [x] 42.4 Add a command-line flag or config option to switch between AlphaBeta and MCTS search
     - _Requirements: 31.7_
   - [ ]* 42.5 Write unit tests verifying MCTS produces legal moves and visit counts increase with more simulations
     - **Validates: Requirements 31.1, 31.4, 31.5, 31.6**

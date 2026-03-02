@@ -20,6 +20,7 @@ add_library(
     source/Board.cpp
     source/Book.cpp
     source/CLIUtils.cpp
+    source/MCTS.cpp
     source/CmdLineArgs.cpp
     source/Common.cpp
     source/InputDetect.cpp

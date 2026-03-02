@@ -9,6 +9,7 @@
 #include "Xboard.h"
 
 #include "InputDetect.h"
+#include "MCTS.h"
 #include "Output.h"
 #include "Parser.h"
 #include "ValidateMove.h"
@@ -91,6 +92,22 @@ int Xboard::search_best_move(int stm,
             *move = book_move;
             return 0;  // book move, score is 0
         }
+    }
+
+    // MCTS search path
+    if (use_mcts_)
+    {
+        Evaluator& eval = board_.get_evaluator();
+        MCTS mcts(board_, eval, mcts_c_puct_, mcts_simulations_);
+        TimeManager mcts_tm;
+        int inc_cs = static_cast<int>(inc * 100);
+        mcts_tm.allocate(time_left, inc_cs, mps);
+        *move = mcts.search(&mcts_tm);
+        if (ponder_move != nullptr)
+        {
+            *ponder_move = INVALID_MOVE;
+        }
+        return 0;
     }
 
     // Smart time allocation: delegate to TimeManager

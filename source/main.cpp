@@ -16,6 +16,7 @@
 #include "Book.h"
 #include "CLIUtils.h"
 #include "CmdLineArgs.h"
+#include "MCTS.h"
 #include "MoveGenerator.h"
 #include "MoveList.h"
 #include "NNUEEvaluator.h"
@@ -114,6 +115,29 @@ int main(int argc, char** argv)
         if (nnue_loaded)
         {
             xboard.set_nnue(&nnue);
+        }
+        // MCTS mode
+        if (cmd_line_args.cmd_option_exists("--mcts"))
+        {
+            int mcts_sims = 800;
+            double mcts_cpuct = 1.41;
+            if (cmd_line_args.cmd_option_exists("--mcts-simulations"))
+            {
+                string sims_str = cmd_line_args.get_cmd_option("--mcts-simulations");
+                if (!sims_str.empty())
+                {
+                    mcts_sims = std::stoi(sims_str);
+                }
+            }
+            if (cmd_line_args.cmd_option_exists("--mcts-cpuct"))
+            {
+                string cpuct_str = cmd_line_args.get_cmd_option("--mcts-cpuct");
+                if (!cpuct_str.empty())
+                {
+                    mcts_cpuct = std::stod(cpuct_str);
+                }
+            }
+            xboard.set_mcts_mode(mcts_sims, mcts_cpuct);
         }
         xboard.run();
         return 0;
@@ -368,6 +392,9 @@ void usage(const string& prog_name)
             "--no-book                        Disable opening book\n"
             "--book-depth <N>                 Stop using book after N plies\n"
             "--nnue <path>                    Use NNUE weights file at <path>\n"
+            "--mcts                           Use MCTS search instead of AlphaBeta\n"
+            "--mcts-simulations <N>           MCTS simulations per move (default: 800)\n"
+            "--mcts-cpuct <F>                 MCTS exploration constant (default: 1.41)\n"
             "--selfplay                       Generate training data via self-play\n"
             "--selfplay-games <N>             Number of self-play games (default: 100)\n"
             "--selfplay-depth <D>             Search depth per move (default: 6)\n"
