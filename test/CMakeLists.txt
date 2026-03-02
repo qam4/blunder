@@ -57,6 +57,7 @@ add_executable(blunder_test
     source/TestMove.cpp
     source/TestMoveList.cpp
     source/TestMoveGenerator.cpp
+    source/TestNNUE.cpp
     source/TestZobrist.cpp
     source/TestPerft.cpp
     source/TestTestPositions.cpp

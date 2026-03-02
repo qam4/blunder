@@ -11,9 +11,12 @@
 
 #include "Common.h"
 #include "Move.h"
+#include "NNUEEvaluator.h"
 #include "Zobrist.h"
 #include "TranspositionTable.h"
 #include "Evaluator.h"
+
+// Forward declaration no longer needed — NNUEEvaluator.h is included above.
 
 int pop_count(U64 x);
 bool inline is_valid_piece(U8 piece) { return (piece >= WHITE_PAWN) && (piece <= BLACK_KING); }
@@ -45,6 +48,7 @@ private:
     Zobrist zobrist_;
     std::shared_ptr<TranspositionTable> tt_;
     HandCraftedEvaluator evaluator_;
+    NNUEEvaluator* nnue_ = nullptr;
     U64 hash_history_[MAX_GAME_PLY];
 
     int game_ply_;
@@ -87,7 +91,13 @@ public:
 
     void update_hash();
     TranspositionTable& get_tt() { return *tt_; }
-    Evaluator& get_evaluator() { return evaluator_; }
+    Evaluator& get_evaluator()
+    {
+        if (nnue_ && nnue_->is_loaded()) return *nnue_;
+        return evaluator_;
+    }
+    void set_nnue(NNUEEvaluator* nnue) { nnue_ = nnue; }
+    NNUEEvaluator* get_nnue() const { return nnue_; }
 
     // EPD
     void set_epd_op(const std::string& opcode, const std::string& operand) { epd_[opcode] = operand; }

@@ -40,6 +40,7 @@ add_library(
     source/Xboard.cpp
     source/See.cpp
     source/Evaluator.cpp
+    source/NNUEEvaluator.cpp
 )
 
 target_include_directories(

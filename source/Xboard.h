@@ -13,6 +13,7 @@
 #include "Book.h"
 #include "Common.h"
 #include "Move.h"
+#include "NNUEEvaluator.h"
 #include "Search.h"
 
 // Side-to-move constants for the Xboard protocol loop
@@ -39,6 +40,18 @@ class Xboard
     {
         book_ = std::move(book);
         book_enabled_ = book_.is_open();
+    }
+
+    /// Set the NNUE evaluator for the engine.
+    /// The caller must ensure the NNUEEvaluator outlives the Xboard instance.
+    void set_nnue(NNUEEvaluator* nnue)
+    {
+        nnue_ = nnue;
+        board_.set_nnue(nnue);
+        if (nnue && nnue->is_loaded())
+        {
+            nnue->refresh(board_);
+        }
     }
 
   private:
@@ -87,6 +100,7 @@ class Xboard
     Search search_;
     Book book_;
     bool book_enabled_ = false;
+    NNUEEvaluator* nnue_ = nullptr;
 
     int move_nr_ = 0;
     Move_t game_move_[MAXMOVES] {};

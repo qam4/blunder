@@ -9,6 +9,7 @@
 
 #include "MoveGenerator.h"
 #include "MoveList.h"
+#include "NNUEEvaluator.h"
 
 // Count number of bits set to 1 in 64 bit word
 int pop_count(U64 x)
@@ -101,6 +102,12 @@ void Board::do_move(Move_t move)
     U8 to = move_to(move);
     U8 piece = board_array_[from];
     bool move_resets_half_move_clock = false;
+
+    // Save NNUE accumulator state before making the move
+    if (nnue_)
+    {
+        nnue_->push();
+    }
 
     // cout << "do_move:" << Output::move(move, *this) << endl;
     // cout << "do_move: move_flag=" << hex << move << endl;
@@ -244,6 +251,12 @@ void Board::do_move(Move_t move)
     assert(irrev_.board_hash == zobrist_.get_zobrist_key(*this));
 #endif
     hash_history_[game_ply_] = irrev_.board_hash;
+
+    // Refresh NNUE accumulator from the final board state
+    if (nnue_)
+    {
+        nnue_->refresh(*this);
+    }
 }
 
 void Board::undo_move(Move_t move)
@@ -254,6 +267,12 @@ void Board::undo_move(Move_t move)
     U64 hash;
     // cout << "undo_move:" << Output::move(move, *this) << endl;
     // cout << "undo_move: move_flag=" << hex << move << endl;
+
+    // Restore NNUE accumulator to pre-move state
+    if (nnue_)
+    {
+        nnue_->pop();
+    }
 
     game_ply_--;
     search_ply_--;
@@ -329,6 +348,12 @@ void Board::undo_move(Move_t move)
 
 void Board::do_null_move()
 {
+    // Save NNUE accumulator state before null move
+    if (nnue_)
+    {
+        nnue_->push();
+    }
+
     // Save irreversible state
     move_stack_[search_ply_] = irrev_;
 
@@ -360,6 +385,12 @@ void Board::do_null_move()
 
 void Board::undo_null_move()
 {
+    // Restore NNUE accumulator to pre-null-move state
+    if (nnue_)
+    {
+        nnue_->pop();
+    }
+
     game_ply_--;
     search_ply_--;
 

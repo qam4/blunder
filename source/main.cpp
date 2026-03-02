@@ -18,6 +18,7 @@
 #include "CmdLineArgs.h"
 #include "MoveGenerator.h"
 #include "MoveList.h"
+#include "NNUEEvaluator.h"
 #include "Output.h"
 #include "Parser.h"
 #include "Perft.h"
@@ -81,12 +82,37 @@ int main(int argc, char** argv)
         }
     }
 
+    // Parse NNUE configuration (shared across all modes)
+    NNUEEvaluator nnue;
+    bool nnue_loaded = false;
+    if (cmd_line_args.cmd_option_exists("--nnue"))
+    {
+        string nnue_path = cmd_line_args.get_cmd_option("--nnue");
+        if (!nnue_path.empty())
+        {
+            if (nnue.load(nnue_path))
+            {
+                nnue_loaded = true;
+                cout << "NNUE: loaded weights from " << nnue_path << endl;
+            }
+            else
+            {
+                cout << "NNUE: failed to load weights from " << nnue_path
+                     << ", falling back to hand-crafted evaluation" << endl;
+            }
+        }
+    }
+
     if (cmd_line_args.cmd_option_exists("--xboard"))
     {
         Xboard xboard;
         if (book_enabled)
         {
             xboard.set_book(std::move(book));
+        }
+        if (nnue_loaded)
+        {
+            xboard.set_nnue(&nnue);
         }
         xboard.run();
         return 0;
@@ -111,6 +137,11 @@ int main(int argc, char** argv)
 
     string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     Board board = Parser::parse_fen(fen);
+    if (nnue_loaded)
+    {
+        board.set_nnue(&nnue);
+        nnue.refresh(board);
+    }
     Search search(board);
 
     while (true)
@@ -278,5 +309,6 @@ void usage(const string& prog_name)
             "--test-positions path-to-epd     Run test positions\n"
             "--book <path>                    Use opening book at <path>\n"
             "--no-book                        Disable opening book\n"
-            "--book-depth <N>                 Stop using book after N plies\n";
+            "--book-depth <N>                 Stop using book after N plies\n"
+            "--nnue <path>                    Use NNUE weights file at <path>\n";
 }

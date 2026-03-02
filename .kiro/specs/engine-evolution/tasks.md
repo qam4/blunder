@@ -318,16 +318,16 @@
 
 ## Phase 8: Neural Network / ML / MCTS
 
-- [ ] 40. Implement NNUE evaluation (Req 29)
-  - [ ] 40.1 Create source/NNUEEvaluator.h with NNUEEvaluator class inheriting from Evaluator; implement HalfKP architecture (768 → 256 → 32 → 32 → 1) with load(), evaluate(), side_relative_eval(), push(), pop(), add_piece(), remove_piece()
+- [x] 40. Implement NNUE evaluation (Req 29)
+  - [x] 40.1 Create source/NNUEEvaluator.h with NNUEEvaluator class inheriting from Evaluator; implement HalfKP architecture (768 → 256 → 32 → 32 → 1) with load(), evaluate(), side_relative_eval(), push(), pop(), add_piece(), remove_piece()
     - _Requirements: 29.1, 29.2, 29.3_
-  - [ ] 40.2 Create source/NNUEEvaluator.cpp implementing forward pass with SIMD-friendly aligned accumulators, incremental accumulator updates on add_piece/remove_piece
+  - [x] 40.2 Create source/NNUEEvaluator.cpp implementing forward pass with SIMD-friendly aligned accumulators, incremental accumulator updates on add_piece/remove_piece
     - _Requirements: 29.2_
-  - [ ] 40.3 Integrate NNUEEvaluator with Board::do_move/undo_move via push/pop/add_piece/remove_piece calls
+  - [x] 40.3 Integrate NNUEEvaluator with Board::do_move/undo_move via push/pop/add_piece/remove_piece calls
     - _Requirements: 29.2_
-  - [ ] 40.4 Add fallback logic: if no network weights file is available, use HandCraftedEvaluator
+  - [x] 40.4 Add fallback logic: if no network weights file is available, use HandCraftedEvaluator
     - _Requirements: 29.4_
-  - [ ]* 40.5 Write unit tests verifying NNUE evaluate produces valid scores and incremental updates match full recomputation
+  - [x]* 40.5 Write unit tests verifying NNUE evaluate produces valid scores and incremental updates match full recomputation
     - **Validates: Requirements 29.1, 29.2, 29.3**
 
 - [ ] 41. Implement training data generation (Req 30)

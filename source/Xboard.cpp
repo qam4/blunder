@@ -39,6 +39,11 @@ int Xboard::setup(const std::string& fen)
     }
     board_ = Parser::parse_fen(setup_fen_);
     board_.get_tt().clear();
+    if (nnue_ && nnue_->is_loaded())
+    {
+        board_.set_nnue(nnue_);
+        nnue_->refresh(board_);
+    }
     return board_.side_to_move();
 }
 
