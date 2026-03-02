@@ -74,14 +74,15 @@ TEST_CASE("node_count_monotonic_with_depth", "[search properties]")
 {
     for (int i = 0; i < NUM_SEARCH_PROP_FENS; i++)
     {
+        Board board = Parser::parse_fen(SEARCH_PROP_FENS[i]);
+        Search search(board);
+
         int prev_nodes = 0;
         for (int depth = 1; depth <= 4; depth++)
         {
-            Board board = Parser::parse_fen(SEARCH_PROP_FENS[i]);
             board.get_tt().clear();
-            Search search(board);
             search.search(depth, -1);
-            int nodes = search.get_searched_moves();
+            int nodes = search.get_stats().nodes_visited;
 
             INFO("FEN: " << SEARCH_PROP_FENS[i] << " depth: " << depth << " nodes: " << nodes
                          << " prev: " << prev_nodes);

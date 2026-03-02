@@ -7,10 +7,10 @@ description: Pre-commit checklist, CI portability review, post-push verification
 
 Before every `git commit`, you MUST follow this exact workflow:
 
-1. Build: `cmake --build --preset=dev-mingw`
-2. Test: `cmake --build --preset=dev-mingw -t test` — all tests must pass
-3. Format: `cmake --build --preset=dev-mingw -t format-fix`
-4. Spell: `cmake --build --preset=dev-mingw -t spell-fix`
+1. Build: `cmake --build --preset=dev`
+2. Test: `ctest --preset=dev --output-on-failure` — all tests must pass
+3. Format: `cmake --build --preset=dev -t format-fix`
+4. Spell: `cmake --build --preset=dev -t spell-fix`
 5. If format-fix or spell-fix modified files, rebuild and retest
 6. CI portability review (see section below)
 7. Update any relevant documents: spec tasks.md checkboxes, design docs, etc.
@@ -55,7 +55,8 @@ After pushing (when the user approves a push):
 
 # General Rules
 
-- Build command is `cmake --build --preset=dev-mingw` (not `dev`)
+- Build command is `cmake --build --preset=dev`
+- Test command is `ctest --preset=dev --output-on-failure`
 - Commit between phases for clean rollback points
 - Delete files that are no longer compiled — don't leave dead code on disk
 - Tag releases at milestones when GitHub builds pass (see Tagging section below)

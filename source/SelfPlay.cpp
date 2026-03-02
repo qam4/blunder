@@ -4,33 +4,35 @@
  * Implementation of self-play training data generation.
  */
 
+#include <algorithm>
+#include <cmath>
+#include <iostream>
+
 #include "SelfPlay.h"
+
+#include "Constants.h"
 #include "MoveGenerator.h"
 #include "MoveList.h"
 #include "Output.h"
-#include "Constants.h"
-
-#include <iostream>
-#include <cmath>
-#include <algorithm>
 
 using std::cout;
 using std::endl;
 
 SelfPlay::SelfPlay(Board& board, Search& search)
-    : board_(board), search_(search)
+    : board_(board)
+    , search_(search)
 {
     // Seed RNG with current time
     rng_.seed(static_cast<unsigned int>(std::time(nullptr)));
 }
 
-void SelfPlay::generate_training_data(int num_games, 
-                                       int search_depth,
-                                       double randomization,
-                                       const std::string& output_path)
+void SelfPlay::generate_training_data(int num_games,
+                                      int search_depth,
+                                      double randomization,
+                                      const std::string& output_path)
 {
-    cout << "Generating training data: " << num_games << " games, depth " 
-         << search_depth << ", randomization " << randomization << endl;
+    cout << "Generating training data: " << num_games << " games, depth " << search_depth
+         << ", randomization " << randomization << endl;
 
     std::vector<TrainingEntry> all_entries;
     all_entries.reserve(static_cast<size_t>(num_games) * 80);  // Estimate ~80 positions per game
@@ -40,7 +42,7 @@ void SelfPlay::generate_training_data(int num_games,
         // Reset board to starting position
         board_.reset();
         setup_starting_position();
-        
+
         std::vector<TrainingEntry> game_positions;
         float game_result = play_game(search_depth, randomization, game_positions);
 
@@ -54,8 +56,8 @@ void SelfPlay::generate_training_data(int num_games,
 
         if ((game_num + 1) % 10 == 0)
         {
-            cout << "Completed " << (game_num + 1) << " / " << num_games 
-                 << " games (" << all_entries.size() << " positions)" << endl;
+            cout << "Completed " << (game_num + 1) << " / " << num_games << " games ("
+                 << all_entries.size() << " positions)" << endl;
         }
     }
 
@@ -64,7 +66,9 @@ void SelfPlay::generate_training_data(int num_games,
     cout << "Training data generation complete." << endl;
 }
 
-float SelfPlay::play_game(int search_depth, double randomization, std::vector<TrainingEntry>& positions)
+float SelfPlay::play_game(int search_depth,
+                          double randomization,
+                          std::vector<TrainingEntry>& positions)
 {
     // Limit game length to avoid overflow of move_stack_ (size MAX_SEARCH_PLY = 64)
     // We need some headroom for the search depth, so limit to 60 moves
@@ -79,7 +83,8 @@ float SelfPlay::play_game(int search_depth, double randomization, std::vector<Tr
 
         // Search and select move
         int search_score;
-        Move_t move = select_move_with_temperature(board_, search_depth, randomization, search_score);
+        Move_t move =
+            select_move_with_temperature(board_, search_depth, randomization, search_score);
 
         if (move == Move(0))
         {
@@ -123,7 +128,7 @@ float SelfPlay::play_game(int search_depth, double randomization, std::vector<Tr
         // Position i was recorded before move i was made
         // If i is even, White to move; if odd, Black to move
         bool white_to_move = (i % 2 == 0);
-        
+
         if (white_to_move)
         {
             positions[i].game_result = result;  // White's perspective
@@ -167,18 +172,54 @@ void SelfPlay::extract_features(const Board& board, float features[768])
         // They're interleaved, so we need to map them correctly
         switch (piece)
         {
-            case WHITE_PAWN:   piece_type = 0; color = 0; break;
-            case BLACK_PAWN:   piece_type = 0; color = 1; break;
-            case WHITE_KNIGHT: piece_type = 1; color = 0; break;
-            case BLACK_KNIGHT: piece_type = 1; color = 1; break;
-            case WHITE_BISHOP: piece_type = 2; color = 0; break;
-            case BLACK_BISHOP: piece_type = 2; color = 1; break;
-            case WHITE_ROOK:   piece_type = 3; color = 0; break;
-            case BLACK_ROOK:   piece_type = 3; color = 1; break;
-            case WHITE_QUEEN:  piece_type = 4; color = 0; break;
-            case BLACK_QUEEN:  piece_type = 4; color = 1; break;
-            case WHITE_KING:   piece_type = 5; color = 0; break;
-            case BLACK_KING:   piece_type = 5; color = 1; break;
+            case WHITE_PAWN:
+                piece_type = 0;
+                color = 0;
+                break;
+            case BLACK_PAWN:
+                piece_type = 0;
+                color = 1;
+                break;
+            case WHITE_KNIGHT:
+                piece_type = 1;
+                color = 0;
+                break;
+            case BLACK_KNIGHT:
+                piece_type = 1;
+                color = 1;
+                break;
+            case WHITE_BISHOP:
+                piece_type = 2;
+                color = 0;
+                break;
+            case BLACK_BISHOP:
+                piece_type = 2;
+                color = 1;
+                break;
+            case WHITE_ROOK:
+                piece_type = 3;
+                color = 0;
+                break;
+            case BLACK_ROOK:
+                piece_type = 3;
+                color = 1;
+                break;
+            case WHITE_QUEEN:
+                piece_type = 4;
+                color = 0;
+                break;
+            case BLACK_QUEEN:
+                piece_type = 4;
+                color = 1;
+                break;
+            case WHITE_KING:
+                piece_type = 5;
+                color = 0;
+                break;
+            case BLACK_KING:
+                piece_type = 5;
+                color = 1;
+                break;
             default:
                 continue;  // Invalid piece
         }
@@ -189,10 +230,10 @@ void SelfPlay::extract_features(const Board& board, float features[768])
     }
 }
 
-Move_t SelfPlay::select_move_with_temperature(const Board& board, 
-                                               int search_depth,
-                                               double temperature,
-                                               int& search_score)
+Move_t SelfPlay::select_move_with_temperature(const Board& board,
+                                              int search_depth,
+                                              double temperature,
+                                              int& search_score)
 {
     // Generate all legal moves
     MoveList moves;
@@ -221,16 +262,17 @@ Move_t SelfPlay::select_move_with_temperature(const Board& board,
     for (int i = 0; i < moves.length(); ++i)
     {
         board_.do_move(moves[i]);
-        
+
         // Search from opponent's perspective, then negate
         int score = -search_.alphabeta(-MAX_SCORE, MAX_SCORE, search_depth - 1, IS_PV, DO_NULL);
-        
+
         board_.undo_move(moves[i]);
-        move_scores.push_back({moves[i], score});
+        move_scores.push_back({ moves[i], score });
     }
 
     // Sort by score (best first)
-    std::sort(move_scores.begin(), move_scores.end(),
+    std::sort(move_scores.begin(),
+              move_scores.end(),
               [](const auto& a, const auto& b) { return a.second > b.second; });
 
     // If temperature is 0, return best move
@@ -243,10 +285,10 @@ Move_t SelfPlay::select_move_with_temperature(const Board& board,
     // Apply temperature-based selection using softmax
     std::vector<double> probabilities;
     probabilities.reserve(move_scores.size());
-    
+
     double max_score = static_cast<double>(move_scores[0].second);
     double sum = 0.0;
-    
+
     for (const auto& ms : move_scores)
     {
         double exp_val = std::exp((ms.second - max_score) / temperature);
@@ -264,7 +306,7 @@ Move_t SelfPlay::select_move_with_temperature(const Board& board,
     std::uniform_real_distribution<double> dist(0.0, 1.0);
     double r = dist(rng_);
     double cumulative = 0.0;
-    
+
     for (size_t i = 0; i < probabilities.size(); ++i)
     {
         cumulative += probabilities[i];
@@ -281,7 +323,7 @@ Move_t SelfPlay::select_move_with_temperature(const Board& board,
 }
 
 void SelfPlay::write_training_data(const std::vector<TrainingEntry>& entries,
-                                    const std::string& output_path)
+                                   const std::string& output_path)
 {
     std::ofstream out(output_path, std::ios::binary);
     if (!out)
