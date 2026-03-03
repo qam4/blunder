@@ -29,7 +29,7 @@ Xboard protocol
        │
        └─ [--mcts] Monte Carlo Tree Search
             ├─ Selection (UCB1)
-            ├─ Expansion (uniform priors)
+            ├─ Expansion (uniform priors or DualHeadNetwork policy head)
             ├─ Leaf evaluation (Evaluator)
             └─ Backpropagation (negamax sign flip)
 
@@ -265,13 +265,12 @@ MCTS simulations are fast.
 | Flag | Default | Description |
 |------|---------|-------------|
 | `--mcts` | off | Enable MCTS instead of alpha-beta |
+| `--alphazero` | off | Enable MCTS with dual-head network (requires `--nnue`) |
 | `--mcts-simulations` | 800 | Number of simulations per search |
 | `--mcts-cpuct` | 1.41 | Exploration constant (UCB1) |
 
 ### Future Extensions
 
-- **Policy network priors**: Replace uniform priors with a neural network that
-  predicts move probabilities, focusing search on promising moves earlier.
 - **Pondering**: Run MCTS simulations during the opponent's thinking time.
 - **Tree reuse**: Keep the subtree from the opponent's move between searches
   instead of rebuilding from scratch.

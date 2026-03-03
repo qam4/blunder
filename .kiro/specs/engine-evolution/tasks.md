@@ -388,16 +388,16 @@
   - [x] 43a.4 Add DualHeadNetwork.cpp to CMakeLists.txt; verify build
     - _Requirements: 31.6_
 
-- [ ] 43b. Wire MCTS to use dual-head network for priors and leaf evaluation (Req 31)
-  - [ ] 43b.1 Add a second MCTS constructor accepting DualHeadNetwork& instead of Evaluator&; store as optional pointer alongside existing eval fallback
+- [-] 43b. Wire MCTS to use dual-head network for priors and leaf evaluation (Req 31)
+  - [x] 43b.1 Add a second MCTS constructor accepting DualHeadNetwork& instead of Evaluator&; store as optional pointer alongside existing eval fallback
     - _Requirements: 31.2, 31.3_
-  - [ ] 43b.2 In MCTS::expand(), when DualHeadNetwork is available, call its evaluate() to get policy priors for child nodes instead of using uniform 1/N
+  - [x] 43b.2 In MCTS::expand(), when DualHeadNetwork is available, call its evaluate() to get policy priors for child nodes instead of using uniform 1/N
     - _Requirements: 31.2_
-  - [ ] 43b.3 In MCTS::simulate(), when DualHeadNetwork is available, call its value head for leaf evaluation instead of handcrafted eval
+  - [x] 43b.3 In MCTS::simulate(), when DualHeadNetwork is available, call its value head for leaf evaluation instead of handcrafted eval
     - _Requirements: 31.3, 31.4_
-  - [ ] 43b.4 Ensure backward compatibility: when no DualHeadNetwork is provided, MCTS falls back to uniform priors + handcrafted eval (existing behavior)
+  - [x] 43b.4 Ensure backward compatibility: when no DualHeadNetwork is provided, MCTS falls back to uniform priors + handcrafted eval (existing behavior)
     - _Requirements: 31.7_
-  - [ ] 43b.5 Add CLI flag --alphazero to enable MCTS with dual-head network (requires --nnue pointing to dual-head weights)
+  - [x] 43b.5 Add CLI flag --alphazero to enable MCTS with dual-head network (requires --nnue pointing to dual-head weights)
     - _Requirements: 31.7_
 
 - [ ] 43c. Create dual-head training script (Req 32)

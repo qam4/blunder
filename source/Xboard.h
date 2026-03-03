@@ -12,6 +12,7 @@
 #include "Board.h"
 #include "Book.h"
 #include "Common.h"
+#include "DualHeadNetwork.h"
 #include "MCTS.h"
 #include "Move.h"
 #include "NNUEEvaluator.h"
@@ -47,6 +48,16 @@ class Xboard
     void set_mcts_mode(int simulations, double c_puct)
     {
         use_mcts_ = true;
+        mcts_simulations_ = simulations;
+        mcts_c_puct_ = c_puct;
+    }
+
+    /// Enable AlphaZero mode: MCTS with dual-head neural network for priors and value.
+    /// The caller must ensure the DualHeadNetwork outlives the Xboard instance.
+    void set_alphazero_mode(DualHeadNetwork* network, int simulations, double c_puct)
+    {
+        use_mcts_ = true;
+        dual_head_ = network;
         mcts_simulations_ = simulations;
         mcts_c_puct_ = c_puct;
     }
@@ -113,6 +124,7 @@ class Xboard
 
     // MCTS configuration
     bool use_mcts_ = false;
+    DualHeadNetwork* dual_head_ = nullptr;
     int mcts_simulations_ = 800;
     double mcts_c_puct_ = 1.41;
 

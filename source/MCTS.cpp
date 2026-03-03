@@ -11,12 +11,22 @@
 
 #include "MCTS.h"
 
+#include "DualHeadNetwork.h"
 #include "MoveGenerator.h"
 #include "MoveList.h"
 
 MCTS::MCTS(Board& board, Evaluator& evaluator, double c_puct, int simulations)
     : board_(board)
-    , evaluator_(evaluator)
+    , evaluator_(&evaluator)
+    , c_puct_(c_puct)
+    , simulations_(simulations)
+{
+}
+
+MCTS::MCTS(Board& board, DualHeadNetwork& network, double c_puct, int simulations)
+    : board_(board)
+    , evaluator_(nullptr)
+    , network_(&network)
     , c_puct_(c_puct)
     , simulations_(simulations)
 {
@@ -138,15 +148,41 @@ void MCTS::expand(MCTSNode* node)
         return;
     }
 
-    // Uniform prior — no policy network yet
-    double uniform_prior = 1.0 / num_legal;
-
     node->children.reserve(static_cast<size_t>(num_legal));
-    for (int i = 0; i < num_legal; ++i)
+
+    // When a dual-head network is available, use the policy head for priors
+    if (network_ != nullptr && network_->is_loaded())
     {
-        auto child = std::make_unique<MCTSNode>(moves[i], node);
-        child->prior = uniform_prior;
-        node->children.push_back(std::move(child));
+        // Build a vector of Move_t for the network
+        std::vector<Move_t> move_vec;
+        move_vec.reserve(static_cast<size_t>(num_legal));
+        for (int i = 0; i < num_legal; ++i)
+        {
+            move_vec.push_back(moves[i]);
+        }
+
+        std::vector<float> policy;
+        float value;
+        network_->evaluate(board_, move_vec, policy, value);
+
+        for (int i = 0; i < num_legal; ++i)
+        {
+            auto child = std::make_unique<MCTSNode>(moves[i], node);
+            child->prior = static_cast<double>(policy[static_cast<size_t>(i)]);
+            node->children.push_back(std::move(child));
+        }
+    }
+    else
+    {
+        // Fallback: uniform prior — no policy network
+        double uniform_prior = 1.0 / num_legal;
+
+        for (int i = 0; i < num_legal; ++i)
+        {
+            auto child = std::make_unique<MCTSNode>(moves[i], node);
+            child->prior = uniform_prior;
+            node->children.push_back(std::move(child));
+        }
     }
 
     nodes_visited_ += num_legal;
@@ -167,9 +203,33 @@ double MCTS::simulate(MCTSNode* node)
         return 1.0;
     }
 
-    // Leaf evaluation using the evaluator (NNUE or hand-crafted)
+    // When a dual-head network is available, use the value head for leaf evaluation
+    if (network_ != nullptr && network_->is_loaded())
+    {
+        // Value head returns score from side-to-move perspective in [-1, +1].
+        // We need to negate because we want the value from the perspective of
+        // the side that just moved (the parent's side).
+        MoveList moves;
+        MoveGenerator::add_all_moves(moves, board_, board_.side_to_move());
+        std::vector<Move_t> move_vec;
+        move_vec.reserve(static_cast<size_t>(moves.length()));
+        for (int i = 0; i < moves.length(); ++i)
+        {
+            move_vec.push_back(moves[i]);
+        }
+
+        std::vector<float> policy;
+        float value;
+        network_->evaluate(board_, move_vec, policy, value);
+
+        // Negate: value is from side-to-move perspective, we want parent's perspective
+        return -static_cast<double>(value);
+    }
+
+    // Fallback: leaf evaluation using the evaluator (NNUE or hand-crafted)
     // side_relative_eval returns score from side-to-move perspective
-    int score_cp = evaluator_.side_relative_eval(board_);
+    assert(evaluator_ != nullptr);
+    int score_cp = evaluator_->side_relative_eval(board_);
 
     // Convert centipawn score to [-1, 1] using a sigmoid-like mapping
     // tanh(score / 400) maps roughly: ±100cp → ±0.24, ±300cp → ±0.64, ±600cp → ±0.93

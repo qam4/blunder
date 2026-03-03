@@ -16,6 +16,7 @@
 #include "Book.h"
 #include "CLIUtils.h"
 #include "CmdLineArgs.h"
+#include "DualHeadNetwork.h"
 #include "MCTS.h"
 #include "MoveGenerator.h"
 #include "MoveList.h"
@@ -116,8 +117,55 @@ int main(int argc, char** argv)
         {
             xboard.set_nnue(&nnue);
         }
-        // MCTS mode
-        if (cmd_line_args.cmd_option_exists("--mcts"))
+
+        // AlphaZero mode: MCTS with dual-head network
+        DualHeadNetwork dual_head;
+        if (cmd_line_args.cmd_option_exists("--alphazero"))
+        {
+            int mcts_sims = 800;
+            double mcts_cpuct = 1.41;
+            if (cmd_line_args.cmd_option_exists("--mcts-simulations"))
+            {
+                string sims_str = cmd_line_args.get_cmd_option("--mcts-simulations");
+                if (!sims_str.empty())
+                {
+                    mcts_sims = std::stoi(sims_str);
+                }
+            }
+            if (cmd_line_args.cmd_option_exists("--mcts-cpuct"))
+            {
+                string cpuct_str = cmd_line_args.get_cmd_option("--mcts-cpuct");
+                if (!cpuct_str.empty())
+                {
+                    mcts_cpuct = std::stod(cpuct_str);
+                }
+            }
+
+            // Load dual-head weights from --nnue path
+            if (cmd_line_args.cmd_option_exists("--nnue"))
+            {
+                string nnue_path = cmd_line_args.get_cmd_option("--nnue");
+                if (!nnue_path.empty() && dual_head.load(nnue_path))
+                {
+                    cout << "AlphaZero: loaded dual-head network from " << nnue_path << endl;
+                    xboard.set_alphazero_mode(&dual_head, mcts_sims, mcts_cpuct);
+                }
+                else
+                {
+                    cout << "AlphaZero: failed to load dual-head network, "
+                         << "falling back to MCTS with handcrafted eval" << endl;
+                    xboard.set_mcts_mode(mcts_sims, mcts_cpuct);
+                }
+            }
+            else
+            {
+                cout << "AlphaZero: no --nnue path provided, "
+                     << "falling back to MCTS with handcrafted eval" << endl;
+                xboard.set_mcts_mode(mcts_sims, mcts_cpuct);
+            }
+        }
+        // Plain MCTS mode (no neural network)
+        else if (cmd_line_args.cmd_option_exists("--mcts"))
         {
             int mcts_sims = 800;
             double mcts_cpuct = 1.41;
@@ -453,6 +501,7 @@ void usage(const string& prog_name)
             "--book-depth <N>                 Stop using book after N plies\n"
             "--nnue <path>                    Use NNUE weights file at <path>\n"
             "--mcts                           Use MCTS search instead of AlphaBeta\n"
+            "--alphazero                      Use MCTS with dual-head network (requires --nnue)\n"
             "--mcts-simulations <N>           MCTS simulations per move (default: 800)\n"
             "--mcts-cpuct <F>                 MCTS exploration constant (default: 1.41)\n"
             "\n"

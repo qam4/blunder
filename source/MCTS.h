@@ -18,6 +18,8 @@
 #include "Move.h"
 #include "TimeManager.h"
 
+class DualHeadNetwork;
+
 /// A single node in the MCTS tree.
 struct MCTSNode
 {
@@ -67,6 +69,11 @@ public:
     /// @param simulations Number of simulations per search call
     MCTS(Board& board, Evaluator& evaluator, double c_puct = 1.41, int simulations = 800);
 
+    /// Construct with a dual-head neural network for policy priors and value evaluation.
+    /// When a DualHeadNetwork is provided, expand() uses the policy head for priors
+    /// and simulate() uses the value head for leaf evaluation.
+    MCTS(Board& board, DualHeadNetwork& network, double c_puct = 1.41, int simulations = 800);
+
     /// Run MCTS and return the best move.
     /// @param tm  Optional time manager for time-based termination
     Move_t search(TimeManager* tm = nullptr);
@@ -99,7 +106,8 @@ private:
     void backpropagate(MCTSNode* node, double value);
 
     Board& board_;
-    Evaluator& evaluator_;
+    Evaluator* evaluator_;
+    DualHeadNetwork* network_ = nullptr;  // null = use handcrafted eval
     double c_puct_;
     int simulations_;
     int nodes_visited_ = 0;

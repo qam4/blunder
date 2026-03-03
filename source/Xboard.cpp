@@ -97,12 +97,24 @@ int Xboard::search_best_move(int stm,
     // MCTS search path
     if (use_mcts_)
     {
-        Evaluator& eval = board_.get_evaluator();
-        MCTS mcts(board_, eval, mcts_c_puct_, mcts_simulations_);
         TimeManager mcts_tm;
         int inc_cs = static_cast<int>(inc * 100);
         mcts_tm.allocate(time_left, inc_cs, mps);
-        *move = mcts.search(&mcts_tm);
+
+        // AlphaZero mode: use dual-head network for policy priors and value
+        if (dual_head_ != nullptr && dual_head_->is_loaded())
+        {
+            MCTS mcts(board_, *dual_head_, mcts_c_puct_, mcts_simulations_);
+            *move = mcts.search(&mcts_tm);
+        }
+        else
+        {
+            // Fallback: MCTS with handcrafted eval and uniform priors
+            Evaluator& eval = board_.get_evaluator();
+            MCTS mcts(board_, eval, mcts_c_puct_, mcts_simulations_);
+            *move = mcts.search(&mcts_tm);
+        }
+
         if (ponder_move != nullptr)
         {
             *ponder_move = INVALID_MOVE;
