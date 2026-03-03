@@ -378,6 +378,50 @@
   - [x] 43.4 Add configuration for: number of self-play games, simulations per move, temperature schedule, and Dirichlet noise for exploration
     - _Requirements: 32.5_
 
+- [ ] 43a. Implement dual-head neural network (Req 31, 32)
+  - [ ] 43a.1 Create source/DualHeadNetwork.h with DualHeadNetwork class: shared trunk (768→256→128), value head (128→32→1 with tanh), policy head (128→4096 with masked softmax over legal moves). Include load(), evaluate(board, moves, policy, value), evaluate_value(board), and extract_features() methods
+    - _Requirements: 31.2, 31.3, 31.4_
+  - [ ] 43a.2 Create source/DualHeadNetwork.cpp implementing the forward pass: shared trunk with ReLU, value head with tanh output [-1,+1], policy head outputting logits for 64×64 from-to pairs masked to legal moves then softmax-normalized
+    - _Requirements: 31.2, 31.3_
+  - [ ] 43a.3 Implement DualHeadNetwork::load() to read weights from a binary file (same layer-order float format as NNUEEvaluator) and DualHeadNetwork::save() for export from Python
+    - _Requirements: 32.4_
+  - [ ] 43a.4 Add DualHeadNetwork.cpp to CMakeLists.txt; verify build
+    - _Requirements: 31.6_
+
+- [ ] 43b. Wire MCTS to use dual-head network for priors and leaf evaluation (Req 31)
+  - [ ] 43b.1 Add a second MCTS constructor accepting DualHeadNetwork& instead of Evaluator&; store as optional pointer alongside existing eval fallback
+    - _Requirements: 31.2, 31.3_
+  - [ ] 43b.2 In MCTS::expand(), when DualHeadNetwork is available, call its evaluate() to get policy priors for child nodes instead of using uniform 1/N
+    - _Requirements: 31.2_
+  - [ ] 43b.3 In MCTS::simulate(), when DualHeadNetwork is available, call its value head for leaf evaluation instead of handcrafted eval
+    - _Requirements: 31.3, 31.4_
+  - [ ] 43b.4 Ensure backward compatibility: when no DualHeadNetwork is provided, MCTS falls back to uniform priors + handcrafted eval (existing behavior)
+    - _Requirements: 31.7_
+  - [ ] 43b.5 Add CLI flag --alphazero to enable MCTS with dual-head network (requires --nnue pointing to dual-head weights)
+    - _Requirements: 31.7_
+
+- [ ] 43c. Create dual-head training script (Req 32)
+  - [ ] 43c.1 Create scripts/train_alphazero.py with DualHeadNNUE model class: shared trunk (768→256→128), value head (128→32→1 with tanh), policy head (128→4096 with masked softmax)
+    - _Requirements: 32.1, 32.2_
+  - [ ] 43c.2 Implement MCTSPolicyDataset that reads the MCTS binary format and produces (features, policy_target, move_mask, value_target) tuples — policy_target is the visit distribution, move_mask marks which of the 4096 from-to slots are legal
+    - _Requirements: 32.2, 32.3_
+  - [ ] 43c.3 Implement combined loss: MSE for value head (predicted vs game outcome) + cross-entropy for policy head (predicted vs MCTS visit distribution)
+    - _Requirements: 32.1, 32.2_
+  - [ ] 43c.4 Export trained weights in binary format matching DualHeadNetwork::load() — layer order: trunk1 weights/bias, trunk2 weights/bias, value1 weights/bias, value2 weights/bias, policy weights/bias
+    - _Requirements: 32.3, 32.4_
+  - [ ] 43c.5 Add --architecture flag to train_nnue.py or document train_alphazero.py usage in weights/README.md
+    - _Requirements: 32.3_
+
+- [ ] 43d. Implement iterative AlphaZero training loop (Req 32)
+  - [ ] 43d.1 Create scripts/alphazero_loop.py (or .sh) that orchestrates: generate MCTS self-play data with current weights → train dual-head network → save new weights → repeat for N iterations
+    - _Requirements: 32.1, 32.4, 32.5_
+  - [ ] 43d.2 Wire SelfPlay::generate_mcts_training_data() to use DualHeadNetwork when --nnue is provided, so self-play quality improves as the network improves
+    - _Requirements: 32.1, 32.4_
+  - [ ] 43d.3 Add evaluation step between iterations: run cutechess match of new weights vs previous weights (or vs HandCrafted) to track improvement
+    - _Requirements: 32.1_
+  - [ ] 43d.4 Document the full AlphaZero workflow in weights/README.md and docs/ARCHITECTURE.md
+    - _Requirements: 32.1, 32.5_
+
 - [ ] 44. Checkpoint — Verify Phase 8 complete
   - Ensure all tests pass, ask the user if questions arise.
 

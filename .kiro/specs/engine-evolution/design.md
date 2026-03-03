@@ -651,7 +651,11 @@ private:
 
 Integrate with Board::do_move/undo_move via observer pattern or direct calls.
 
-### 8.2 MCTS (Req 31)
+### 8.2 MCTS (Req 31) — Current Implementation
+
+The current MCTS implementation uses the handcrafted evaluator for leaf evaluation
+and uniform priors for move selection. This is functional but does not yet implement
+the AlphaZero feedback loop where the neural network drives the search.
 
 ```cpp
 struct MCTSNode {
@@ -660,31 +664,311 @@ struct MCTSNode {
     std::vector<std::unique_ptr<MCTSNode>> children;
     int visits = 0;
     double total_value = 0.0;
-    double prior = 0.0;  // from policy network
+    double prior = 0.0;  // currently uniform; will come from policy network
 
     double ucb(double c_puct) const;
 };
 
 class MCTS {
 public:
-    MCTS(Board& board, NeuralNetwork& nn);
+    MCTS(Board& board, Evaluator& eval);
     Move_t search(int num_simulations);
+    MCTSNode* search_return_root(int num_simulations);
 private:
     MCTSNode* select(MCTSNode* root);
     void expand(MCTSNode* node);
-    double simulate(MCTSNode* node);  // NN value head
+    double simulate(MCTSNode* node);  // currently uses handcrafted eval
     void backpropagate(MCTSNode* node, double value);
 };
 ```
 
-### 8.3 Training Pipeline (Req 30, 32)
+### 8.3 Training Pipeline — Current State (Req 30, 32)
 
-Self-play generates training data in a simple binary format:
+Two data generation modes are implemented:
+
+**AlphaBeta self-play** (Task 41): Fixed-size binary format.
 ```
-[768 floats: input features][1 float: search score][1 float: game result]
+[768 floats: features][1 float: search score][1 float: game result]
 ```
 
-A Python script reads this data and trains the network using PyTorch. The trained weights are exported in a format the C++ engine can load at runtime.
+**MCTS self-play** (Task 43): Variable-length binary format with policy targets.
+```
+[768 floats: features][1 int: num_moves][num_moves floats: policy][num_moves ints: move_indices][1 float: value]
+```
+
+The Python training script (`scripts/train_nnue.py`) supports both formats via
+`--format alphabeta|mcts`. However, the current NNUE architecture is a single-head
+value network (768→256→32→32→1) that only uses the value target. The policy targets
+from MCTS self-play are stored but not yet used for training.
+
+### 8.4 AlphaZero-Style Architecture — What's Missing (Req 31, 32)
+
+The full AlphaZero approach requires a self-improving feedback loop where the neural
+network and MCTS search reinforce each other. Here's how it works and what we need:
+
+#### Background: How AlphaZero Works
+
+In AlphaZero, a single neural network serves two purposes during MCTS:
+
+1. **Policy head** — Given a board position, output a probability distribution over
+   all legal moves. This tells MCTS which moves are worth exploring. Without a policy
+   head, MCTS explores all moves equally (uniform priors), wasting simulations on
+   obviously bad moves like hanging your queen.
+
+2. **Value head** — Given a board position, output a single number estimating who is
+   winning (from the side-to-move's perspective). This replaces random rollouts or
+   handcrafted evaluation at leaf nodes.
+
+The training loop is:
+```
+┌─────────────────────────────────────────────────────────┐
+│  1. Self-play: MCTS uses current network to play games  │
+│     - Policy head → move priors for tree exploration     │
+│     - Value head → leaf node evaluation                  │
+│     - Record (position, visit_distribution, game_result) │
+│                          ↓                               │
+│  2. Train: Update network to match MCTS's findings       │
+│     - Policy head learns to predict visit distribution   │
+│     - Value head learns to predict game outcome          │
+│                          ↓                               │
+│  3. Reload: Engine loads new weights                     │
+│                          ↓                               │
+│  4. Repeat from step 1 with stronger network             │
+└─────────────────────────────────────────────────────────┘
+```
+
+The key insight: MCTS with a good policy head is much stronger than MCTS with
+uniform priors, because it focuses simulations on promising moves. And the policy
+head gets better by learning from MCTS's visit distributions, which reflect what
+moves are actually good after deep search. This creates a virtuous cycle.
+
+#### What We Have vs What We Need
+
+| Component | Current State | AlphaZero Target |
+|---|---|---|
+| MCTS search | ✅ Working with UCB1 | Same, but uses NN priors |
+| Leaf evaluation | ❌ Handcrafted eval | NN value head |
+| Move priors | ❌ Uniform (1/N) | NN policy head |
+| Network arch | ❌ Value-only (768→256→32→32→1) | Dual-head (shared trunk → policy + value) |
+| Self-play data | ✅ Records policy + value targets | Same |
+| Training script | ❌ Trains value head only | Trains both heads |
+| Iterative loop | ❌ Manual one-shot | Automated generate→train→reload cycle |
+
+#### 8.4.1 Dual-Head Network Architecture
+
+Replace the single-head NNUE with a dual-head network that shares a feature
+transformer but has separate output heads:
+
+```
+Input: 768 HalfKP features
+         │
+    ┌────┴────┐
+    │  Shared  │
+    │  Trunk   │  768 → 256 → 128 (shared representation)
+    └────┬────┘
+         │
+    ┌────┴────────────┐
+    │                  │
+┌───┴───┐        ┌────┴────┐
+│ Value  │        │ Policy  │
+│ Head   │        │  Head   │
+│128→32→1│        │128→N_mov│
+└───┬────┘        └────┬────┘
+    │                   │
+  float              float[N]
+  (who's             (probability per
+   winning)           legal move)
+```
+
+C++ interface:
+
+```cpp
+class DualHeadNetwork {
+public:
+    bool load(const std::string& weights_path);
+
+    /// Run forward pass, returning value and policy for all legal moves.
+    /// @param board     Current position (for feature extraction)
+    /// @param moves     Legal moves in this position
+    /// @param policy    Output: probability for each move (same order as moves)
+    /// @param value     Output: position evaluation [-1, +1]
+    void evaluate(const Board& board,
+                  const std::vector<Move_t>& moves,
+                  std::vector<float>& policy,
+                  float& value);
+
+    /// Value-only evaluation (for use as Evaluator drop-in)
+    int evaluate_value(const Board& board);
+
+private:
+    // Shared trunk weights
+    float w_trunk1_[768 * 256];   // 768 → 256
+    float b_trunk1_[256];
+    float w_trunk2_[256 * 128];   // 256 → 128
+    float b_trunk2_[128];
+
+    // Value head weights
+    float w_value1_[128 * 32];    // 128 → 32
+    float b_value1_[32];
+    float w_value2_[32];          // 32 → 1
+    float b_value2_;
+
+    // Policy head weights
+    float w_policy_[128 * 4096];  // 128 → 4096 (64*64 from-to pairs)
+    float b_policy_[4096];
+
+    void extract_features(const Board& board, float features[768]);
+    void forward_trunk(const float features[768], float trunk_out[128]);
+};
+```
+
+The policy head outputs logits for all possible from-to square pairs (64×64 = 4096).
+For a given position, we mask to only the legal moves and apply softmax to get
+probabilities. This is simpler than move-indexed output and handles promotions
+by encoding them as distinct from-to pairs.
+
+#### 8.4.2 MCTS with Neural Network Integration
+
+Modify MCTS to accept a DualHeadNetwork and use it for:
+- **Expansion**: When expanding a node, call the policy head to set `prior` on
+  each child node instead of using uniform 1/N.
+- **Simulation**: When evaluating a leaf, call the value head instead of the
+  handcrafted evaluator. No random rollouts needed.
+
+```cpp
+class MCTS {
+public:
+    // New constructor that accepts the dual-head network
+    MCTS(Board& board, DualHeadNetwork& network);
+
+    // Existing constructor for handcrafted eval (backward compatible)
+    MCTS(Board& board, Evaluator& eval);
+
+private:
+    void expand(MCTSNode* node) {
+        auto moves = generate_legal_moves();
+        if (network_) {
+            // Use policy head for priors
+            std::vector<float> policy;
+            float value;
+            network_->evaluate(board_, moves, policy, value);
+            for (int i = 0; i < moves.size(); i++) {
+                auto child = make_node(moves[i]);
+                child->prior = policy[i];
+                node->children.push_back(child);
+            }
+        } else {
+            // Fallback: uniform priors
+            float uniform = 1.0f / moves.size();
+            for (auto& m : moves) {
+                auto child = make_node(m);
+                child->prior = uniform;
+                node->children.push_back(child);
+            }
+        }
+    }
+
+    double simulate(MCTSNode* node) {
+        if (network_) {
+            // Use value head
+            float value;
+            std::vector<float> policy;  // unused here
+            auto moves = generate_legal_moves();
+            network_->evaluate(board_, moves, policy, value);
+            return value;
+        } else {
+            // Fallback: handcrafted eval normalized to [-1, +1]
+            return eval_->side_relative_eval(board_) / 600.0;
+        }
+    }
+
+    DualHeadNetwork* network_ = nullptr;  // null = use handcrafted eval
+    Evaluator* eval_ = nullptr;           // fallback evaluator
+};
+```
+
+#### 8.4.3 Dual-Head Training Script
+
+Update `scripts/train_nnue.py` (or create a new `scripts/train_alphazero.py`) to
+train both heads simultaneously:
+
+```python
+class DualHeadNNUE(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # Shared trunk
+        self.trunk1 = nn.Linear(768, 256)
+        self.trunk2 = nn.Linear(256, 128)
+        # Value head
+        self.value1 = nn.Linear(128, 32)
+        self.value2 = nn.Linear(32, 1)
+        # Policy head
+        self.policy = nn.Linear(128, 4096)  # 64*64 from-to
+
+    def forward(self, features, legal_move_mask=None):
+        # Shared trunk
+        x = F.relu(self.trunk1(features))
+        x = F.relu(self.trunk2(x))
+        # Value head: tanh to [-1, +1]
+        v = F.relu(self.value1(x))
+        v = torch.tanh(self.value2(v))
+        # Policy head: masked softmax over legal moves
+        p = self.policy(x)
+        if legal_move_mask is not None:
+            p = p.masked_fill(~legal_move_mask, float('-inf'))
+        p = F.softmax(p, dim=-1)
+        return v, p
+```
+
+Loss function combines both heads:
+```python
+loss = mse_loss(predicted_value, game_outcome) \
+     + cross_entropy_loss(predicted_policy, mcts_visit_distribution)
+```
+
+The value loss teaches the network to predict who wins. The policy loss teaches
+it to predict which moves MCTS found most promising (the visit distribution).
+
+#### 8.4.4 Iterative Training Loop
+
+An orchestration script that automates the AlphaZero cycle:
+
+```bash
+#!/bin/bash
+# scripts/alphazero_loop.sh
+ITERATIONS=10
+GAMES_PER_ITER=200
+SIMS=400
+WEIGHTS="weights/alphazero_current.bin"
+
+for i in $(seq 1 $ITERATIONS); do
+    echo "=== Iteration $i ==="
+
+    # 1. Self-play with current network
+    ./blunder --selfplay --mcts \
+        --nnue $WEIGHTS \
+        --selfplay-games $GAMES_PER_ITER \
+        --mcts-simulations $SIMS \
+        --selfplay-output training_iter${i}.bin
+
+    # 2. Train on accumulated data
+    python scripts/train_alphazero.py \
+        --input training_iter${i}.bin \
+        --output $WEIGHTS \
+        --format mcts \
+        --epochs 20
+
+    # 3. Weights are automatically reloaded on next iteration
+    # 4. Optionally: evaluate against previous version
+    python scripts/compare_nnue_vs_handcrafted.py \
+        --nnue $WEIGHTS --games 50
+done
+```
+
+Each iteration produces a stronger network because:
+- Better policy → MCTS explores better moves → higher quality training data
+- Better value → MCTS evaluates positions more accurately → better move selection
+- More data accumulates across iterations → network generalizes better
 
 ## Phase 9 Design: Protocol & Interoperability (Req 33)
 

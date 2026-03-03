@@ -23,6 +23,15 @@ python scripts/train_nnue.py --input training_v002.bin --output weights/nnue_v00
 python scripts/compare_nnue_vs_handcrafted.py --nnue weights/nnue_v002.bin --games 20 --tc "10+0.1"
 ```
 
+### nnue_mcts_v001.bin
+- 5,799 positions from 50 MCTS games (100 sims/move), 10 epochs, val loss 19092.81
+- Result: 9-11 vs HandCrafted (Elo -34.9 ±164.5, essentially even — small dataset)
+```bash
+./blunder --selfplay --mcts --selfplay-games 50 --mcts-simulations 100 --selfplay-output mcts_training.bin
+python scripts/train_nnue.py --input mcts_training.bin --output weights/nnue_mcts_v001.bin --format mcts --epochs 10
+python scripts/compare_nnue_vs_handcrafted.py --nnue weights/nnue_mcts_v001.bin --games 20 --tc "5+0.1"
+```
+
 ## Quick Start
 
 ```bash
@@ -120,7 +129,43 @@ PGN parsing options:
 
 Requires: `pip install python-chess`
 
-### Method C: Hybrid (best quality)
+### Method C: MCTS Self-Play (AlphaZero-style)
+
+Uses Monte Carlo Tree Search to generate training data with policy (visit
+distribution) and value (game outcome) targets. The current 768→256→32→32→1
+architecture only uses the value target; policy targets are stored for future
+use with a dual-head network.
+
+```bash
+# 1. Generate MCTS training data
+./blunder --selfplay --mcts \
+          --selfplay-games 500 \
+          --mcts-simulations 400 \
+          --mcts-temperature 1.0 \
+          --mcts-temp-drop 30 \
+          --selfplay-output mcts_training.bin
+
+# 2. Train (use --format mcts to read variable-length format)
+python scripts/train_nnue.py \
+    --input mcts_training.bin \
+    --output weights/nnue_mcts_vXXX.bin \
+    --format mcts \
+    --epochs 50 --batch-size 256 --learning-rate 0.001
+
+# 3. Test
+python scripts/compare_nnue_vs_handcrafted.py \
+    --nnue weights/nnue_mcts_vXXX.bin --games 100
+```
+
+MCTS parameters:
+- `--mcts-simulations`: More sims = stronger play/better labels (200-800)
+- `--mcts-temperature`: Exploration temperature (1.0 = diverse, 0.1 = greedy)
+- `--mcts-temp-drop`: Ply at which temperature drops to near-zero (20-40)
+- `--mcts-cpuct`: Exploration constant (default 1.41)
+- `--mcts-dirichlet-alpha`: Root noise for exploration (0.3 typical, 0 to disable)
+- `--mcts-dirichlet-eps`: Noise mixing fraction (0.25 typical)
+
+### Method D: Hybrid (best quality)
 
 Combine self-play data with PGN data for maximum diversity:
 

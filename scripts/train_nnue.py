@@ -26,7 +26,7 @@ from typing import Tuple
 
 
 class NNUEDataset(Dataset):
-    """Dataset for NNUE training data."""
+    """Dataset for NNUE training data (AlphaBeta format)."""
     
     def __init__(self, data_path: str, target: str = "score", blend: float = 0.0):
         """Load training data from binary file.
@@ -76,6 +76,72 @@ class NNUEDataset(Dataset):
         self.targets = torch.tensor(self.targets, dtype=torch.float32).unsqueeze(1)
         
         print(f"Target mode: {target}" + (f" (blend={blend})" if target == "blend" else ""))
+        print(f"Features shape: {self.features.shape}")
+        print(f"Targets shape: {self.targets.shape}")
+        print(f"Target range: [{self.targets.min():.2f}, {self.targets.max():.2f}]")
+    
+    def __len__(self):
+        return len(self.features)
+    
+    def __getitem__(self, idx):
+        return self.features[idx], self.targets[idx]
+
+
+class MCTSDataset(Dataset):
+    """Dataset for MCTS self-play training data (variable-length format).
+    
+    Reads the value target (game outcome) for training the NNUE value head.
+    Policy targets are stored but not used by the current 768→256→32→32→1
+    architecture (would require a separate policy head).
+    """
+    
+    def __init__(self, data_path: str):
+        """Load MCTS training data from binary file.
+        
+        Format per entry (variable length):
+            768 floats: features
+            1 int:      num_moves
+            num_moves floats: policy (normalized visit distribution)
+            num_moves ints:   move_indices (from*64+to encoding)
+            1 float:   value (game outcome: +1=win, 0=draw, -1=loss)
+        """
+        with open(data_path, 'rb') as f:
+            data = f.read()
+        
+        self.features = []
+        self.targets = []
+        
+        offset = 0
+        features_bytes = 768 * 4
+        
+        while offset + features_bytes + 4 < len(data):
+            # Read 768 features
+            features = struct.unpack_from('768f', data, offset)
+            offset += features_bytes
+            
+            # Read num_moves
+            num_moves = struct.unpack_from('i', data, offset)[0]
+            offset += 4
+            
+            # Skip policy (num_moves floats) and move_indices (num_moves ints)
+            offset += num_moves * 4  # policy
+            offset += num_moves * 4  # move_indices
+            
+            # Read value
+            value = struct.unpack_from('f', data, offset)[0]
+            offset += 4
+            
+            self.features.append(features)
+            # Scale value from [-1, +1] to centipawn-like range for compatibility
+            # with the existing network output scale (roughly ±600cp range)
+            self.targets.append(value * 400.0)
+        
+        num_entries = len(self.features)
+        print(f"Loading {num_entries} MCTS training positions from {data_path}")
+        
+        self.features = torch.tensor(self.features, dtype=torch.float32)
+        self.targets = torch.tensor(self.targets, dtype=torch.float32).unsqueeze(1)
+        
         print(f"Features shape: {self.features.shape}")
         print(f"Targets shape: {self.targets.shape}")
         print(f"Target range: [{self.targets.min():.2f}, {self.targets.max():.2f}]")
@@ -150,6 +216,7 @@ def train_nnue(
     learning_rate: float = 0.001,
     target: str = 'score',
     blend: float = 0.0,
+    data_format: str = 'alphabeta',
     device: str = 'cuda' if torch.cuda.is_available() else 'cpu'
 ):
     """Train NNUE network on self-play data."""
@@ -157,7 +224,10 @@ def train_nnue(
     print(f"Using device: {device}")
     
     # Load dataset
-    dataset = NNUEDataset(data_path, target=target, blend=blend)
+    if data_format == 'mcts':
+        dataset = MCTSDataset(data_path)
+    else:
+        dataset = NNUEDataset(data_path, target=target, blend=blend)
     
     # Split into train/validation (90/10)
     train_size = int(0.9 * len(dataset))
@@ -276,6 +346,13 @@ def main():
         default=0.5,
         help='Blend weight for game result when --target=blend (0.0-1.0, default: 0.5)'
     )
+    parser.add_argument(
+        '--format',
+        type=str,
+        choices=['alphabeta', 'mcts'],
+        default='alphabeta',
+        help='Training data format: alphabeta (fixed-size) or mcts (variable-length, default: alphabeta)'
+    )
     
     args = parser.parse_args()
     
@@ -294,7 +371,8 @@ def main():
         batch_size=args.batch_size,
         learning_rate=args.learning_rate,
         target=args.target,
-        blend=args.blend
+        blend=args.blend,
+        data_format=args.format
     )
 
 
