@@ -13,6 +13,7 @@
 #include "SelfPlay.h"
 
 #include "Constants.h"
+#include "DualHeadNetwork.h"
 #include "MoveGenerator.h"
 #include "MoveList.h"
 #include "NNUEEvaluator.h"
@@ -468,15 +469,25 @@ float SelfPlay::play_mcts_game(int simulations,
 
     while (!board_.is_game_over() && move_count < max_moves)
     {
-        // Create MCTS instance and run search, getting the full tree back
-        MCTS mcts(board_, eval, c_puct, simulations);
+        // Create MCTS instance — use DualHeadNetwork when available for
+        // AlphaZero-style policy priors and value evaluation, otherwise
+        // fall back to the handcrafted evaluator with uniform priors.
+        std::unique_ptr<MCTS> mcts;
+        if (dual_head_ != nullptr && dual_head_->is_loaded())
+        {
+            mcts = std::make_unique<MCTS>(board_, *dual_head_, c_puct, simulations);
+        }
+        else
+        {
+            mcts = std::make_unique<MCTS>(board_, eval, c_puct, simulations);
+        }
 
         // Add Dirichlet noise to root priors for exploration
         // We need to expand root first, then add noise, then run simulations.
         // Since search_return_root() expands root internally, we use it directly
         // and accept that noise is applied after expansion in a future refinement.
         // For now, run the search to get the tree.
-        auto root = mcts.search_return_root(nullptr);
+        auto root = mcts->search_return_root(nullptr);
 
         if (root->children.empty())
         {

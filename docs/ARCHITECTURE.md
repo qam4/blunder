@@ -344,6 +344,75 @@ When a `DualHeadNetwork` is available, MCTS uses it in two ways:
 Without a dual-head network, MCTS falls back to uniform priors and the
 hand-crafted evaluator (or single-head NNUE).
 
+## AlphaZero Iterative Training Loop
+
+The engine supports an AlphaZero-style self-improvement cycle where the
+neural network and MCTS search reinforce each other iteratively. This is
+orchestrated by `scripts/alphazero_loop.py`.
+
+### How It Works
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  1. Self-play: MCTS uses current network to play games      │
+│     - Policy head → move priors for tree exploration         │
+│     - Value head → leaf node evaluation                      │
+│     - Record (position, visit_distribution, game_outcome)    │
+│                          ↓                                   │
+│  2. Train: Update network to match MCTS's findings           │
+│     - Policy head learns to predict visit distribution       │
+│     - Value head learns to predict game outcome              │
+│                          ↓                                   │
+│  3. Evaluate: Cutechess match vs HandCrafted (optional)      │
+│                          ↓                                   │
+│  4. Repeat from step 1 with stronger network                 │
+└─────────────────────────────────────────────────────────────┘
+```
+
+The first iteration uses MCTS with uniform priors (no network). Subsequent
+iterations use `--alphazero --nnue <weights>` so the dual-head network's
+policy head guides MCTS exploration and the value head evaluates leaf nodes.
+
+### Why It Improves
+
+Each iteration produces a stronger network because:
+- Better policy priors → MCTS focuses simulations on promising moves →
+  higher quality training data
+- Better value estimates → MCTS evaluates positions more accurately →
+  better move selection
+- More data accumulates across iterations → network generalizes better
+
+### Data Flow
+
+```
+Engine binary                    Python scripts
+─────────────                    ──────────────
+blunder --selfplay --mcts        train_alphazero.py
+  --alphazero --nnue w.bin         --input data.bin
+  → selfplay_iterN.bin             --output w.bin
+                                   → alphazero_iterN.bin
+
+                                 compare_nnue_vs_handcrafted.py
+                                   --nnue w.bin --games 20
+                                   → Elo estimate
+```
+
+The `SelfPlay` class detects when a `DualHeadNetwork` is available and
+passes it to the MCTS constructor, which uses the policy head for child
+node priors during expansion and the value head for leaf evaluation.
+
+### Configuration
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--iterations` | 5 | Number of generate→train→evaluate cycles |
+| `--games` | 100 | Self-play games per iteration |
+| `--simulations` | 400 | MCTS simulations per move |
+| `--epochs` | 10 | Training epochs per iteration |
+| `--eval-games` | 20 | Cutechess games (0 to skip) |
+
+See `python scripts/alphazero_loop.py --help` for all options.
+
 ## Transposition Table
 
 The transposition table (TT) is a hash table keyed by Zobrist hash of the

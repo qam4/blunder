@@ -23,6 +23,8 @@
 #include "Search.h"
 #include "Types.h"
 
+class DualHeadNetwork;
+
 // Training data entry for AlphaBeta self-play (original format)
 struct TrainingEntry
 {
@@ -73,6 +75,11 @@ public:
     /// Reload NNUE weights at runtime (for iterative training loops)
     bool reload_weights(const std::string& weights_path);
 
+    /// Set a DualHeadNetwork for AlphaZero-style MCTS self-play.
+    /// When set, play_mcts_game() uses the network's policy head for priors
+    /// and value head for leaf evaluation instead of the handcrafted evaluator.
+    void set_dual_head_network(DualHeadNetwork* network) { dual_head_ = network; }
+
 private:
     // --- AlphaBeta self-play helpers ---
     float play_game(int search_depth,
@@ -116,6 +123,7 @@ private:
 
     Board& board_;
     Search& search_;
+    DualHeadNetwork* dual_head_ = nullptr;
     std::mt19937 rng_;
 };
 

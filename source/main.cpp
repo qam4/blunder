@@ -302,6 +302,27 @@ int main(int argc, char** argv)
             }
 
             SelfPlay selfplay(board, search);
+
+            // AlphaZero mode: load dual-head network for MCTS policy priors
+            // and value evaluation during self-play
+            DualHeadNetwork selfplay_dual_head;
+            if (cmd_line_args.cmd_option_exists("--alphazero")
+                && cmd_line_args.cmd_option_exists("--nnue"))
+            {
+                string nnue_path = cmd_line_args.get_cmd_option("--nnue");
+                if (!nnue_path.empty() && selfplay_dual_head.load(nnue_path))
+                {
+                    selfplay.set_dual_head_network(&selfplay_dual_head);
+                    cout << "AlphaZero self-play: loaded dual-head network from " << nnue_path
+                         << endl;
+                }
+                else
+                {
+                    cout << "AlphaZero self-play: failed to load dual-head network, "
+                         << "using uniform priors" << endl;
+                }
+            }
+
             selfplay.generate_mcts_training_data(num_games,
                                                  mcts_sims,
                                                  mcts_cpuct,

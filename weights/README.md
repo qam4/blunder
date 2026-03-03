@@ -209,7 +209,67 @@ based on validation loss.
 
 For iterative improvement, re-generate self-play data using the trained
 weights so MCTS benefits from the policy head, then retrain. See
-`scripts/alphazero_loop.py` (when available) for automation.
+`scripts/alphazero_loop.py` for automation.
+
+### Method F: Iterative AlphaZero Training Loop
+
+Automates the full AlphaZero self-improvement cycle: generate MCTS self-play
+data with the current network, train on that data, evaluate, and repeat. Each
+iteration produces a stronger network because the policy head guides MCTS to
+explore better moves, generating higher-quality training data.
+
+```bash
+# Basic: 5 iterations, 100 games each, with evaluation
+python scripts/alphazero_loop.py \
+    --iterations 5 \
+    --games 100 \
+    --simulations 400 \
+    --epochs 10
+
+# Full run: more games and simulations for stronger training
+python scripts/alphazero_loop.py \
+    --iterations 10 \
+    --games 500 \
+    --simulations 800 \
+    --epochs 20 \
+    --eval-games 50
+
+# Skip evaluation (faster iterations)
+python scripts/alphazero_loop.py \
+    --iterations 5 \
+    --games 200 \
+    --eval-games 0
+```
+
+How it works:
+1. **Iteration 1**: MCTS self-play with uniform priors (no network yet).
+   Generates baseline training data.
+2. **Train**: Dual-head network learns value and policy from the data.
+3. **Iteration 2+**: MCTS self-play uses `--alphazero --nnue <weights>` so
+   the policy head guides exploration and the value head evaluates leaves.
+4. **Evaluate** (optional): Cutechess match of new weights vs HandCrafted.
+5. **Repeat**: Each iteration builds on the previous network's knowledge.
+
+Script options:
+- `--engine`: Path to blunder executable (default: build/dev/blunder.exe)
+- `--iterations`: Number of training iterations (default: 5)
+- `--games`: Self-play games per iteration (default: 100)
+- `--simulations`: MCTS simulations per move (default: 400)
+- `--epochs`: Training epochs per iteration (default: 10)
+- `--eval-games`: Cutechess games for evaluation (0 to skip, default: 20)
+- `--output-dir`: Directory for weights and data (default: weights/)
+
+Output structure:
+```
+weights/
+  alphazero_latest.bin              # Always points to most recent weights
+  alphazero_run_YYYYMMDD_HHMMSS/
+    selfplay_iter001.bin            # Training data from iteration 1
+    alphazero_iter001.bin           # Weights after iteration 1
+    selfplay_iter002.bin            # Training data from iteration 2
+    alphazero_iter002.bin           # Weights after iteration 2
+    ...
+```
 
 ### Method D: Hybrid (best quality)
 

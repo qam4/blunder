@@ -412,14 +412,14 @@
   - [x] 43c.5 Add --architecture flag to train_nnue.py or document train_alphazero.py usage in weights/README.md
     - _Requirements: 32.3_
 
-- [ ] 43d. Implement iterative AlphaZero training loop (Req 32)
-  - [ ] 43d.1 Create scripts/alphazero_loop.py (or .sh) that orchestrates: generate MCTS self-play data with current weights → train dual-head network → save new weights → repeat for N iterations
+- [x] 43d. Implement iterative AlphaZero training loop (Req 32)
+  - [x] 43d.1 Create scripts/alphazero_loop.py (or .sh) that orchestrates: generate MCTS self-play data with current weights → train dual-head network → save new weights → repeat for N iterations
     - _Requirements: 32.1, 32.4, 32.5_
-  - [ ] 43d.2 Wire SelfPlay::generate_mcts_training_data() to use DualHeadNetwork when --nnue is provided, so self-play quality improves as the network improves
+  - [x] 43d.2 Wire SelfPlay::generate_mcts_training_data() to use DualHeadNetwork when --nnue is provided, so self-play quality improves as the network improves
     - _Requirements: 32.1, 32.4_
-  - [ ] 43d.3 Add evaluation step between iterations: run cutechess match of new weights vs previous weights (or vs HandCrafted) to track improvement
+  - [x] 43d.3 Add evaluation step between iterations: run cutechess match of new weights vs previous weights (or vs HandCrafted) to track improvement
     - _Requirements: 32.1_
-  - [ ] 43d.4 Document the full AlphaZero workflow in weights/README.md and docs/ARCHITECTURE.md
+  - [x] 43d.4 Document the full AlphaZero workflow in weights/README.md and docs/ARCHITECTURE.md
     - _Requirements: 32.1, 32.5_
 
 - [ ] 44. Checkpoint — Verify Phase 8 complete
