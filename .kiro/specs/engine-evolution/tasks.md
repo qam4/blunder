@@ -378,14 +378,14 @@
   - [x] 43.4 Add configuration for: number of self-play games, simulations per move, temperature schedule, and Dirichlet noise for exploration
     - _Requirements: 32.5_
 
-- [ ] 43a. Implement dual-head neural network (Req 31, 32)
-  - [ ] 43a.1 Create source/DualHeadNetwork.h with DualHeadNetwork class: shared trunk (768→256→128), value head (128→32→1 with tanh), policy head (128→4096 with masked softmax over legal moves). Include load(), evaluate(board, moves, policy, value), evaluate_value(board), and extract_features() methods
+- [-] 43a. Implement dual-head neural network (Req 31, 32)
+  - [x] 43a.1 Create source/DualHeadNetwork.h with DualHeadNetwork class: shared trunk (768→256→128), value head (128→32→1 with tanh), policy head (128→4096 with masked softmax over legal moves). Include load(), evaluate(board, moves, policy, value), evaluate_value(board), and extract_features() methods
     - _Requirements: 31.2, 31.3, 31.4_
-  - [ ] 43a.2 Create source/DualHeadNetwork.cpp implementing the forward pass: shared trunk with ReLU, value head with tanh output [-1,+1], policy head outputting logits for 64×64 from-to pairs masked to legal moves then softmax-normalized
+  - [x] 43a.2 Create source/DualHeadNetwork.cpp implementing the forward pass: shared trunk with ReLU, value head with tanh output [-1,+1], policy head outputting logits for 64×64 from-to pairs masked to legal moves then softmax-normalized
     - _Requirements: 31.2, 31.3_
-  - [ ] 43a.3 Implement DualHeadNetwork::load() to read weights from a binary file (same layer-order float format as NNUEEvaluator) and DualHeadNetwork::save() for export from Python
+  - [x] 43a.3 Implement DualHeadNetwork::load() to read weights from a binary file (same layer-order float format as NNUEEvaluator) and DualHeadNetwork::save() for export from Python
     - _Requirements: 32.4_
-  - [ ] 43a.4 Add DualHeadNetwork.cpp to CMakeLists.txt; verify build
+  - [x] 43a.4 Add DualHeadNetwork.cpp to CMakeLists.txt; verify build
     - _Requirements: 31.6_
 
 - [ ] 43b. Wire MCTS to use dual-head network for priors and leaf evaluation (Req 31)

@@ -276,6 +276,75 @@ MCTS simulations are fast.
 - **Tree reuse**: Keep the subtree from the opponent's move between searches
   instead of rebuilding from scratch.
 
+## Dual-Head Neural Network (AlphaZero Architecture)
+
+The `DualHeadNetwork` class implements a dual-head neural network designed for
+AlphaZero-style MCTS. Unlike the single-head NNUE evaluator (which only
+predicts position value), this network has two output heads sharing a common
+feature representation.
+
+### Architecture
+
+```
+Input: 768 HalfKP features (6 piece types x 2 colors x 64 squares)
+         |
+    Shared Trunk
+    768 -> 256 (ReLU) -> 128 (ReLU)
+         |
+    +----+----+
+    |         |
+ Value     Policy
+  Head      Head
+128->32   128->4096
+ (ReLU)   (linear)
+ 32->1
+ (tanh)
+    |         |
+ float     float[N]
+ [-1,+1]   (probability per legal move)
+```
+
+- **Shared trunk**: Two fully-connected layers with ReLU activation that
+  transform the 768 binary input features into a 128-dimensional
+  representation shared by both heads.
+
+- **Value head**: Predicts who is winning, outputting a scalar in [-1, +1]
+  via tanh. +1 means the side to move is winning; -1 means losing.
+
+- **Policy head**: Outputs logits for all 4096 possible from-to square pairs
+  (64 x 64). For a given position, only the slots corresponding to legal
+  moves are kept; the rest are masked to -infinity before softmax
+  normalization produces a probability distribution over legal moves.
+
+### Feature Encoding
+
+Same 768-element binary feature vector as the NNUE evaluator. Each feature
+corresponds to a (piece-color, square) pair. A feature is 1.0 if that piece
+occupies that square, 0.0 otherwise.
+
+### Policy Encoding
+
+Moves are encoded as `from_square * 64 + to_square`, giving 4096 possible
+slots. Promotions to different piece types share the same from-to slot (a
+simplification that works well in practice since underpromotions are rare).
+
+### Weight Format
+
+Weights are stored as 32-bit floats in a binary file, layer by layer:
+trunk1 weights/biases, trunk2 weights/biases, value1 weights/biases,
+value2 weight/bias, policy weights/biases.
+
+### Integration with MCTS
+
+When a `DualHeadNetwork` is available, MCTS uses it in two ways:
+- **Expansion**: The policy head provides non-uniform priors for child nodes,
+  focusing search on moves the network considers promising.
+- **Leaf evaluation**: The value head replaces the hand-crafted evaluator,
+  giving a learned positional assessment.
+
+Without a dual-head network, MCTS falls back to uniform priors and the
+hand-crafted evaluator (or single-head NNUE).
+
 ## Transposition Table
 
 The transposition table (TT) is a hash table keyed by Zobrist hash of the
