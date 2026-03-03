@@ -165,6 +165,52 @@ MCTS parameters:
 - `--mcts-dirichlet-alpha`: Root noise for exploration (0.3 typical, 0 to disable)
 - `--mcts-dirichlet-eps`: Noise mixing fraction (0.25 typical)
 
+### Method E: AlphaZero Dual-Head Training
+
+Trains a dual-head network (shared trunk + value head + policy head) using
+MCTS self-play data. This is the AlphaZero-style training pipeline where
+the policy head learns from MCTS visit distributions and the value head
+learns from game outcomes.
+
+Architecture: 768 → 256 → 128 (shared trunk), 128 → 32 → 1 (value head,
+tanh), 128 → 4096 (policy head, masked softmax). Total: ~762k parameters.
+
+```bash
+# 1. Generate MCTS self-play data with policy targets
+./blunder --selfplay --mcts \
+          --selfplay-games 500 \
+          --mcts-simulations 400 \
+          --mcts-temperature 1.0 \
+          --mcts-temp-drop 30 \
+          --selfplay-output mcts_training.bin
+
+# 2. Train dual-head network
+python scripts/train_alphazero.py \
+    --input mcts_training.bin \
+    --output weights/alphazero_v001.bin \
+    --epochs 20 --batch-size 256 --learning-rate 0.001
+
+# 3. Load in engine with --alphazero flag
+./blunder --alphazero --nnue weights/alphazero_v001.bin
+
+# 4. Test against HandCrafted
+python scripts/compare_nnue_vs_handcrafted.py \
+    --nnue weights/alphazero_v001.bin --games 100
+```
+
+Training options:
+- `--epochs`: Training iterations (10-50)
+- `--batch-size`: Batch size (128-512)
+- `--learning-rate`: Start at 0.001, reduce if loss oscillates
+
+The combined loss is MSE (value head vs game outcome) + cross-entropy
+(policy head vs MCTS visit distribution). The script saves the best model
+based on validation loss.
+
+For iterative improvement, re-generate self-play data using the trained
+weights so MCTS benefits from the policy head, then retrain. See
+`scripts/alphazero_loop.py` (when available) for automation.
+
 ### Method D: Hybrid (best quality)
 
 Combine self-play data with PGN data for maximum diversity:

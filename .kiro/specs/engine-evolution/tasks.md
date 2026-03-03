@@ -400,16 +400,16 @@
   - [x] 43b.5 Add CLI flag --alphazero to enable MCTS with dual-head network (requires --nnue pointing to dual-head weights)
     - _Requirements: 31.7_
 
-- [ ] 43c. Create dual-head training script (Req 32)
-  - [ ] 43c.1 Create scripts/train_alphazero.py with DualHeadNNUE model class: shared trunk (768→256→128), value head (128→32→1 with tanh), policy head (128→4096 with masked softmax)
+- [x] 43c. Create dual-head training script (Req 32)
+  - [x] 43c.1 Create scripts/train_alphazero.py with DualHeadNNUE model class: shared trunk (768→256→128), value head (128→32→1 with tanh), policy head (128→4096 with masked softmax)
     - _Requirements: 32.1, 32.2_
-  - [ ] 43c.2 Implement MCTSPolicyDataset that reads the MCTS binary format and produces (features, policy_target, move_mask, value_target) tuples — policy_target is the visit distribution, move_mask marks which of the 4096 from-to slots are legal
+  - [x] 43c.2 Implement MCTSPolicyDataset that reads the MCTS binary format and produces (features, policy_target, move_mask, value_target) tuples — policy_target is the visit distribution, move_mask marks which of the 4096 from-to slots are legal
     - _Requirements: 32.2, 32.3_
-  - [ ] 43c.3 Implement combined loss: MSE for value head (predicted vs game outcome) + cross-entropy for policy head (predicted vs MCTS visit distribution)
+  - [x] 43c.3 Implement combined loss: MSE for value head (predicted vs game outcome) + cross-entropy for policy head (predicted vs MCTS visit distribution)
     - _Requirements: 32.1, 32.2_
-  - [ ] 43c.4 Export trained weights in binary format matching DualHeadNetwork::load() — layer order: trunk1 weights/bias, trunk2 weights/bias, value1 weights/bias, value2 weights/bias, policy weights/bias
+  - [x] 43c.4 Export trained weights in binary format matching DualHeadNetwork::load() — layer order: trunk1 weights/bias, trunk2 weights/bias, value1 weights/bias, value2 weights/bias, policy weights/bias
     - _Requirements: 32.3, 32.4_
-  - [ ] 43c.5 Add --architecture flag to train_nnue.py or document train_alphazero.py usage in weights/README.md
+  - [x] 43c.5 Add --architecture flag to train_nnue.py or document train_alphazero.py usage in weights/README.md
     - _Requirements: 32.3_
 
 - [ ] 43d. Implement iterative AlphaZero training loop (Req 32)
