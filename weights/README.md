@@ -62,6 +62,46 @@ python scripts/compare_nnue_vs_handcrafted.py --alphazero --nnue weights/alphaze
 
 The engine falls back to HandCrafted evaluation if no NNUE weights are loaded.
 
+## Distribution via GitHub Releases
+
+Weight files are NOT stored in git (they're in `.gitignore`). Instead, they
+are attached to GitHub Releases as downloadable assets.
+
+### Downloading weights
+
+```bash
+# Download all weight files from the latest release
+gh release download --pattern "*.bin" -D weights/
+
+# Download from a specific release
+gh release download v0.5.0 --pattern "*.bin" -D weights/
+
+# Or use the helper script
+python scripts/fetch-weights.py
+python scripts/fetch-weights.py --tag v0.5.0
+```
+
+### Uploading weights (maintainers)
+
+After tagging a release and CI creates the draft:
+
+```bash
+# Upload weight files to an existing release
+gh release upload v0.5.0 weights/nnue_v002.bin weights/alphazero_v002.bin
+
+# Then undraft the release on GitHub
+```
+
+Weight files to include in each release:
+- The best-performing NNUE weights (currently `nnue_v002.bin`)
+- The latest AlphaZero weights (currently `alphazero_v002.bin`)
+
+### Reproducing weights from scratch
+
+Every version is documented above with the exact commands to regenerate it.
+If you don't want to download pre-trained weights, follow the Training Guide
+below to generate your own.
+
 ## Model Architecture
 
 - Input: 768 features (HalfKP encoding: 6 piece types × 2 colors × 64 squares)

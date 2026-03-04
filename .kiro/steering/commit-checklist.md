@@ -85,6 +85,13 @@ CI is green on main.
    a. Download the new artifact: `gh release download vX.Y.Z -p "*.exe" -D baselines/`
    b. Run: `python scripts/run-cutechess.py --baseline baselines/<previous>.exe --candidate baselines/<new>.exe`
 
+8. Upload weight files to the release (weights are NOT in git):
+   ```
+   gh release upload vX.Y.Z weights/nnue_v002.bin weights/alphazero_v002.bin
+   ```
+   Include the best-performing NNUE and AlphaZero weights. Users can download
+   them with `python scripts/fetch-weights.py` or `gh release download --pattern "*.bin" -D weights/`.
+
 When suggesting a tag, propose the version number and a short description based
 on what changed since the last tag. Check the last tag with `git describe --tags --abbrev=0`
 (if no tags exist yet, start at v0.1.0).
