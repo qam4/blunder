@@ -427,7 +427,7 @@
 
 ## Phase 9: Protocol & Interoperability
 
-- [-] 45. Implement UCI protocol support (Req 33)
+- [x] 45. Implement UCI protocol support (Req 33)
   - [x] 45.1 Create source/UCI.h with UCI class using a command dispatch map, with handlers for: uci, isready, ucinewgame, position, go, stop, quit, setoption
     - _Requirements: 33.1, 33.3_
   - [x] 45.2 Create source/UCI.cpp implementing all UCI command handlers: position parsing (startpos + moves, fen + moves), go with time controls (wtime, btime, winc, binc, depth, nodes, movetime), info string output during search (depth, score, nodes, nps, pv)
@@ -439,28 +439,28 @@
   - [ ]* 45.5 Write unit tests for UCI in test/source/TestUCI.cpp: verify correct responses to uci, isready, position, go commands
     - **Validates: Requirements 33.1, 33.2, 33.3**
 
-- [ ] 46. Final checkpoint — Verify all phases complete
+- [x] 46. Final checkpoint — Verify all phases complete
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Phase 10: Strength Regression Testing
 
-- [ ] 47. Implement automated cutechess SPRT regression script (Req 48)
-  - [ ] 47.1 Refactor scripts/run-cutechess.sh into a configurable regression-test.sh with CLI options for baseline, candidate, time control, book, rounds, concurrency, and SPRT bounds
+- [x] 47. Implement automated cutechess SPRT regression script (Req 48)
+  - [x] 47.1 Refactor scripts/run-cutechess.sh into a configurable regression-test.sh with CLI options for baseline, candidate, time control, book, rounds, concurrency, and SPRT bounds
     - _Requirements: 48.1, 48.2, 48.3, 48.5_
-  - [ ] 47.2 Add result parsing: extract SPRT conclusion (H0/H1/inconclusive), Elo difference, and confidence interval from cutechess-cli output
+  - [x] 47.2 Add result parsing: extract SPRT conclusion (H0/H1/inconclusive), Elo difference, and confidence interval from cutechess-cli output
     - _Requirements: 48.4, 48.6_
-  - [ ] 47.3 Add a summary report output and non-zero exit code on regression detection
+  - [x] 47.3 Add a summary report output and non-zero exit code on regression detection
     - _Requirements: 48.4, 48.6_
 
-- [ ] 48. Implement WAC/STS solve rate tracking (Req 49)
-  - [ ] 48.1 Create a script or test target that runs the engine on WAC positions at a fixed depth/time and reports solve rate
+- [x] 48. Implement WAC/STS solve rate tracking (Req 49)
+  - [x] 48.1 Create a script or test target that runs the engine on WAC positions at a fixed depth/time and reports solve rate
     - _Requirements: 49.1_
-  - [ ] 48.2 Create a script or test target that runs the engine on STS positions and reports aggregate score
+  - [x] 48.2 Create a script or test target that runs the engine on STS positions and reports aggregate score
     - _Requirements: 49.2_
-  - [ ] 48.3 Log results with git commit hash for historical tracking
+  - [x] 48.3 Log results with git commit hash for historical tracking
     - _Requirements: 49.3, 49.4_
 
-- [ ] 49. Checkpoint — Verify Phase 10 complete
+- [x] 49. Checkpoint — Verify Phase 10 complete
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
