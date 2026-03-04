@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
+#include <memory>
 #include <string>
 
 #ifdef _WIN32
@@ -119,7 +120,8 @@ int main(int argc, char** argv)
         }
 
         // AlphaZero mode: MCTS with dual-head network
-        DualHeadNetwork dual_head;
+        // Heap-allocated: DualHeadNetwork has ~3 MB of weight arrays
+        auto dual_head = std::make_unique<DualHeadNetwork>();
         if (cmd_line_args.cmd_option_exists("--alphazero"))
         {
             int mcts_sims = 800;
@@ -145,10 +147,10 @@ int main(int argc, char** argv)
             if (cmd_line_args.cmd_option_exists("--nnue"))
             {
                 string nnue_path = cmd_line_args.get_cmd_option("--nnue");
-                if (!nnue_path.empty() && dual_head.load(nnue_path))
+                if (!nnue_path.empty() && dual_head->load(nnue_path))
                 {
                     cout << "AlphaZero: loaded dual-head network from " << nnue_path << endl;
-                    xboard.set_alphazero_mode(&dual_head, mcts_sims, mcts_cpuct);
+                    xboard.set_alphazero_mode(dual_head.get(), mcts_sims, mcts_cpuct);
                 }
                 else
                 {
@@ -305,14 +307,15 @@ int main(int argc, char** argv)
 
             // AlphaZero mode: load dual-head network for MCTS policy priors
             // and value evaluation during self-play
-            DualHeadNetwork selfplay_dual_head;
+            // Heap-allocated: DualHeadNetwork has ~3 MB of weight arrays
+            auto selfplay_dual_head = std::make_unique<DualHeadNetwork>();
             if (cmd_line_args.cmd_option_exists("--alphazero")
                 && cmd_line_args.cmd_option_exists("--nnue"))
             {
                 string nnue_path = cmd_line_args.get_cmd_option("--nnue");
-                if (!nnue_path.empty() && selfplay_dual_head.load(nnue_path))
+                if (!nnue_path.empty() && selfplay_dual_head->load(nnue_path))
                 {
-                    selfplay.set_dual_head_network(&selfplay_dual_head);
+                    selfplay.set_dual_head_network(selfplay_dual_head.get());
                     cout << "AlphaZero self-play: loaded dual-head network from " << nnue_path
                          << endl;
                 }
