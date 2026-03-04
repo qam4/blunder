@@ -71,24 +71,25 @@ def find_cutechess(override: str | None = None) -> str:
     sys.exit("ERROR: cutechess-cli not found. Add it to PATH or use --cutechess.")
 
 
-def default_engines_config(project_dir: Path) -> list[dict]:
+def default_engines_config(project_dir: Path, protocol: str = "xboard") -> list[dict]:
     """Return a default engine list when no config file is provided."""
     ext = ".exe" if os.name == "nt" else ""
     engine_path = str(project_dir / "build" / "dev" / f"blunder{ext}")
     nnue_path = str(project_dir / "weights" / "nnue_v002.bin")
+    proto_flag = f"--{protocol}"
 
     engines = [
         {
             "name": "Blunder-NNUE",
             "cmd": engine_path,
-            "proto": "xboard",
-            "args": ["--xboard", "--nnue", nnue_path],
+            "proto": protocol,
+            "args": [proto_flag, "--nnue", nnue_path],
         },
         {
             "name": "Blunder-HC",
             "cmd": engine_path,
-            "proto": "xboard",
-            "args": ["--xboard"],
+            "proto": protocol,
+            "args": [proto_flag],
         },
     ]
 
@@ -163,6 +164,8 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Gauntlet mode: first engine vs all others",
     )
+    p.add_argument("--protocol", default="xboard", choices=["xboard", "uci"],
+                   help="Engine protocol for default Blunder configs (default: xboard)")
     p.add_argument("--debug", action="store_true", help="Show engine I/O")
     p.add_argument("--cutechess", default=None, help="Path to cutechess-cli")
     return p.parse_args()
@@ -177,7 +180,7 @@ def run_tournament(args: argparse.Namespace) -> int:
         with open(args.engines) as f:
             engines = json.load(f)
     else:
-        engines = default_engines_config(project_dir)
+        engines = default_engines_config(project_dir, args.protocol)
 
     if len(engines) < 2:
         sys.exit("ERROR: Need at least 2 engines for a tournament.")

@@ -28,6 +28,7 @@
 #include "Search.h"
 #include "SelfPlay.h"
 #include "TestPositions.h"
+#include "UCI.h"
 #include "ValidateMove.h"
 #include "Xboard.h"
 
@@ -196,6 +197,86 @@ int main(int argc, char** argv)
         }
 
         xboard.run();
+        return 0;
+    }
+
+    if (cmd_line_args.cmd_option_exists("--uci"))
+    {
+        UCI uci;
+        if (book_enabled)
+        {
+            uci.set_book(std::move(book));
+        }
+
+        // AlphaZero mode: MCTS with dual-head network
+        auto dual_head = std::make_unique<DualHeadNetwork>();
+        if (cmd_line_args.cmd_option_exists("--alphazero"))
+        {
+            int mcts_sims = 800;
+            double mcts_cpuct = 1.41;
+            if (cmd_line_args.cmd_option_exists("--mcts-simulations"))
+            {
+                string sims_str = cmd_line_args.get_cmd_option("--mcts-simulations");
+                if (!sims_str.empty())
+                {
+                    mcts_sims = std::stoi(sims_str);
+                }
+            }
+            if (cmd_line_args.cmd_option_exists("--mcts-cpuct"))
+            {
+                string cpuct_str = cmd_line_args.get_cmd_option("--mcts-cpuct");
+                if (!cpuct_str.empty())
+                {
+                    mcts_cpuct = std::stod(cpuct_str);
+                }
+            }
+
+            if (cmd_line_args.cmd_option_exists("--nnue"))
+            {
+                string nnue_path = cmd_line_args.get_cmd_option("--nnue");
+                if (!nnue_path.empty() && dual_head->load(nnue_path))
+                {
+                    uci.set_alphazero_mode(dual_head.get(), mcts_sims, mcts_cpuct);
+                }
+                else
+                {
+                    uci.set_mcts_mode(mcts_sims, mcts_cpuct);
+                }
+            }
+            else
+            {
+                uci.set_mcts_mode(mcts_sims, mcts_cpuct);
+            }
+        }
+        else if (cmd_line_args.cmd_option_exists("--mcts"))
+        {
+            int mcts_sims = 800;
+            double mcts_cpuct = 1.41;
+            if (cmd_line_args.cmd_option_exists("--mcts-simulations"))
+            {
+                string sims_str = cmd_line_args.get_cmd_option("--mcts-simulations");
+                if (!sims_str.empty())
+                {
+                    mcts_sims = std::stoi(sims_str);
+                }
+            }
+            if (cmd_line_args.cmd_option_exists("--mcts-cpuct"))
+            {
+                string cpuct_str = cmd_line_args.get_cmd_option("--mcts-cpuct");
+                if (!cpuct_str.empty())
+                {
+                    mcts_cpuct = std::stod(cpuct_str);
+                }
+            }
+            uci.set_mcts_mode(mcts_sims, mcts_cpuct);
+        }
+
+        if (nnue_loaded && !cmd_line_args.cmd_option_exists("--alphazero"))
+        {
+            uci.set_nnue(&nnue);
+        }
+
+        uci.run();
         return 0;
     }
 
@@ -525,6 +606,7 @@ void usage(const string& prog_name)
             "--gen-lookup-tables              Generate lookup tables\n"
             "--perft                          Run perft benchmark\n"
             "--xboard                         xboard interface\n"
+            "--uci                            UCI interface\n"
             "--test-positions path-to-epd     Run test positions\n"
             "--book <path>                    Use opening book at <path>\n"
             "--no-book                        Disable opening book\n"

@@ -422,19 +422,19 @@
   - [x] 43d.4 Document the full AlphaZero workflow in weights/README.md and docs/ARCHITECTURE.md
     - _Requirements: 32.1, 32.5_
 
-- [ ] 44. Checkpoint — Verify Phase 8 complete
+- [x] 44. Checkpoint — Verify Phase 8 complete
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Phase 9: Protocol & Interoperability
 
-- [ ] 45. Implement UCI protocol support (Req 33)
-  - [ ] 45.1 Create source/UCI.h with UCI class using a command dispatch map, with handlers for: uci, isready, ucinewgame, position, go, stop, quit, setoption
+- [-] 45. Implement UCI protocol support (Req 33)
+  - [x] 45.1 Create source/UCI.h with UCI class using a command dispatch map, with handlers for: uci, isready, ucinewgame, position, go, stop, quit, setoption
     - _Requirements: 33.1, 33.3_
-  - [ ] 45.2 Create source/UCI.cpp implementing all UCI command handlers: position parsing (startpos + moves, fen + moves), go with time controls (wtime, btime, winc, binc, depth, nodes, movetime), info string output during search (depth, score, nodes, nps, pv)
+  - [x] 45.2 Create source/UCI.cpp implementing all UCI command handlers: position parsing (startpos + moves, fen + moves), go with time controls (wtime, btime, winc, binc, depth, nodes, movetime), info string output during search (depth, score, nodes, nps, pv)
     - _Requirements: 33.1, 33.2_
-  - [ ] 45.3 Add UCI options for hash size, threads, and book usage via setoption handler
+  - [x] 45.3 Add UCI options for hash size, threads, and book usage via setoption handler
     - _Requirements: 33.3_
-  - [ ] 45.4 Implement protocol auto-detection in source/main.cpp: read first line, if "uci" launch UCI handler, otherwise launch Xboard handler (replaying the first line)
+  - [x] 45.4 Implement protocol auto-detection in source/main.cpp: read first line, if "uci" launch UCI handler, otherwise launch Xboard handler (replaying the first line)
     - _Requirements: 33.4_
   - [ ]* 45.5 Write unit tests for UCI in test/source/TestUCI.cpp: verify correct responses to uci, isready, position, go commands
     - **Validates: Requirements 33.1, 33.2, 33.3**

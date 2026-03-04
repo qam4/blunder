@@ -1,0 +1,40 @@
+feat: implement UCI protocol support (Phase 9, Task 45)
+
+Add UCI (Universal Chess Interface) protocol handler alongside existing
+Xboard protocol. The UCI class mirrors Xboard's architecture: command
+dispatch map, threaded search, book/MCTS/AlphaZero mode support.
+
+UCI command handlers:
+- uci/isready/ucinewgame: identification and initialization
+- position: startpos + moves, fen + moves parsing
+- go: wtime/btime/winc/binc/depth/nodes/movetime/infinite
+- stop/quit: search abort and clean shutdown
+- setoption: Hash size and Book toggle
+
+Search output:
+- Add OutputMode enum to Search (NORMAL, XBOARD, UCI)
+- UCI mode emits "info depth N score cp X nodes Y nps Z time T pv ..."
+- PV output in coordinate notation with castling as e1g1/e1c1/e8g8/e8c8
+
+Integration:
+- Add --uci CLI flag to main.cpp (parallel to --xboard)
+- Wire MCTS, AlphaZero, NNUE, and Book into UCI mode
+- Add UCI.cpp to CMakeLists.txt blunder_lib OBJECT library
+
+Fix move encoding issues:
+- Use m.is_promotion() and m.promote_to() (MOVE_FLAG_PROMOTION doesn't exist)
+- Handle castling moves in move_to_uci() (from/to are 0 in encoding)
+- Use Move(0) for comparisons to avoid ambiguous overload errors
+
+Fix search_ply_ overflow in UCI position command:
+- UCI replays the entire game on every "position ... moves ..." command
+- Games longer than 64 half-moves overflowed move_stack_[MAX_SEARCH_PLY]
+- Reset search_ply_ to 0 before each do_move in position parsing since
+  these moves are never undone and the saved state is not needed
+
+Add --protocol flag to cutechess scripts:
+- run-cutechess.py: --protocol xboard|uci (default: xboard)
+- compare_nnue_vs_handcrafted.py: --protocol xboard|uci (default: xboard)
+- run-tournament.py: --protocol xboard|uci for default Blunder configs
+
+Validated with cutechess-cli: 4 UCI games completed without crashes.

@@ -107,6 +107,10 @@ public:
     // Verbose mode: log per-depth statistics during iterative deepening
     void set_verbose(bool v) { verbose_ = v; }
 
+    // Output mode for iterative deepening info lines
+    enum class OutputMode { NORMAL, XBOARD, UCI };
+    void set_output_mode(OutputMode m) { output_mode_ = m; }
+
     // Abort mechanism for pondering: external code sets abort to stop search
     void set_abort(bool a) { abort_ = a; }
     bool is_aborted() const { return abort_; }
@@ -125,6 +129,7 @@ private:
     TimeManager tm_;
     SearchStats stats_;
     bool verbose_ = false;
+    OutputMode output_mode_ = OutputMode::NORMAL;
     bool abort_ = false;
     bool pondering_ = false;
 

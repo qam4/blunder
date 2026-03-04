@@ -40,6 +40,7 @@ add_library(
     source/TranspositionTable.cpp
     source/Perft.cpp
     source/TestPositions.cpp
+    source/UCI.cpp
     source/Xboard.cpp
     source/See.cpp
     source/Evaluator.cpp

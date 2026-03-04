@@ -14,6 +14,7 @@
 #include "InputDetect.h"
 #include "MoveGenerator.h"
 #include "MoveList.h"
+#include "ValidateMove.h"
 
 using std::cout;
 using std::dec;
@@ -154,6 +155,70 @@ Move_t Search::search(int depth,
             cout << elapsed_csecs << " ";
             cout << nodes_visited_ << " ";
             pv_.print(board_);
+            cout << endl;
+        }
+        else if (output_mode_ == OutputMode::UCI)
+        {
+            int elapsed_ms = elapsed_csecs * 10;
+            cout << "info depth " << current_depth << " score cp " << value << " nodes "
+                 << nodes_visited_ << " nps " << stats_.nps() << " time " << elapsed_ms << " pv";
+            // Output PV in coordinate notation (UCI format)
+            Board copy = board_;
+            for (int i = 0; i < pv_.length(); i++)
+            {
+                Move_t m = pv_.get_move(i);
+                if (!is_valid_move(m, copy, false))
+                {
+                    break;
+                }
+                Move mv(m);
+                std::string s;
+                if (mv.is_castle())
+                {
+                    bool white = (copy.side_to_move() == WHITE);
+                    if (mv.flags() & (KING_CASTLE >> FLAGS_SHIFT))
+                    {
+                        s = white ? "e1g1" : "e8g8";
+                    }
+                    else
+                    {
+                        s = white ? "e1c1" : "e8c8";
+                    }
+                }
+                else
+                {
+                    int from = mv.from();
+                    int to = mv.to();
+                    s += static_cast<char>('a' + (from % 8));
+                    s += static_cast<char>('1' + (from / 8));
+                    s += static_cast<char>('a' + (to % 8));
+                    s += static_cast<char>('1' + (to / 8));
+                    if (mv.is_promotion())
+                    {
+                        U8 promo = mv.promote_to();
+                        switch (promo)
+                        {
+                            case QUEEN:
+                                s += 'q';
+                                break;
+                            case ROOK:
+                                s += 'r';
+                                break;
+                            case BISHOP:
+                                s += 'b';
+                                break;
+                            case KNIGHT:
+                                s += 'n';
+                                break;
+                            default:
+                                s += 'q';
+                                break;
+                        }
+                    }
+                }
+                cout << " " << s;
+                copy.do_move(m);
+            }
             cout << endl;
         }
         else

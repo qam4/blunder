@@ -57,6 +57,8 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--concurrency", type=int, default=4, help="Parallel games")
     p.add_argument("--elo0", type=int, default=0, help="SPRT null hypothesis")
     p.add_argument("--elo1", type=int, default=10, help="SPRT alternative hypothesis")
+    p.add_argument("--protocol", default="xboard", choices=["xboard", "uci"],
+                   help="Engine protocol (default: xboard)")
     p.add_argument("--ponder", action="store_true", help="Enable pondering")
     p.add_argument("--debug", action="store_true", help="Show all engine I/O")
     p.add_argument("--cutechess", default=None, help="Path to cutechess-cli")
@@ -84,15 +86,16 @@ def run_sprt(args: argparse.Namespace) -> int:
     log_file = output_dir / "cutechess.log"
 
     # Build per-engine options
-    ponder_opt = "ponder" if args.ponder else ""
+    proto = args.protocol
+    proto_flag = f"--{proto}"
     engine_opts_candidate = [
         "-engine", f"name=candidate", f"cmd={args.candidate}",
-        "proto=xboard", "arg=--xboard",
+        f"proto={proto}", f"arg={proto_flag}",
         f"stderr={output_dir / 'candidate.err.log'}",
     ]
     engine_opts_baseline = [
         "-engine", f"name=baseline", f"cmd={args.baseline}",
-        "proto=xboard", "arg=--xboard",
+        f"proto={proto}", f"arg={proto_flag}",
         f"stderr={output_dir / 'baseline.err.log'}",
     ]
     if args.ponder:
@@ -130,6 +133,7 @@ def run_sprt(args: argparse.Namespace) -> int:
     print(f"Rounds:      {args.rounds}")
     print(f"Concurrency: {args.concurrency}")
     print(f"SPRT:        elo0={args.elo0} elo1={args.elo1}")
+    print(f"Protocol:    {args.protocol}")
     print(f"Ponder:      {'ON' if args.ponder else 'OFF'}")
     print(f"Output:      {output_dir}")
     print("============================")

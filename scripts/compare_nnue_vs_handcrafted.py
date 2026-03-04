@@ -65,6 +65,8 @@ def parse_args() -> argparse.Namespace:
                    help="Use AlphaZero mode (MCTS + dual-head network)")
     p.add_argument("--mcts-simulations", type=int, default=800,
                    help="MCTS simulations per move in AlphaZero mode (default: 800)")
+    p.add_argument("--protocol", default="xboard", choices=["xboard", "uci"],
+                   help="Engine protocol (default: xboard)")
     p.add_argument("--ponder", action="store_true", help="Enable pondering")
     p.add_argument("--debug", action="store_true", help="Show all engine I/O")
     p.add_argument("--cutechess", default=None, help="Path to cutechess-cli")
@@ -93,11 +95,13 @@ def run_match(args: argparse.Namespace) -> int:
     log_file = output_dir / "cutechess.log"
 
     # Build engine options
+    proto = args.protocol
+    proto_flag = f"--{proto}"
     if args.alphazero:
         engine_name = "AlphaZero"
         engine_opts_nnue = [
             "-engine", f"name={engine_name}", f"cmd={args.engine}",
-            "proto=xboard", "arg=--xboard",
+            f"proto={proto}", f"arg={proto_flag}",
             "arg=--alphazero",
             f"arg=--nnue", f"arg={args.nnue}",
             f"arg=--mcts-simulations", f"arg={args.mcts_simulations}",
@@ -107,7 +111,7 @@ def run_match(args: argparse.Namespace) -> int:
         engine_name = "NNUE"
         engine_opts_nnue = [
             "-engine", f"name={engine_name}", f"cmd={args.engine}",
-            "proto=xboard", "arg=--xboard",
+            f"proto={proto}", f"arg={proto_flag}",
             f"arg=--nnue", f"arg={args.nnue}",
             f"stderr={output_dir / 'nnue.err.log'}",
         ]
@@ -115,7 +119,7 @@ def run_match(args: argparse.Namespace) -> int:
     # HandCrafted engine (no NNUE argument)
     engine_opts_hc = [
         "-engine", "name=HandCrafted", f"cmd={args.engine}",
-        "proto=xboard", "arg=--xboard",
+        f"proto={proto}", f"arg={proto_flag}",
         f"stderr={output_dir / 'handcrafted.err.log'}",
     ]
 
@@ -157,6 +161,7 @@ def run_match(args: argparse.Namespace) -> int:
     print(f"Book:        {args.book}")
     print(f"Games:       {args.games}")
     print(f"Concurrency: {args.concurrency}")
+    print(f"Protocol:    {args.protocol}")
     print(f"Ponder:      {'ON' if args.ponder else 'OFF'}")
     print(f"Output:      {output_dir}")
     print("=" * 80)
