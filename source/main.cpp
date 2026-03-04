@@ -114,10 +114,6 @@ int main(int argc, char** argv)
         {
             xboard.set_book(std::move(book));
         }
-        if (nnue_loaded)
-        {
-            xboard.set_nnue(&nnue);
-        }
 
         // AlphaZero mode: MCTS with dual-head network
         // Heap-allocated: DualHeadNetwork has ~3 MB of weight arrays
@@ -189,6 +185,16 @@ int main(int argc, char** argv)
             }
             xboard.set_mcts_mode(mcts_sims, mcts_cpuct);
         }
+
+        // Set NNUE evaluator for non-AlphaZero modes (plain MCTS, alpha-beta).
+        // In AlphaZero mode the dual-head network handles evaluation directly;
+        // loading the single-head NNUE weights would corrupt the accumulator
+        // because the weight file layouts differ.
+        if (nnue_loaded && !cmd_line_args.cmd_option_exists("--alphazero"))
+        {
+            xboard.set_nnue(&nnue);
+        }
+
         xboard.run();
         return 0;
     }

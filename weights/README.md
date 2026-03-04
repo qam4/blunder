@@ -32,6 +32,27 @@ python scripts/train_nnue.py --input mcts_training.bin --output weights/nnue_mct
 python scripts/compare_nnue_vs_handcrafted.py --nnue weights/nnue_mcts_v001.bin --games 20 --tc "5+0.1"
 ```
 
+### alphazero_v001.bin
+- 6,360 positions from 50 MCTS games (100 sims/move, uniform priors), 10 epochs, val loss 2.7742
+- Dual-head architecture: 768→256→128 trunk, 128→32→1 value, 128→4096 policy (762k params)
+- Result: 0-20 vs HandCrafted (expected for first-iteration model with uniform priors)
+```bash
+./blunder --selfplay --mcts --selfplay-games 50 --mcts-simulations 100 --selfplay-output mcts_training.bin
+python scripts/train_alphazero.py --input mcts_training.bin --output weights/alphazero_v001.bin --epochs 10
+python scripts/compare_nnue_vs_handcrafted.py --alphazero --nnue weights/alphazero_v001.bin --games 20 --tc "60+1" --mcts-simulations 200
+```
+
+### alphazero_v002.bin
+- 63,964 positions from 500 MCTS games (200 sims/move, uniform priors), 20 epochs, batch 256, lr 0.001
+- Dual-head architecture: 768→256→128 trunk, 128→32→1 value, 128→4096 policy (762k params)
+- Result: 0-20 vs HandCrafted (MCTS with 200 sims + untrained policy still too weak vs alpha-beta)
+- Note: fixed stack smashing bug — AlphaZero mode was incorrectly loading single-head NNUE weights
+```bash
+./blunder --selfplay --mcts --selfplay-games 500 --mcts-simulations 200 --selfplay-output mcts_training_v002.bin
+python scripts/train_alphazero.py --input mcts_training_v002.bin --output weights/alphazero_v002.bin --epochs 20 --batch-size 256 --learning-rate 0.001
+python scripts/compare_nnue_vs_handcrafted.py --alphazero --nnue weights/alphazero_v002.bin --games 20 --tc "60+1" --mcts-simulations 200
+```
+
 ## Quick Start
 
 ```bash

@@ -61,6 +61,10 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--book-depth", type=int, default=4, help="Book depth (default: 4)")
     p.add_argument("--games", type=int, default=100, help="Number of games (default: 100)")
     p.add_argument("--concurrency", type=int, default=4, help="Parallel games")
+    p.add_argument("--alphazero", action="store_true",
+                   help="Use AlphaZero mode (MCTS + dual-head network)")
+    p.add_argument("--mcts-simulations", type=int, default=800,
+                   help="MCTS simulations per move in AlphaZero mode (default: 800)")
     p.add_argument("--ponder", action="store_true", help="Enable pondering")
     p.add_argument("--debug", action="store_true", help="Show all engine I/O")
     p.add_argument("--cutechess", default=None, help="Path to cutechess-cli")
@@ -89,21 +93,32 @@ def run_match(args: argparse.Namespace) -> int:
     log_file = output_dir / "cutechess.log"
 
     # Build engine options
-    # NNUE engine
-    engine_opts_nnue = [
-        "-engine", "name=NNUE", f"cmd={args.engine}",
-        "proto=xboard", "arg=--xboard",
-        f"arg=--nnue", f"arg={args.nnue}",
-        f"stderr={output_dir / 'nnue.err.log'}",
-    ]
-    
+    if args.alphazero:
+        engine_name = "AlphaZero"
+        engine_opts_nnue = [
+            "-engine", f"name={engine_name}", f"cmd={args.engine}",
+            "proto=xboard", "arg=--xboard",
+            "arg=--alphazero",
+            f"arg=--nnue", f"arg={args.nnue}",
+            f"arg=--mcts-simulations", f"arg={args.mcts_simulations}",
+            f"stderr={output_dir / 'alphazero.err.log'}",
+        ]
+    else:
+        engine_name = "NNUE"
+        engine_opts_nnue = [
+            "-engine", f"name={engine_name}", f"cmd={args.engine}",
+            "proto=xboard", "arg=--xboard",
+            f"arg=--nnue", f"arg={args.nnue}",
+            f"stderr={output_dir / 'nnue.err.log'}",
+        ]
+
     # HandCrafted engine (no NNUE argument)
     engine_opts_hc = [
         "-engine", "name=HandCrafted", f"cmd={args.engine}",
         "proto=xboard", "arg=--xboard",
         f"stderr={output_dir / 'handcrafted.err.log'}",
     ]
-    
+
     if args.ponder:
         engine_opts_nnue.append("ponder")
         engine_opts_hc.append("ponder")
@@ -130,11 +145,14 @@ def run_match(args: argparse.Namespace) -> int:
         cmd.insert(1, "-debug")
 
     print("=" * 80)
-    print("NNUE vs HandCrafted Evaluator Match")
+    print(f"{engine_name} vs HandCrafted Evaluator Match")
     print("=" * 80)
     print(f"Cutechess:   {cutechess}")
     print(f"Engine:      {args.engine}")
-    print(f"NNUE:        {args.nnue}")
+    print(f"Mode:        {'AlphaZero (MCTS + dual-head)' if args.alphazero else 'NNUE'}")
+    print(f"Weights:     {args.nnue}")
+    if args.alphazero:
+        print(f"MCTS sims:   {args.mcts_simulations}")
     print(f"TC:          {args.tc}")
     print(f"Book:        {args.book}")
     print(f"Games:       {args.games}")
@@ -206,10 +224,6 @@ def parse_result(log_text: str) -> int:
             else:
                 print(f"Result: {engine2} is stronger")
         
-        print()
-        print("Note: This NNUE model was trained on only 300 positions.")
-        print("For better results, generate more training data:")
-        print("  ./blunder --selfplay --selfplay-games 10000 --selfplay-depth 6")
         print()
         
         return 0
