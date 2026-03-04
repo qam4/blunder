@@ -75,6 +75,13 @@
               int simulations = 800)</span>
             </dt>
             <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#a23b149488f38b37b5172df090faf3873" class="m-doc">MCTS</a>(</span><span class="m-doc-wrap"><a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="classDualHeadNetwork.html" class="m-doc">DualHeadNetwork</a>&amp; network,
+              double c_puct = 1.41,
+              int simulations = 800)</span>
+            </dt>
+            <dd></dd>
           </dl>
         </section>
         <section id="pub-methods">
@@ -142,6 +149,15 @@
                 </tr>
               </tbody>
             </table>
+          </div></section>
+          <section class="m-doc-details" id="a23b149488f38b37b5172df090faf3873"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> MCTS::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a23b149488f38b37b5172df090faf3873" class="m-doc-self">MCTS</a>(</span><span class="m-doc-wrap"><a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="classDualHeadNetwork.html" class="m-doc">DualHeadNetwork</a>&amp; network,
+              double c_puct = 1.41,
+              int simulations = 800)</span></span>
+            </h3>
+<p>Construct with a dual-head neural network for policy priors and value evaluation. When a <a href="classDualHeadNetwork.html" class="m-doc">DualHeadNetwork</a> is provided, expand() uses the policy head for priors and simulate() uses the value head for leaf evaluation.</p>
           </div></section>
           <section class="m-doc-details" id="a1a81efe6b28fca3b935ba38a3baefd4f"><div>
             <h3>
