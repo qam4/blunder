@@ -15,6 +15,7 @@
 
 #include "Board.h"
 #include "Book.h"
+#include "CLIConfig.h"
 #include "CLIUtils.h"
 #include "CmdLineArgs.h"
 #include "DualHeadNetwork.h"
@@ -38,8 +39,75 @@ using std::endl;
 using std::string;
 using std::vector;
 
-static void print_help(void);
+static void print_help();
 static void usage(const string& prog_name);
+
+/// Configure MCTS/AlphaZero mode on a protocol handler (Xboard or UCI).
+/// Returns the DualHeadNetwork (caller must keep alive while handler runs).
+template<typename Handler>
+static std::unique_ptr<DualHeadNetwork> configure_mcts(Handler& handler, const CLIConfig& cfg)
+{
+    auto dual_head = std::make_unique<DualHeadNetwork>();
+
+    if (cfg.alphazero_mode)
+    {
+        if (!cfg.nnue_path.empty() && dual_head->load(cfg.nnue_path))
+        {
+            cout << "AlphaZero: loaded dual-head network from " << cfg.nnue_path << endl;
+            handler.set_alphazero_mode(dual_head.get(), cfg.mcts_simulations, cfg.mcts_cpuct);
+        }
+        else
+        {
+            if (cfg.nnue_path.empty())
+            {
+                cout << "AlphaZero: no --nnue path provided, "
+                     << "falling back to MCTS with handcrafted eval" << endl;
+            }
+            else
+            {
+                cout << "AlphaZero: failed to load dual-head network, "
+                     << "falling back to MCTS with handcrafted eval" << endl;
+            }
+            handler.set_mcts_mode(cfg.mcts_simulations, cfg.mcts_cpuct);
+        }
+    }
+    else if (cfg.use_mcts)
+    {
+        handler.set_mcts_mode(cfg.mcts_simulations, cfg.mcts_cpuct);
+    }
+
+    return dual_head;
+}
+
+/// Load opening book from config. Returns true if book was loaded.
+static bool load_book(Book& book, const CLIConfig& cfg)
+{
+    if (!cfg.no_book && !cfg.book_path.empty() && book.open(cfg.book_path))
+    {
+        if (cfg.book_depth >= 0)
+        {
+            book.set_max_depth(cfg.book_depth);
+        }
+        return true;
+    }
+    return false;
+}
+
+/// Load NNUE weights. Returns true if loaded successfully.
+static bool load_nnue(NNUEEvaluator& nnue, const CLIConfig& cfg)
+{
+    if (!cfg.nnue_path.empty())
+    {
+        if (nnue.load(cfg.nnue_path))
+        {
+            cout << "NNUE: loaded weights from " << cfg.nnue_path << endl;
+            return true;
+        }
+        cout << "NNUE: failed to load weights from " << cfg.nnue_path
+             << ", falling back to hand-crafted evaluation" << endl;
+    }
+    return false;
+}
 
 int main(int argc, char** argv)
 {
@@ -67,46 +135,15 @@ int main(int argc, char** argv)
         return 0;
     }
 
-    // Parse book configuration (shared across all modes)
-    Book book;
-    bool book_enabled = false;
-    if (!cmd_line_args.cmd_option_exists("--no-book") && cmd_line_args.cmd_option_exists("--book"))
-    {
-        string book_path = cmd_line_args.get_cmd_option("--book");
-        if (!book_path.empty() && book.open(book_path))
-        {
-            book_enabled = true;
-        }
-    }
-    if (cmd_line_args.cmd_option_exists("--book-depth"))
-    {
-        string depth_str = cmd_line_args.get_cmd_option("--book-depth");
-        if (!depth_str.empty())
-        {
-            book.set_max_depth(std::stoi(depth_str));
-        }
-    }
+    // Parse shared configuration once
+    CLIConfig cfg;
+    parse_shared_config(cmd_line_args, cfg);
 
-    // Parse NNUE configuration (shared across all modes)
+    Book book;
+    bool book_enabled = load_book(book, cfg);
+
     NNUEEvaluator nnue;
-    bool nnue_loaded = false;
-    if (cmd_line_args.cmd_option_exists("--nnue"))
-    {
-        string nnue_path = cmd_line_args.get_cmd_option("--nnue");
-        if (!nnue_path.empty())
-        {
-            if (nnue.load(nnue_path))
-            {
-                nnue_loaded = true;
-                cout << "NNUE: loaded weights from " << nnue_path << endl;
-            }
-            else
-            {
-                cout << "NNUE: failed to load weights from " << nnue_path
-                     << ", falling back to hand-crafted evaluation" << endl;
-            }
-        }
-    }
+    bool nnue_loaded = load_nnue(nnue, cfg);
 
     if (cmd_line_args.cmd_option_exists("--xboard"))
     {
@@ -115,87 +152,11 @@ int main(int argc, char** argv)
         {
             xboard.set_book(std::move(book));
         }
-
-        // AlphaZero mode: MCTS with dual-head network
-        // Heap-allocated: DualHeadNetwork has ~3 MB of weight arrays
-        auto dual_head = std::make_unique<DualHeadNetwork>();
-        if (cmd_line_args.cmd_option_exists("--alphazero"))
-        {
-            int mcts_sims = 800;
-            double mcts_cpuct = 1.41;
-            if (cmd_line_args.cmd_option_exists("--mcts-simulations"))
-            {
-                string sims_str = cmd_line_args.get_cmd_option("--mcts-simulations");
-                if (!sims_str.empty())
-                {
-                    mcts_sims = std::stoi(sims_str);
-                }
-            }
-            if (cmd_line_args.cmd_option_exists("--mcts-cpuct"))
-            {
-                string cpuct_str = cmd_line_args.get_cmd_option("--mcts-cpuct");
-                if (!cpuct_str.empty())
-                {
-                    mcts_cpuct = std::stod(cpuct_str);
-                }
-            }
-
-            // Load dual-head weights from --nnue path
-            if (cmd_line_args.cmd_option_exists("--nnue"))
-            {
-                string nnue_path = cmd_line_args.get_cmd_option("--nnue");
-                if (!nnue_path.empty() && dual_head->load(nnue_path))
-                {
-                    cout << "AlphaZero: loaded dual-head network from " << nnue_path << endl;
-                    xboard.set_alphazero_mode(dual_head.get(), mcts_sims, mcts_cpuct);
-                }
-                else
-                {
-                    cout << "AlphaZero: failed to load dual-head network, "
-                         << "falling back to MCTS with handcrafted eval" << endl;
-                    xboard.set_mcts_mode(mcts_sims, mcts_cpuct);
-                }
-            }
-            else
-            {
-                cout << "AlphaZero: no --nnue path provided, "
-                     << "falling back to MCTS with handcrafted eval" << endl;
-                xboard.set_mcts_mode(mcts_sims, mcts_cpuct);
-            }
-        }
-        // Plain MCTS mode (no neural network)
-        else if (cmd_line_args.cmd_option_exists("--mcts"))
-        {
-            int mcts_sims = 800;
-            double mcts_cpuct = 1.41;
-            if (cmd_line_args.cmd_option_exists("--mcts-simulations"))
-            {
-                string sims_str = cmd_line_args.get_cmd_option("--mcts-simulations");
-                if (!sims_str.empty())
-                {
-                    mcts_sims = std::stoi(sims_str);
-                }
-            }
-            if (cmd_line_args.cmd_option_exists("--mcts-cpuct"))
-            {
-                string cpuct_str = cmd_line_args.get_cmd_option("--mcts-cpuct");
-                if (!cpuct_str.empty())
-                {
-                    mcts_cpuct = std::stod(cpuct_str);
-                }
-            }
-            xboard.set_mcts_mode(mcts_sims, mcts_cpuct);
-        }
-
-        // Set NNUE evaluator for non-AlphaZero modes (plain MCTS, alpha-beta).
-        // In AlphaZero mode the dual-head network handles evaluation directly;
-        // loading the single-head NNUE weights would corrupt the accumulator
-        // because the weight file layouts differ.
-        if (nnue_loaded && !cmd_line_args.cmd_option_exists("--alphazero"))
+        auto dual_head = configure_mcts(xboard, cfg);
+        if (nnue_loaded && !cfg.alphazero_mode)
         {
             xboard.set_nnue(&nnue);
         }
-
         xboard.run();
         return 0;
     }
@@ -207,75 +168,11 @@ int main(int argc, char** argv)
         {
             uci.set_book(std::move(book));
         }
-
-        // AlphaZero mode: MCTS with dual-head network
-        auto dual_head = std::make_unique<DualHeadNetwork>();
-        if (cmd_line_args.cmd_option_exists("--alphazero"))
-        {
-            int mcts_sims = 800;
-            double mcts_cpuct = 1.41;
-            if (cmd_line_args.cmd_option_exists("--mcts-simulations"))
-            {
-                string sims_str = cmd_line_args.get_cmd_option("--mcts-simulations");
-                if (!sims_str.empty())
-                {
-                    mcts_sims = std::stoi(sims_str);
-                }
-            }
-            if (cmd_line_args.cmd_option_exists("--mcts-cpuct"))
-            {
-                string cpuct_str = cmd_line_args.get_cmd_option("--mcts-cpuct");
-                if (!cpuct_str.empty())
-                {
-                    mcts_cpuct = std::stod(cpuct_str);
-                }
-            }
-
-            if (cmd_line_args.cmd_option_exists("--nnue"))
-            {
-                string nnue_path = cmd_line_args.get_cmd_option("--nnue");
-                if (!nnue_path.empty() && dual_head->load(nnue_path))
-                {
-                    uci.set_alphazero_mode(dual_head.get(), mcts_sims, mcts_cpuct);
-                }
-                else
-                {
-                    uci.set_mcts_mode(mcts_sims, mcts_cpuct);
-                }
-            }
-            else
-            {
-                uci.set_mcts_mode(mcts_sims, mcts_cpuct);
-            }
-        }
-        else if (cmd_line_args.cmd_option_exists("--mcts"))
-        {
-            int mcts_sims = 800;
-            double mcts_cpuct = 1.41;
-            if (cmd_line_args.cmd_option_exists("--mcts-simulations"))
-            {
-                string sims_str = cmd_line_args.get_cmd_option("--mcts-simulations");
-                if (!sims_str.empty())
-                {
-                    mcts_sims = std::stoi(sims_str);
-                }
-            }
-            if (cmd_line_args.cmd_option_exists("--mcts-cpuct"))
-            {
-                string cpuct_str = cmd_line_args.get_cmd_option("--mcts-cpuct");
-                if (!cpuct_str.empty())
-                {
-                    mcts_cpuct = std::stod(cpuct_str);
-                }
-            }
-            uci.set_mcts_mode(mcts_sims, mcts_cpuct);
-        }
-
-        if (nnue_loaded && !cmd_line_args.cmd_option_exists("--alphazero"))
+        auto dual_head = configure_mcts(uci, cfg);
+        if (nnue_loaded && !cfg.alphazero_mode)
         {
             uci.set_nnue(&nnue);
         }
-
         uci.run();
         return 0;
     }
@@ -288,54 +185,13 @@ int main(int argc, char** argv)
             cout << "Error: path to EPD file required " << endl;
             return 1;
         }
-
         test_positions_benchmark(epd_path);
-
         return 0;
     }
 
     if (cmd_line_args.cmd_option_exists("--selfplay"))
     {
-        // Parse self-play parameters
-        int num_games = 100;  // Default
-        if (cmd_line_args.cmd_option_exists("--selfplay-games"))
-        {
-            string games_str = cmd_line_args.get_cmd_option("--selfplay-games");
-            if (!games_str.empty())
-            {
-                num_games = std::stoi(games_str);
-            }
-        }
-
-        int search_depth = 6;  // Default
-        if (cmd_line_args.cmd_option_exists("--selfplay-depth"))
-        {
-            string depth_str = cmd_line_args.get_cmd_option("--selfplay-depth");
-            if (!depth_str.empty())
-            {
-                search_depth = std::stoi(depth_str);
-            }
-        }
-
-        double randomization = 0.5;  // Default temperature
-        if (cmd_line_args.cmd_option_exists("--selfplay-randomization"))
-        {
-            string rand_str = cmd_line_args.get_cmd_option("--selfplay-randomization");
-            if (!rand_str.empty())
-            {
-                randomization = std::stod(rand_str);
-            }
-        }
-
-        string output_path = "training_data.bin";  // Default
-        if (cmd_line_args.cmd_option_exists("--selfplay-output"))
-        {
-            output_path = cmd_line_args.get_cmd_option("--selfplay-output");
-        }
-
-        // Create board and search
-        string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-        Board board = Parser::parse_fen(fen);
+        Board board = Parser::parse_fen(DEFAULT_FEN);
         if (nnue_loaded)
         {
             board.set_nnue(&nnue);
@@ -343,100 +199,49 @@ int main(int argc, char** argv)
         }
         Search search(board);
 
-        // Check if MCTS self-play mode
-        if (cmd_line_args.cmd_option_exists("--mcts"))
+        if (cfg.use_mcts)
         {
-            int mcts_sims = 800;
-            double mcts_cpuct = 1.41;
-            double mcts_temp = 1.0;
-            int mcts_temp_drop = 30;
-            double dirichlet_alpha = 0.3;
-            double dirichlet_eps = 0.25;
-
-            if (cmd_line_args.cmd_option_exists("--mcts-simulations"))
-            {
-                string s = cmd_line_args.get_cmd_option("--mcts-simulations");
-                if (!s.empty())
-                    mcts_sims = std::stoi(s);
-            }
-            if (cmd_line_args.cmd_option_exists("--mcts-cpuct"))
-            {
-                string s = cmd_line_args.get_cmd_option("--mcts-cpuct");
-                if (!s.empty())
-                    mcts_cpuct = std::stod(s);
-            }
-            if (cmd_line_args.cmd_option_exists("--selfplay-temperature"))
-            {
-                string s = cmd_line_args.get_cmd_option("--selfplay-temperature");
-                if (!s.empty())
-                    mcts_temp = std::stod(s);
-            }
-            if (cmd_line_args.cmd_option_exists("--selfplay-temp-drop"))
-            {
-                string s = cmd_line_args.get_cmd_option("--selfplay-temp-drop");
-                if (!s.empty())
-                    mcts_temp_drop = std::stoi(s);
-            }
-            if (cmd_line_args.cmd_option_exists("--selfplay-dirichlet-alpha"))
-            {
-                string s = cmd_line_args.get_cmd_option("--selfplay-dirichlet-alpha");
-                if (!s.empty())
-                    dirichlet_alpha = std::stod(s);
-            }
-            if (cmd_line_args.cmd_option_exists("--selfplay-dirichlet-eps"))
-            {
-                string s = cmd_line_args.get_cmd_option("--selfplay-dirichlet-eps");
-                if (!s.empty())
-                    dirichlet_eps = std::stod(s);
-            }
-
             SelfPlay selfplay(board, search);
 
-            // AlphaZero mode: load dual-head network for MCTS policy priors
-            // and value evaluation during self-play
-            // Heap-allocated: DualHeadNetwork has ~3 MB of weight arrays
             auto selfplay_dual_head = std::make_unique<DualHeadNetwork>();
-            if (cmd_line_args.cmd_option_exists("--alphazero")
-                && cmd_line_args.cmd_option_exists("--nnue"))
+            if (cfg.alphazero_mode && !cfg.nnue_path.empty()
+                && selfplay_dual_head->load(cfg.nnue_path))
             {
-                string nnue_path = cmd_line_args.get_cmd_option("--nnue");
-                if (!nnue_path.empty() && selfplay_dual_head->load(nnue_path))
-                {
-                    selfplay.set_dual_head_network(selfplay_dual_head.get());
-                    cout << "AlphaZero self-play: loaded dual-head network from " << nnue_path
-                         << endl;
-                }
-                else
-                {
-                    cout << "AlphaZero self-play: failed to load dual-head network, "
-                         << "using uniform priors" << endl;
-                }
+                selfplay.set_dual_head_network(selfplay_dual_head.get());
+                cout << "AlphaZero self-play: loaded dual-head network from " << cfg.nnue_path
+                     << endl;
+            }
+            else if (cfg.alphazero_mode)
+            {
+                cout << "AlphaZero self-play: failed to load dual-head network, "
+                     << "using uniform priors" << endl;
             }
 
-            selfplay.generate_mcts_training_data(num_games,
-                                                 mcts_sims,
-                                                 mcts_cpuct,
-                                                 mcts_temp,
-                                                 mcts_temp_drop,
-                                                 dirichlet_alpha,
-                                                 dirichlet_eps,
-                                                 output_path);
+            selfplay.generate_mcts_training_data(cfg.selfplay_games,
+                                                 cfg.mcts_simulations,
+                                                 cfg.mcts_cpuct,
+                                                 cfg.selfplay_temperature,
+                                                 cfg.selfplay_temp_drop,
+                                                 cfg.selfplay_dirichlet_alpha,
+                                                 cfg.selfplay_dirichlet_eps,
+                                                 cfg.selfplay_output);
         }
         else
         {
-            // AlphaBeta self-play (original)
             SelfPlay selfplay(board, search);
-            selfplay.generate_training_data(num_games, search_depth, randomization, output_path);
+            selfplay.generate_training_data(cfg.selfplay_games,
+                                            cfg.selfplay_depth,
+                                            cfg.selfplay_randomization,
+                                            cfg.selfplay_output);
         }
-
         return 0;
     }
 
+    // Interactive mode
     bool computer_plays[2] = { false };
     int game_ply = 0;
 
-    string fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    Board board = Parser::parse_fen(fen);
+    Board board = Parser::parse_fen(DEFAULT_FEN);
     if (nnue_loaded)
     {
         board.set_nnue(&nnue);
@@ -466,7 +271,6 @@ int main(int argc, char** argv)
 
         if (computer_plays[board.side_to_move()])
         {
-            // Check opening book first
             if (book_enabled && book.within_depth(game_ply) && book.has_move(board))
             {
                 Move_t book_move = book.get_move(board);
@@ -481,16 +285,13 @@ int main(int argc, char** argv)
 
             clock_t tic = clock();
             cout << "Thinking..." << endl;
-
-            Move_t move;
-            move = search.search(MAX_SEARCH_PLY);
+            Move_t move = search.search(MAX_SEARCH_PLY);
             clock_t toc = clock();
             double elapsed_secs = double(toc - tic) / CLOCKS_PER_SEC;
             cout << "time: " << elapsed_secs << "s" << endl;
             cout << "searched moves: " << search.get_searched_moves() << endl;
             cout << "searched moves per second: " << int(search.get_searched_moves() / elapsed_secs)
                  << endl;
-
             cout << "Computer move: " << Output::move_san(move, board) << endl;
             board.do_move(move);
             game_ply++;

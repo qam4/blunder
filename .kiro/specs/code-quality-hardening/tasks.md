@@ -60,13 +60,13 @@ Incremental code quality improvements for the Blunder chess engine across seven 
   - Run `cmake --build --preset=dev && ctest --preset=dev --output-on-failure`
   - Ensure all existing tests pass, ask the user if questions arise.
 
-- [ ] 3. Architecture cleanup: CLI config, Board DI, TestPositions relocation
-  - [ ] 3.1 Extract shared CLI configuration parsing — create `CLIConfig` struct and `parse_cli()` function in `source/CLIConfig.h` / `source/CLIConfig.cpp`
+- [-] 3. Architecture cleanup: CLI config, Board DI, TestPositions relocation
+  - [x] 3.1 Extract shared CLI configuration parsing — create `CLIConfig` struct and `parse_cli()` function in `source/CLIConfig.h` / `source/CLIConfig.cpp`
     - Define `CLIConfig` struct with fields: `use_mcts`, `mcts_simulations`, `mcts_cpuct`, `alphazero_mode`, `nnue_path`, `book_path`, `dual_head_path`
     - Implement `parse_cli(int argc, char** argv, CLIConfig& config)` returning protocol mode string
     - _Requirements: 1.1, 1.2, 1.4_
 
-  - [ ] 3.2 Refactor `main.cpp` to use `CLIConfig` — replace triplicated MCTS/AlphaZero/NNUE parsing blocks with single `parse_cli()` call
+  - [x] 3.2 Refactor `main.cpp` to use `CLIConfig` — replace triplicated MCTS/AlphaZero/NNUE parsing blocks with single `parse_cli()` call
     - Remove duplicated parsing logic from xboard, UCI, and selfplay blocks
     - Pass `CLIConfig` to each protocol handler
     - Verify identical runtime behavior for all existing flag combinations

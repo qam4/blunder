@@ -19,6 +19,7 @@ add_library(
     blunder_lib OBJECT
     source/Board.cpp
     source/Book.cpp
+    source/CLIConfig.cpp
     source/CLIUtils.cpp
     source/DualHeadNetwork.cpp
     source/MCTS.cpp
