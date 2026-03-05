@@ -28,7 +28,7 @@ public:
 private:
     static U64 pieces_[NUM_PIECES][NUM_SQUARES];
     static U64 castling_rights_[FULL_CASTLING_RIGHTS + 1];
-    static U64 ep_square_[NUM_SQUARES];
+    static U64 ep_square_[NUM_SQUARES + 1];  // +1 so NULL_SQUARE (64) index is safe
     static U64 side_;
     static bool initialized_;
 };

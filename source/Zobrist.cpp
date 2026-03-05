@@ -12,7 +12,7 @@
 // Static member definitions
 U64 Zobrist::pieces_[NUM_PIECES][NUM_SQUARES] = {};
 U64 Zobrist::castling_rights_[FULL_CASTLING_RIGHTS + 1] = {};
-U64 Zobrist::ep_square_[NUM_SQUARES] = {};
+U64 Zobrist::ep_square_[NUM_SQUARES + 1] = {};
 U64 Zobrist::side_ = 0;
 bool Zobrist::initialized_ = false;
 
