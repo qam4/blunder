@@ -5,8 +5,11 @@
 
 #include <algorithm>
 
-#include "Board.h"
+#ifdef _MSC_VER
+#    include <intrin.h>
+#endif
 
+#include "Board.h"
 #include "MoveGenerator.h"
 #include "MoveList.h"
 #include "NNUEEvaluator.h"
@@ -14,13 +17,19 @@
 // Count number of bits set to 1 in 64 bit word
 int pop_count(U64 x)
 {
+#if defined(__GNUC__) || defined(__clang__)
+    return __builtin_popcountll(static_cast<unsigned long long>(x));
+#elif defined(_MSC_VER)
+    return static_cast<int>(__popcnt64(x));
+#else
     int count = 0;
     while (x)
     {
         count++;
-        x &= x - 1;  // reset LS1B
+        x &= x - 1;
     }
     return count;
+#endif
 }
 
 Board::Board()
@@ -414,25 +423,29 @@ bool Board::is_game_over()
 
 bool Board::is_draw(bool in_search)
 {
-    // fifty-move rule: https://www.chessprogramming.org/Fifty-move_Rule
+    // fifty-move rule
     if (irrev_.half_move_count >= 100)
     {
         return true;
     }
 
-    // threefold repetition rule
-    // https://en.wikipedia.org/wiki/Threefold_repetition
-    // https://www.chessprogramming.org/Repetitions
-    // Check if we see the current position more than once in the game history
+    // Repetition detection: only need to scan back to the last irreversible
+    // move (half_move_count positions ago). Step by 2 since only same-side
+    // positions can repeat.
     int repetition_count = 0;
-    for (int i = 0; i < game_ply_; i++)
+    int start = game_ply_ - irrev_.half_move_count;
+    if (start < 0)
+    {
+        start = 0;
+    }
+    for (int i = start; i < game_ply_; i += 2)
     {
         if (irrev_.board_hash == hash_history_[i])
         {
             repetition_count++;
         }
     }
-    return (repetition_count > (in_search ? 0 : 1)) ? true : false;
+    return repetition_count > (in_search ? 0 : 1);
 }
 
 void Board::update_hash()

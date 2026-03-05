@@ -85,7 +85,7 @@ Incremental code quality improvements for the Blunder chess engine across seven 
     - Update all Board construction sites
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-  - [ ] 3.5 Relocate TestPositions to test directory — move `TestPositions.cpp` and `TestPositions.h` from `source/` to `test/source/` or conditionally compile out of `blunder_lib`
+  - [x] 3.5 Relocate TestPositions to test directory — move `TestPositions.cpp` and `TestPositions.h` from `source/` to `test/source/` or conditionally compile out of `blunder_lib`
     - Move or conditionally compile the files
     - Update CMakeLists.txt so `blunder_lib` does not contain test symbols
     - Ensure `--test-positions` CLI command still works
@@ -95,8 +95,8 @@ Incremental code quality improvements for the Blunder chess engine across seven 
   - Run `cmake --build --preset=dev && ctest --preset=dev --output-on-failure`
   - Ensure all existing tests pass, ask the user if questions arise.
 
-- [ ] 5. Performance micro-optimizations
-  - [ ] 5.1 Replace `pop_count` with compiler intrinsic — use `__builtin_popcountll` on GCC/Clang, `__popcnt64` on MSVC, with manual fallback
+- [-] 5. Performance micro-optimizations
+  - [-] 5.1 Replace `pop_count` with compiler intrinsic — use `__builtin_popcountll` on GCC/Clang, `__popcnt64` on MSVC, with manual fallback
     - Implement the conditional intrinsic in the appropriate header
     - _Requirements: 12.1, 12.2, 12.3_
 

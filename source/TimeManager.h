@@ -74,6 +74,7 @@ public:
 
         start_time_ = clock();
         max_nodes_ = -1;
+        score_adjusted_ = false;
     }
 
     /// Legacy start method for non-clock-based searches (fixed time, node limit).
@@ -84,6 +85,7 @@ public:
         hard_limit_ = search_time;
         max_nodes_ = max_nodes;
         start_time_ = clock();
+        score_adjusted_ = false;
     }
 
     /// Extend soft limit when best move is unstable between iterations.
@@ -100,9 +102,10 @@ public:
     /// @param score_cp  Score in centipawns from side-to-move perspective
     void adjust_for_score(int score_cp)
     {
-        if (score_cp > 500 || score_cp < -500)
+        if (!score_adjusted_ && (score_cp > 500 || score_cp < -500))
         {
             soft_limit_ = soft_limit_ * 3 / 5;
+            score_adjusted_ = true;
         }
     }
 
@@ -160,6 +163,7 @@ private:
     int soft_limit_ = DEFAULT_SEARCH_TIME;
     int hard_limit_ = DEFAULT_SEARCH_TIME;
     int max_nodes_ = -1;
+    bool score_adjusted_ = false;
 };
 
 #endif /* TIMEMANAGER_H */

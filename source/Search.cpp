@@ -111,6 +111,20 @@ Move_t Search::search(int depth,
 
     for (int current_depth = 1; current_depth <= depth; current_depth++)
     {
+        // Age history table to prevent unbounded growth
+        if (current_depth > 1)
+        {
+            for (int s = 0; s < 2; ++s)
+            {
+                for (int f = 0; f < 64; ++f)
+                {
+                    for (int t = 0; t < 64; ++t)
+                    {
+                        history_[s][f][t] /= 2;
+                    }
+                }
+            }
+        }
         follow_pv_ = 1;
         max_search_ply_ = 0;
 

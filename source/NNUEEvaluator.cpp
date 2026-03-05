@@ -38,6 +38,7 @@ NNUEEvaluator::NNUEEvaluator()
     std::memset(l2_weights_, 0, sizeof(l2_weights_));
     std::memset(l3_weights_, 0, sizeof(l3_weights_));
     std::memset(l4_weights_, 0, sizeof(l4_weights_));
+    acc_stack_.reserve(MAX_SEARCH_PLY);
 }
 
 // ---------------------------------------------------------------------------
