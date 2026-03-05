@@ -6,10 +6,7 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <assert.h>
+#include <cassert>
 
 #include "Types.h"
 #include "Constants.h"

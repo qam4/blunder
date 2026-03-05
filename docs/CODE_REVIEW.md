@@ -1,6 +1,7 @@
 # Blunder Engine — Full Code Review
 
-Date: 2026-03-01
+Date: 2026-03-05 (updated)
+Previous review: 2026-03-01
 
 This document is a thorough code review of the Blunder chess engine codebase.
 Findings are organized by component, with concrete improvement suggestions
@@ -10,6 +11,12 @@ The overarching principle: **depth wins**. A simpler, faster engine that
 searches 2–3 plies deeper will almost always beat a slower engine with a
 fancier eval. Every cycle saved in eval, move generation, or data structure
 overhead translates directly into deeper search and stronger play.
+
+Changes since last review (v0.5.0 → v0.5.1):
+- UCI protocol implemented (was flagged as missing)
+- Benchmark scripts added (run-benchmarks.py, analyze-sts.py)
+- Engine-evolution spec fully completed
+- All cutechess scripts updated with --protocol flag
 
 ---
 
@@ -77,6 +84,13 @@ for (int i = start; i < game_ply_; i += 2) { // step by 2: same side to move
 }
 ```
 
+**[MEDIUM] Board still owns TranspositionTable, Evaluator, and NNUEEvaluator**
+
+Board holds a `shared_ptr<TranspositionTable>`, a `HandCraftedEvaluator`,
+and a raw `NNUEEvaluator*`. These should be injected dependencies, not
+owned by Board. The `get_evaluator()` method with its NNUE fallback logic
+is a leaky abstraction — the caller should decide which evaluator to use.
+
 **[LOW] `Board::reset()` calls `MoveGenerator::init_magic_tables()`**
 
 Magic table init is guarded by a static bool, so it's safe, but it's
@@ -101,6 +115,7 @@ if Board is ever copied frequently (e.g., in SMP search).
 - Instability detection: extends time when best move changes between
   iterations — nice touch.
 - Mate distance pruning — correct.
+- Pondering support with abort mechanism — well implemented.
 
 ### Issues and improvements
 
@@ -136,6 +151,23 @@ that the scaling in `score_killers` (`h * 73 / (h + 1000)`) saturates.
 Most engines age/decay history values periodically (e.g., halve all
 entries between iterations, or use a gravity/aging scheme).
 
+**[MEDIUM] `#define NO_PV 0` / `IS_PV 1` / `NO_NULL 0` / `DO_NULL 1`**
+
+These preprocessor defines in Search.h should be `constexpr int` or an
+`enum`. Defines pollute the global namespace and don't respect scope.
+
+**[MEDIUM] Redundant `#ifndef NDEBUG` around `assert()`**
+
+In Search.cpp's iterative deepening loop:
+```cpp
+#ifndef NDEBUG
+        assert(value <= MAX_SCORE);
+        assert(value >= -MAX_SCORE);
+#endif
+```
+`assert()` already compiles to nothing when `NDEBUG` is defined. The
+guard is redundant.
+
 **[MEDIUM] No futility pruning**
 
 At low depths (1–2), if the static eval + a margin is below alpha, quiet
@@ -155,6 +187,11 @@ Consider also:
 - Not reducing moves that give check
 - Reducing more aggressively for higher move indices (logarithmic reduction)
 - Not reducing when the position has a lot of tactical tension
+
+**[MEDIUM] C-style variable declarations at function top**
+
+Throughout Search.cpp: `int i, n, value;` declared at the top of functions.
+These should be declared at point of use for clarity and to limit scope.
 
 **[LOW] `clock()` for timing**
 
@@ -231,6 +268,12 @@ When not in check, `add_loud_moves` only generates captures (via the
 should be searched in qsearch — a pawn promoting to a queen is a massive
 material swing. Missing these means the engine can miss promotion tactics
 in the quiescence search.
+
+**[MEDIUM] `MoveGenerator` is entirely static methods — it's a namespace**
+
+All methods are static, all state (magic tables, lookup tables) is global.
+This works but is misleading as a class. Consider converting to a
+namespace, or at least documenting the rationale.
 
 **[LOW] `get_king_danger_squares` recomputes all enemy attacks**
 
@@ -365,9 +408,10 @@ entry is from a previous search.
 **[HIGH] Fixed 1M entry size, not configurable at runtime**
 
 `HASH_TABLE_SIZE = 1024 * 1024` is hardcoded. The xboard protocol sends
-a `memory` command, but `set_memory_size` is a no-op. Allowing the user
-to set TT size (e.g., 64MB, 256MB) is standard and can significantly
-help in longer time controls.
+a `memory` command, but `set_memory_size` is a no-op. UCI `setoption Hash`
+is parsed but the TT is never actually resized. Allowing the user to set
+TT size (e.g., 64MB, 256MB) is standard and can significantly help in
+longer time controls.
 
 **[MEDIUM] No aging mechanism**
 
@@ -427,12 +471,6 @@ Same issue as in Search — `clock()` measures CPU time. Use
 
 ### Issues and improvements
 
-**[LOW] Castling rights hashing uses a lookup table indexed by rights value**
-
-`castling_rights_[FULL_CASTLING_RIGHTS + 1]` = 16 entries. This is fine
-and actually slightly better than XORing individual right keys, since it
-avoids multiple XOR operations when multiple rights change at once.
-
 **[LOW] Each Board owns its own Zobrist instance**
 
 All Zobrist instances are identical (same seed = same keys). This wastes
@@ -461,25 +499,45 @@ poor results. Minor concern for competitive play.
 
 ---
 
-## 11. Xboard Protocol (Xboard.h / .cpp)
+## 11. Protocol Support (Xboard.cpp / UCI.cpp)
 
 ### What's good
-- Clean command dispatch via `handlers_` map — extensible and readable.
-- Pondering support with ponder hit/miss detection.
-- Smart time allocation delegated to TimeManager.
-- Opening book integration.
-- NNUE integration.
+- Both Xboard and UCI protocols implemented with clean dispatch maps.
+- Pondering support in Xboard with ponder hit/miss detection.
+- UCI runs search on a separate thread — non-blocking.
+- Smart time allocation delegated to TimeManager in both protocols.
+- Opening book and NNUE integration in both protocols.
 
 ### Issues and improvements
 
-**[MEDIUM] No UCI protocol support**
+**[MEDIUM] UCI castling notation may be wrong for ponder moves**
 
-UCI is the dominant protocol for modern chess GUIs (Arena, CuteChess,
-Banksia, etc.). Adding UCI support would make the engine compatible with
-a much wider ecosystem. This is a significant feature addition, not a
-bug fix.
+`move_to_uci()` checks `board_.side_to_move()` to determine if castling
+is white or black. But after `cmd_position` applies all moves, the side
+to move is the *next* player. For `send_bestmove`, the best move is for
+the current side to move (correct). But if the ponder move is a castling
+move, the side to move will have already changed after the best move is
+applied mentally — the ponder move's castling side is inferred from the
+wrong board state.
 
-**[LOW] `set_memory_size` is a no-op**
+**[MEDIUM] No `go ponder` support in UCI**
+
+The UCI protocol supports `go ponder` for pondering on the opponent's
+time. Currently only Xboard pondering is implemented.
+
+**[MEDIUM] `setoption Hash` parsed but TT never resized**
+
+The UCI handler parses the Hash option and stores `hash_size_mb_` but
+the TT is never actually resized. Same issue in Xboard's `memory` command.
+
+**[MEDIUM] No thread safety in UCI**
+
+UCI search runs on `search_thread_` but `board_` is shared with the main
+thread that processes `position` commands. Per UCI spec, GUIs shouldn't
+send `position` during search, but defensive coding with a mutex would
+prevent data races from misbehaving GUIs.
+
+**[LOW] `set_memory_size` is a no-op in Xboard**
 
 The xboard `memory` command is received but ignored. Should resize the TT.
 
@@ -490,88 +548,376 @@ but could overflow in pathological test cases.
 
 ---
 
-## 12. Move Representation (Move.h)
+## 12. Code Quality and Architecture
 
 ### What's good
-- Compact 24-bit encoding with from/to/capture/flags.
-- Clean builder functions for different move types.
-- `ScoredMove` separates sort score from move identity — good design.
-- Backward-compatible free functions alongside the Move struct.
+- Clean separation of concerns: Board (state), Search (algorithms),
+  Evaluator (scoring), MoveGenerator (move gen), TimeManager (timing).
+- Evaluator abstraction with virtual dispatch allows swapping between
+  HandCrafted and NNUE — clean design.
+- Comprehensive test suite: 20 test files covering perft, move generation,
+  SEE, board invariance, draw detection, evaluation symmetry, search
+  properties, FEN round-trip, book, and NNUE.
+- Move class wraps U32 with clean accessors and builder functions.
+- ScoredMove separates sort score from move identity.
 
 ### Issues and improvements
 
-**[LOW] Captured piece stored in the move**
+**[HIGH] `main.cpp` is ~590 lines with massive duplication**
 
-This uses 4 bits in the move encoding. Some engines instead look up the
-captured piece from the board during `do_move`, saving bits for other
-flags. Not a problem at current encoding density.
+The MCTS/AlphaZero/NNUE CLI parsing is copy-pasted across xboard, UCI,
+and selfplay modes. The same `--mcts-simulations`, `--mcts-cpuct`,
+`--alphazero`, `--nnue` parsing block appears 3 times. This should be
+extracted into a shared configuration struct + parser function.
+
+**[MEDIUM] `Constants.h` uses `const` globals instead of `constexpr`**
+
+`const int` at namespace scope has internal linkage in C++, but each TU
+gets its own copy. For integral constants, `constexpr` is preferred.
+`PIECE_CHARS` (a `std::string`) and `PIECE_UNICODE` (a `const char*[]`)
+should be `inline const` or `constexpr` to avoid ODR issues and duplicate
+storage.
+
+**[MEDIUM] `Common.h` includes `<assert.h>` instead of `<cassert>`**
+
+C header in C++ code. Should use `<cassert>` for proper namespace handling.
+
+**[MEDIUM] `TestPositions.cpp` is in `source/` (production code)**
+
+Test infrastructure (`test_positions_benchmark`, `perft_benchmark`) is
+compiled into the main binary via `blunder_lib`. This should live in
+`test/` or be conditionally compiled.
+
+**[LOW] `ScoredMove.score` is `U16` (unsigned 16-bit)**
+
+This limits score range to 0–65535. Negative scores aren't representable.
+Currently works because all scores are mapped to positive ranges, but
+it's fragile.
+
+**[LOW] `Common.h` includes `<iostream>`**
+
+This gets pulled into every translation unit via the include chain.
+Consider removing it and including only where needed.
 
 ---
 
-## 13. Principal Variation (PrincipalVariation.h / .cpp)
+## 13. Python Scripts
 
 ### What's good
-- Triangular PV table — standard and correct.
-- PV move scoring for move ordering.
-- Validates moves before printing (handles stale PV entries).
+- Well-structured, clean code across all 11 scripts.
+- `run-benchmarks.py`: CSV logging with regression detection — solid.
+- `analyze-sts.py`: per-category breakdown with strengths/weaknesses.
+- `run-cutechess.py`, `compare_nnue_vs_handcrafted.py`, `run-tournament.py`:
+  all support `--protocol` flag for xboard/UCI switching.
+- Training scripts (train_nnue.py, train_alphazero.py) are well-documented.
 
 ### Issues and improvements
 
-**[LOW] PV table is `MAX_SEARCH_PLY * MAX_SEARCH_PLY` = 4096 entries**
+**[LOW] `analyze-sts.py` has no `--output` flag for JSON/CSV export**
 
-This is 16KB (4096 × 4 bytes). Fine, but a triangular array would use
-half the memory. Not a practical concern.
+Currently only prints to stdout. Adding structured output would make it
+easier to track results over time programmatically.
 
 ---
 
-## 14. Code Quality and Architecture
+## 14. Engine Strength — Potential Improvements
 
-**[GOOD]** Clean separation of concerns: Board (state), Search (algorithms),
-Evaluator (scoring), MoveGenerator (move gen), TimeManager (timing).
+This section covers improvements that would directly increase playing
+strength (Elo), organized by subsystem. Items here go beyond fixing
+existing code — they're new features or algorithmic upgrades.
 
-**[GOOD]** Evaluator abstraction with virtual dispatch allows swapping
-between HandCrafted and NNUE — clean design.
+Current baseline (v0.5.1, 1M nodes):
+- WAC: 200/300 (66.67%), ELO ~2725
+- STS: 59507/118800 (50.09%), ELO ~1987
+- STS strengths: Recapturing (79.3%), Simplification (66.2%), Bishop vs Knight (55.2%)
+- STS weaknesses: Undermining (34.2%), Kingside Pawn Advance (35.1%), Queenside Pawn Advance (38.0%)
 
-**[GOOD]** Comprehensive test suite covering perft, move generation, SEE,
-board invariance, draw detection, evaluation symmetry, and search
-properties.
+### 14a. Search Improvements
 
-**[MEDIUM]** `MoveGenerator` is entirely static methods. This is fine but
-means all state (magic tables, lookup tables) is global. For future SMP
-support, this is okay since the tables are read-only after init.
+**[HIGH] Check extensions (~30-50 Elo)**
 
-**[LOW]** `Common.h` includes `<iostream>` which gets pulled into every
-translation unit. Consider removing it and including only where needed.
+Extend search by 1 ply when the side to move is in check. Nearly
+universal in strong engines. Prevents the horizon effect from hiding
+forced mates and tactical sequences involving checks.
+
+**[HIGH] Singular extensions (~20-40 Elo)**
+
+When the TT move is significantly better than all alternatives at a
+reduced depth, extend the TT move by 1 ply. This helps the engine
+resolve critical positions more deeply. Requires a "verification search"
+at reduced depth excluding the TT move.
+
+**[HIGH] Futility pruning (~20-30 Elo)**
+
+At depth 1-2, if static eval + margin is below alpha, skip quiet moves.
+Extended futility pruning applies at depth 2-3 with a larger margin.
+Razoring is a related technique at depth 1.
+
+**[MEDIUM] Reverse futility pruning / static null move pruning (~15-25 Elo)**
+
+If static eval - margin >= beta at low depths, return beta without
+searching. The idea: if the position is already so good that even losing
+a margin wouldn't drop below beta, don't bother searching.
+
+**[MEDIUM] Late Move Pruning (LMP) (~10-20 Elo)**
+
+At low depths, after searching the first N moves, skip remaining quiet
+moves entirely (not just reduce them like LMR). More aggressive than
+LMR but safe at shallow depths.
+
+**[MEDIUM] Countermove heuristic (~10-15 Elo)**
+
+Track which move refutes each (from, to) pair. When a beta cutoff
+occurs, record the current move as the "countermove" to the previous
+move. Use this for move ordering (scored between killers and history).
+
+**[MEDIUM] Logarithmic LMR (~10-15 Elo)**
+
+Current LMR uses a fixed reduction of 1. Modern engines use a
+logarithmic formula: `R = log(depth) * log(move_index) / C`. This
+reduces more aggressively for later moves at higher depths.
+
+**[LOW] Aspiration window with multiple re-searches**
+
+Current implementation does one fallback to full window. Strong engines
+widen the window progressively (e.g., ×2, ×4, then full window) to
+avoid the cost of a full-window search on every fail.
+
+**[LOW] Internal Iterative Deepening (IID) / Internal Iterative Reductions**
+
+When no hash move is available at a PV node, do a shallow search first
+to find a good move to try first. Modern engines often use IIR (just
+reduce depth by 1) instead of a full IID search.
+
+### 14b. Evaluation Improvements (HandCrafted)
+
+These matter when NNUE weights aren't available or as a training signal.
+
+**[HIGH] Tapered evaluation (~50-100 Elo)**
+
+Interpolate between middlegame and endgame piece-square tables based on
+remaining material (game phase). The king PST currently rewards
+centralization, which is wrong in the middlegame. With tapered eval:
+- Middlegame king: hide behind pawns (castled position)
+- Endgame king: centralize aggressively
+
+```cpp
+int phase = total_material / MAX_MATERIAL;  // 0.0 = endgame, 1.0 = opening
+int score = phase * mg_score + (1 - phase) * eg_score;
+```
+
+**[HIGH] Pawn structure (~30-50 Elo)**
+
+Currently no pawn structure evaluation at all. Key terms:
+- Passed pawns: bonus increasing with rank (huge in endgames)
+- Isolated pawns: penalty (no adjacent friendly pawns)
+- Doubled pawns: penalty (two pawns on same file)
+- Backward pawns: penalty (can't be defended by adjacent pawns)
+- Connected pawns: bonus (pawns defending each other)
+- Pawn hash table: cache pawn structure eval (pawns change rarely)
+
+**[MEDIUM] King safety (~20-40 Elo)**
+
+Evaluate king safety based on:
+- Pawn shield (pawns in front of castled king)
+- Open files near king (penalty)
+- Enemy piece attacks toward king zone
+- King tropism (distance of enemy pieces to king)
+
+**[MEDIUM] Mobility (~15-25 Elo)**
+
+Count pseudo-legal moves for each piece (using attack bitboards).
+More mobile pieces are more valuable. Weight by piece type.
+
+**[MEDIUM] Bishop pair bonus (~10-15 Elo)**
+
++30 to +50 cp when having both bishops. Cheap to compute (popcount
+of bishop bitboard >= 2).
+
+**[LOW] Rook on open/semi-open file (~5-10 Elo)**
+
+Bonus for rooks on files with no friendly pawns (semi-open) or no
+pawns at all (open). Cheap bitboard computation.
+
+**[LOW] Rook/queen on 7th rank (~5-10 Elo)**
+
+Bonus when rook or queen reaches the 7th rank (2nd rank for black),
+especially when the enemy king is on the 8th rank.
+
+### 14c. NNUE Improvements
+
+**[CRITICAL] Incremental accumulator updates (~2x NPS)**
+
+The #1 performance issue. `do_move` calls `refresh()` (full recompute)
+instead of incremental `add_piece`/`remove_piece`. Fixing this alone
+could double NPS, translating to ~1 extra ply of search depth.
+
+**[HIGH] SIMD vectorization (~4-8x forward pass speedup)**
+
+The forward pass is entirely scalar. With AVX2:
+- Clipped ReLU on 256 int16s: 4 instructions vs 256 scalar ops
+- Dot products: `_mm256_madd_epi16` for massive throughput
+- Accumulator updates: vectorized add/subtract
+
+**[HIGH] Better training data**
+
+Current NNUE was trained on a small dataset. For competitive strength:
+- Generate 10M+ positions from self-play at depth 8+
+- Use Stockfish-style data generation (random plies + fixed-depth search)
+- Train for more epochs with learning rate scheduling
+- Validate with cutechess matches after each training run
+
+**[MEDIUM] HalfKA architecture**
+
+Current HalfKP (768 features) doesn't account for king position.
+HalfKA (Half-King-All) uses king_square × piece × square features
+(40960 inputs per perspective), giving the network king-relative
+positional awareness. This is what modern NNUE engines use.
+
+**[MEDIUM] Larger network**
+
+Current architecture is 768→256→32→32→1. Consider:
+- 768→512→32→32→1 (wider L1 for more feature capacity)
+- Or HalfKA with 40960→256→32→32→1
+
+**[LOW] Quantization-aware training**
+
+Train with quantization in the loop so the int16 weights better
+approximate the float32 training weights. Reduces quantization error.
+
+### 14d. Move Ordering Improvements
+
+**[MEDIUM] Capture history (~10-15 Elo)**
+
+Like history heuristic but for captures: track which captures cause
+beta cutoffs, indexed by [piece][to_square][captured_piece]. Use for
+ordering captures alongside MVV-LVA.
+
+**[MEDIUM] Continuation history (~10-15 Elo)**
+
+Track move ordering statistics conditioned on the previous move
+(1-ply continuation) and the move 2 plies ago (2-ply continuation).
+This captures tactical patterns like "after Nf3, Bg5 is often good."
+
+**[LOW] Promotions in qsearch**
+
+`add_loud_moves` doesn't generate queen promotions when not in check.
+Missing these means the engine can miss promotion tactics in qsearch.
+
+### 14e. Transposition Table Improvements
+
+**[HIGH] Depth-preferred replacement (~15-25 Elo)**
+
+Replace always-replace with a scheme that considers depth and age.
+Simple approach: replace if `new_depth >= old_depth || old_generation != current_generation`.
+
+**[HIGH] Configurable TT size**
+
+Wire UCI Hash and Xboard memory commands to actually resize the TT.
+Larger TT = fewer collisions = better move ordering = stronger play,
+especially at longer time controls.
+
+**[MEDIUM] TT aging**
+
+Add a generation counter incremented each `ucinewgame` / `new`. Prefer
+replacing stale entries over fresh deep entries.
+
+### 14f. Time Management Improvements
+
+**[MEDIUM] Easy move detection (~5-10 Elo in time savings)**
+
+Move instantly when only one legal move exists. Move quickly when the
+best move has been stable for 5+ iterations with a large score gap to
+the second-best move.
+
+**[MEDIUM] Difficulty-based allocation**
+
+Allocate more time for positions where the eval is close to 0 (unclear)
+and less time for positions with a clear advantage. The current
+`adjust_for_score` is a rough version of this but has the repeated
+application bug.
+
+### 14g. Estimated Elo Budget
+
+If all high-priority improvements were implemented well:
+
+| Improvement                    | Est. Elo |
+|-------------------------------|----------|
+| NNUE incremental updates      | +100-200 |
+| NNUE SIMD                     | +50-100  |
+| Better NNUE training data     | +100-200 |
+| Check extensions              | +30-50   |
+| Singular extensions           | +20-40   |
+| Futility pruning              | +20-30   |
+| TT replacement + sizing       | +15-25   |
+| Tapered eval (fallback)       | +50-100  |
+| Pawn structure (fallback)     | +30-50   |
+| King safety (fallback)        | +20-40   |
+| **Total potential**           | **+435-835** |
+
+Note: Elo gains are not additive — they interact. Real-world gains will
+be lower than the sum. The NNUE improvements alone (incremental + SIMD +
+better data) are likely worth +200-400 Elo and should be the top priority.
 
 ---
 
 ## Priority Summary (by estimated impact)
 
 ### Critical (highest NPS / Elo impact)
-1. Incremental NNUE accumulator updates in `do_move` (stop calling `refresh`)
-2. SIMD vectorization of NNUE forward pass
+1. NNUE incremental accumulator updates in `do_move` (~2x NPS)
+2. NNUE SIMD vectorization (~4-8x forward pass)
 
-### High
-3. Check extensions in search
-4. SEE pruning in quiescence search
-5. TT replacement strategy (depth-preferred or age-based)
-6. Configurable TT size
-7. History table aging/decay
-8. Tapered eval for handcrafted evaluator (if used as fallback)
+### High — Engine Strength
+3. Check extensions (+30-50 Elo)
+4. Singular extensions (+20-40 Elo)
+5. Futility pruning (+20-30 Elo)
+6. SEE pruning in quiescence search
+7. Better NNUE training data (10M+ positions, depth 8+)
+8. TT depth-preferred replacement + configurable size (+15-25 Elo)
+9. Tapered eval for handcrafted evaluator (+50-100 Elo)
+10. Pawn structure evaluation (+30-50 Elo)
+11. King safety evaluation (+20-40 Elo)
+12. History table aging/decay
 
-### Medium
-9. Futility pruning
-10. `is_draw` optimization (scan only since last irreversible move)
-11. Promotions in qsearch loud moves
-12. `adjust_for_score` repeated application fix
-13. UCI protocol support
-14. `pop_count` intrinsic
-15. Pre-reserve NNUE accumulator stack
-16. TT index via bitmask instead of modulo
+### High — Code Quality
+13. Refactor `main.cpp` — extract shared CLI config parsing
+14. Board dependency injection (TT, evaluator)
+
+### Medium — Engine Strength
+15. Reverse futility pruning / static null move pruning
+16. Late Move Pruning (LMP)
+17. Countermove heuristic
+18. Logarithmic LMR
+19. Mobility evaluation
+20. Bishop pair bonus
+21. Capture history / continuation history
+22. Promotions in qsearch loud moves
+23. HalfKA NNUE architecture
+24. Easy move detection
+25. `is_draw` optimization (scan only since last irreversible move)
+26. `adjust_for_score` repeated application fix
+
+### Medium — Code Quality
+27. `pop_count` intrinsic
+28. Pre-reserve NNUE accumulator stack
+29. TT index via bitmask instead of modulo
+30. Replace `#define` with `constexpr` in Search.h
+31. Remove redundant `#ifndef NDEBUG` guards
+32. C-style declarations → declare at point of use
+33. `Constants.h` → `constexpr`
+34. `Common.h` → `<cassert>`, remove `<iostream>`
+35. Move `TestPositions.cpp` to test/
+36. UCI `go ponder` support
+37. UCI thread safety (mutex on board_)
 
 ### Low
-17. `clock()` → `std::chrono::steady_clock`
-18. Zobrist singleton
-19. Easy move detection
-20. TT prefetch
-21. Remove `#ifdef MVVLVA` dead path
+38. `clock()` → `std::chrono::steady_clock`
+39. Zobrist singleton
+40. TT prefetch
+41. Rook on open file / 7th rank bonuses
+42. `analyze-sts.py` structured output
+43. `ScoredMove.score` → signed type
+44. `MoveGenerator` → namespace
+45. Aspiration window progressive widening
+46. IID / IIR
+47. Quantization-aware NNUE training

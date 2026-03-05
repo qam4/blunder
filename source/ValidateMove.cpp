@@ -2,6 +2,8 @@
  * File:   ValidateMove.cpp
  *
  */
+#include <string>
+
 #include "ValidateMove.h"
 
 #include "Log.h"

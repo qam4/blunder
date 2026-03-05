@@ -202,94 +202,89 @@ struct MoveGenPreprocessing
     U64 pinners;  // Opponent pieces pinning friendly pieces
 };
 
-class MoveGenerator
+namespace MoveGenerator
 {
+    // Public interface
+    U64 get_checkers(const Board &board, U8 side);
+    MoveGenPreprocessing get_checkers_and_pinned(const Board &board, U8 side);
+    U64 get_king_danger_squares(const Board& board, U8 side, U64 king);
+    U64 get_least_valuable_piece(const Board& board, U64 attadef, U8 side, U8 &piece);
+    int see(const Board& board, Move_t move);
+    void add_rook_moves(MoveList &list, const Board &board, U8 side);
+    void add_bishop_moves(MoveList &list, const Board &board, U8 side);
+    void add_pawn_pushes(MoveList &list, const Board &board, U8 side);
+    void add_pawn_attacks(MoveList &list, const Board &board, U8 side);
+    void add_knight_moves(MoveList &list, const Board &board, U8 side);
+    void add_queen_moves(MoveList &list, const Board &board, U8 side);
+    void add_king_moves(MoveList &list, const Board &board, U8 side);
+    void add_pawn_legal_pushes(MoveList& list, const Board& board, U64 to_mask, U64 from_mask, U8 side);
+    void add_pawn_legal_attacks(MoveList& list, const Board& board, U64 capture_mask, U64 push_mask, U64 from_mask, U8 side);
+    void add_pawn_legal_moves(MoveList& list, const Board& board, U64 capture_mask, U64 push_mask, U64 from_mask, U8 side);
+    void add_pawn_pin_ray_moves(MoveList& list, const Board& board, U64 capture_mask, U64 push_mask, U64 pinned_mask, U8 king_sq, U8 side);
+    void add_pawn_pin_ray_attacks(MoveList& list, const Board& board, U64 capture_mask, U64 pinned_mask, U8 king_sq, U8 side);
+    void add_slider_legal_moves(MoveList& list, const Board& board, U64 capture_mask, U64 push_mask, U64 pinned_mask, U8 king_sq, U8 side);
+    void add_slider_legal_attacks(MoveList& list, const Board& board, U64 capture_mask, U64 pinned_mask, U8 king_sq, U8 side);
+    void add_knight_legal_moves(MoveList& list, const Board& board, U64 capture_mask, U64 push_mask, U64 from_mask, U8 side);
+    void add_knight_legal_attacks(MoveList& list, const Board& board, U64 capture_mask, U64 from_mask, U8 side);
+    void add_king_legal_moves(MoveList& list, const Board& board, U64 capture_mask, U64 push_mask, U8 side);
+    void add_king_legal_attacks(MoveList& list, const Board& board, U64 capture_mask, U8 side);
+    void add_castles(MoveList& list, const Board& board, U64 attacks, U8 side);
+    void add_all_moves(MoveList &list, const Board &board, U8 side);
+    void add_loud_moves(MoveList &list, const Board &board, U8 side);
+    bool in_check(const Board &board, U8 side);
+    void score_moves(MoveList &list, const Board &board);
 
-public:
-    static U64 get_checkers(const class Board &board, const U8 side);
-    static MoveGenPreprocessing get_checkers_and_pinned(const class Board &board, const U8 side);
-    static U64 get_king_danger_squares(const class Board& board, const U8 side, U64 king);
-    static U64 get_least_valuable_piece(const class Board& board, U64 attadef, const U8 side, U8 &piece);
-    static int see(const class Board& board, Move_t move);
-    static void add_rook_moves(class MoveList &list, const class Board &board, const U8 side);
-    static void add_bishop_moves(class MoveList &list, const class Board &board, const U8 side);
-    static void add_pawn_pushes(class MoveList &list, const class Board &board, const U8 side);
-    static void add_pawn_attacks(class MoveList &list, const class Board &board, const U8 side);
-    static void add_knight_moves(class MoveList &list, const class Board &board, const U8 side);
-    static void add_queen_moves(class MoveList &list, const class Board &board, const U8 side);
-    static void add_king_moves(class MoveList &list, const class Board &board, const U8 side);
-    static void add_pawn_legal_pushes(class MoveList& list, const class Board& board, U64 to_mask, U64 from_mask, const U8 side);
-    static void add_pawn_legal_attacks(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, U64 from_mask, const U8 side);
-    static void add_pawn_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, U64 from_mask, const U8 side);
-    static void add_pawn_pin_ray_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, U64 pinned_mask, U8 king_sq, const U8 side);
-    static void add_pawn_pin_ray_attacks(class MoveList& list, const class Board& board, U64 capture_mask, U64 pinned_mask, U8 king_sq, const U8 side);
-    static void add_slider_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, U64 pinned_mask, U8 king_sq, const U8 side);
-    static void add_slider_legal_attacks(class MoveList& list, const class Board& board, U64 capture_mask, U64 pinned_mask, U8 king_sq, const U8 side);
-    static void add_knight_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, U64 from_mask, const U8 side);
-    static void add_knight_legal_attacks(class MoveList& list, const class Board& board, U64 capture_mask, U64 from_mask, const U8 side);
-    static void add_king_legal_moves(class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, const U8 side);
-    static void add_king_legal_attacks(class MoveList& list, const class Board& board, U64 capture_mask, const U8 side);
-    static void add_castles(class MoveList& list, const class Board& board, U64 attacks, const U8 side);
-    static void add_all_moves(class MoveList &list, const class Board &board, const U8 side);
-    static void add_loud_moves(class MoveList &list, const class Board &board, const U8 side);
-    static bool in_check(const class Board &board, const U8 side);
-    static void score_moves(class MoveList &list, const class Board &board);
+    void generate_move_lookup_tables();
+    void init_magic_tables();
 
-    static void generate_move_lookup_tables();
-    static void init_magic_tables();
+    // Internal helpers (used across translation units)
+    void add_moves(U8 from, U64 targets, MoveList &list, const Board &board, U32 flags);
+    void add_moves_with_diff(int diff, U64 targets, MoveList &list, const Board &board, U32 flags, U8 extra_capture);
+    void add_promotions_with_diff(int diff, U64 targets, MoveList &list, const Board &board, U8 side);
+    bool ep_move_discovers_check(const Board &board, U64 from_bb, U64 to_bb, U8 side);
+    U64 rook_targets(U64 from, U64 occupied);
+    U64 bishop_targets(U64 from, U64 occupied);
+    U64 knight_targets(U64 from);
+    U64 king_targets(U64 from);
+    U64 pawn_targets(U64 from, U8 side);
 
-private:
-    // diff is positive number denoting fixed distance between from and to squares such that:
-    // from = (to - diff) % 64
-    // ie white pawn push diff = 56, black pawn push diff = 8
-    // add_moves assumes moving to blank square
-    static void add_moves(U8 from, U64 targets, class MoveList &list, const class Board &board, const U32 flags);
-    static void add_moves_with_diff(int diff, U64 targets, class MoveList &list, const class Board &board, const U32 flags, const U8 extra_capture);
-    static void add_promotions_with_diff(int diff, U64 targets, class MoveList &list, const class Board &board, const U8 side);
-    static bool ep_move_discovers_check(const class Board &board, U64 from_bb, U64 to_bb, const U8 side);
-    static U64 rook_targets(U64 from, U64 occupied);
-    static U64 bishop_targets(U64 from, U64 occupied);
-    static U64 knight_targets(U64 from);
-    static U64 king_targets(U64 from);
-    static U64 pawn_targets(U64 from, U8 side);
+    U64 squares_between_calc(U8 sq1, U8 sq2);
+    U64 lines_along_calc(U8 sq1, U8 sq2);
+    U64 rank_mask_calc(int sq);
+    U64 file_mask_calc(int sq);
+    U64 diag_mask_calc(int sq);
+    U64 anti_diag_mask_calc(int sq);
+    U64 rank_mask_ex_calc(int sq);
+    U64 file_mask_ex_calc(int sq);
+    U64 diag_mask_ex_calc(int sq);
+    U64 anti_diag_mask_ex_calc(int sq);
+    U64 rook_mask_calc(int sq);
+    U64 rook_mask_ex_calc(int sq);
+    U64 bishop_mask_calc(int sq);
+    U64 bishop_mask_ex_calc(int sq);
 
-    static U64 squares_between_calc(U8 sq1, U8 sq2);
-    static U64 lines_along_calc(U8 sq1, U8 sq2);
-    static U64 rank_mask_calc(int sq);
-    static U64 file_mask_calc(int sq);
-    static U64 diag_mask_calc(int sq);
-    static U64 anti_diag_mask_calc(int sq);
-    static U64 rank_mask_ex_calc(int sq);
-    static U64 file_mask_ex_calc(int sq);
-    static U64 diag_mask_ex_calc(int sq);
-    static U64 anti_diag_mask_ex_calc(int sq);
-    static U64 rook_mask_calc(int sq);
-    static U64 rook_mask_ex_calc(int sq);
-    static U64 bishop_mask_calc(int sq);
-    static U64 bishop_mask_ex_calc(int sq);
+    U64 diag_attacks(U64 occ, int sq);
+    U64 anti_diag_attacks(U64 occ, int sq);
+    U64 file_attacks(U64 occ, int sq);
+    U64 rank_attacks(U64 occ, int sq);
+    U64 rook_attacks(U64 occ, int sq);
+    U64 bishop_attacks(U64 occ, int sq);
 
-    static U64 diag_attacks(U64 occ, int sq);
-    static U64 anti_diag_attacks(U64 occ, int sq);
-    static U64 file_attacks(U64 occ, int sq);
-    static U64 rank_attacks(U64 occ, int sq);
-    static U64 rook_attacks(U64 occ, int sq);
-    static U64 bishop_attacks(U64 occ, int sq);
+    U64 rook_attacks_slow(U64 occ, int sq);
+    U64 bishop_attacks_slow(U64 occ, int sq);
 
-    static U64 rook_attacks_slow(U64 occ, int sq);
-    static U64 bishop_attacks_slow(U64 occ, int sq);
+    U64 diag_attacks_hyperbola(U64 occ, int sq);
+    U64 anti_diag_attacks_hyperbola(U64 occ, int sq);
+    U64 file_attacks_hyperbola(U64 occ, int sq);
+    U64 rank_attacks_hyperbola(U64 occ, int sq);
 
-    static U64 diag_attacks_hyperbola(U64 occ, int sq);
-    static U64 anti_diag_attacks_hyperbola(U64 occ, int sq);
-    static U64 file_attacks_hyperbola(U64 occ, int sq);
-    static U64 rank_attacks_hyperbola(U64 occ, int sq);
+    void init_rook_magic_table();
+    void init_bishop_magic_table();
+    U64 rook_attacks_magic(U64 occ, int sq);
+    U64 bishop_attacks_magic(U64 occ, int sq);
 
-    static void init_rook_magic_table();
-    static void init_bishop_magic_table();
-    static U64 rook_attacks_magic(U64 occ, int sq);
-    static U64 bishop_attacks_magic(U64 occ, int sq);
-
-    static U64 attacks_to(const class Board& board, U64 occupied, U8 to);
-    static U64 consider_xrays(const class Board& board, U64 occupied, U8 to);
-};
+    U64 attacks_to(const Board& board, U64 occupied, U8 to);
+    U64 consider_xrays(const Board& board, U64 occupied, U8 to);
+} // namespace MoveGenerator
 
 #endif /* MOVEGENERATOR_H */

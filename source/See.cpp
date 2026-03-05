@@ -22,7 +22,7 @@ U64 MoveGenerator::get_least_valuable_piece(const class Board& board,
     for (piece = (WHITE_PAWN | side); piece <= (WHITE_KING | side);
          piece = static_cast<U8>(piece + 2))
     {
-        U64 subset = attadef & board.bitboards_[piece];
+        U64 subset = attadef & board.bitboard(piece);
         U64 neg_subset = (0 - subset);
         if (subset)
         {
@@ -41,15 +41,15 @@ U64 MoveGenerator::attacks_to(const class Board& board, U64 occupied, U8 to)
     U64 attackers = BB_EMPTY;
 
     // Kings
-    U64 kings = board.bitboards_[WHITE_KING] | board.bitboards_[BLACK_KING];
+    U64 kings = board.bitboard(WHITE_KING) | board.bitboard(BLACK_KING);
     attackers |= KING_LOOKUP_TABLE[to] & kings;
 
     // Knights
-    U64 knights = board.bitboards_[WHITE_KNIGHT] | board.bitboards_[BLACK_KNIGHT];
+    U64 knights = board.bitboard(WHITE_KNIGHT) | board.bitboard(BLACK_KNIGHT);
     attackers |= KNIGHT_LOOKUP_TABLE[to] & knights;
 
     // Pawns
-    U64 pawns = board.bitboards_[WHITE_PAWN] | board.bitboards_[BLACK_PAWN];
+    U64 pawns = board.bitboard(WHITE_PAWN) | board.bitboard(BLACK_PAWN);
     for (int dir = 0; dir < 2; dir++)
     {
         for (int side = 0; side < 2; side++)
@@ -61,9 +61,9 @@ U64 MoveGenerator::attacks_to(const class Board& board, U64 occupied, U8 to)
     }
 
     // Sliders
-    U64 queens = board.bitboards_[WHITE_QUEEN] | board.bitboards_[BLACK_QUEEN];
-    U64 rooks = board.bitboards_[WHITE_ROOK] | board.bitboards_[BLACK_ROOK];
-    U64 bishops = board.bitboards_[WHITE_BISHOP] | board.bitboards_[BLACK_BISHOP];
+    U64 queens = board.bitboard(WHITE_QUEEN) | board.bitboard(BLACK_QUEEN);
+    U64 rooks = board.bitboard(WHITE_ROOK) | board.bitboard(BLACK_ROOK);
+    U64 bishops = board.bitboard(WHITE_BISHOP) | board.bitboard(BLACK_BISHOP);
 
     U64 diag_attackers = queens | bishops;
     U64 non_diag_attackers = queens | rooks;
@@ -78,9 +78,9 @@ U64 MoveGenerator::consider_xrays(const class Board& board, U64 occupied, U8 to)
 {
     // Find bit set of hidden attackers (only consider sliders)
     U64 attackers = BB_EMPTY;
-    U64 queens = board.bitboards_[WHITE_QUEEN] | board.bitboards_[BLACK_QUEEN];
-    U64 rooks = board.bitboards_[WHITE_ROOK] | board.bitboards_[BLACK_ROOK];
-    U64 bishops = board.bitboards_[WHITE_BISHOP] | board.bitboards_[BLACK_BISHOP];
+    U64 queens = board.bitboard(WHITE_QUEEN) | board.bitboard(BLACK_QUEEN);
+    U64 rooks = board.bitboard(WHITE_ROOK) | board.bitboard(BLACK_ROOK);
+    U64 bishops = board.bitboard(WHITE_BISHOP) | board.bitboard(BLACK_BISHOP);
 
     U64 diag_attackers = queens | bishops;
     U64 non_diag_attackers = queens | rooks;
@@ -103,10 +103,10 @@ int MoveGenerator::see(const class Board& board, Move_t move)
     // cout << Output::board(board);
     // cout << Output::move(move, board) << endl;
 
-    U64 pawns = board.bitboards_[WHITE_PAWN] | board.bitboards_[BLACK_PAWN];
-    U64 queens = board.bitboards_[WHITE_QUEEN] | board.bitboards_[BLACK_QUEEN];
-    U64 rooks = board.bitboards_[WHITE_ROOK] | board.bitboards_[BLACK_ROOK];
-    U64 bishops = board.bitboards_[WHITE_BISHOP] | board.bitboards_[BLACK_BISHOP];
+    U64 pawns = board.bitboard(WHITE_PAWN) | board.bitboard(BLACK_PAWN);
+    U64 queens = board.bitboard(WHITE_QUEEN) | board.bitboard(BLACK_QUEEN);
+    U64 rooks = board.bitboard(WHITE_ROOK) | board.bitboard(BLACK_ROOK);
+    U64 bishops = board.bitboard(WHITE_BISHOP) | board.bitboard(BLACK_BISHOP);
 
     U64 may_xray = pawns | queens | rooks | bishops;
     U8 to = move_to(move);
@@ -115,7 +115,7 @@ int MoveGenerator::see(const class Board& board, Move_t move)
     U64 from_bb = 1ULL << from;
     U8 piece = board[from];
     U8 capture = board[to];
-    U64 occupied = (board.bitboards_[WHITE] | board.bitboards_[BLACK]);
+    U64 occupied = (board.bitboard(WHITE) | board.bitboard(BLACK));
     if (is_ep_capture(move))
     {
         // along_row_with_col

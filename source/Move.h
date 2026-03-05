@@ -125,10 +125,10 @@ inline bool is_pawn_double_push(Move m) { return m.is_pawn_double_push(); }
 struct ScoredMove
 {
     Move move;
-    U16 score = 0;
+    int score = 0;
 
     ScoredMove() = default;
-    ScoredMove(Move m, U16 s)
+    ScoredMove(Move m, int s)
         : move(m)
         , score(s)
     {

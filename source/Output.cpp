@@ -3,6 +3,10 @@
  *
  */
 
+#include <iostream>
+#include <sstream>
+#include <string>
+
 #include "Output.h"
 
 #include "MoveGenerator.h"

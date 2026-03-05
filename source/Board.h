@@ -8,6 +8,7 @@
 
 #include <map>
 #include <memory>
+#include <string>
 
 #include "Common.h"
 #include "Move.h"
@@ -25,7 +26,6 @@ bool inline is_piece_slider(U8 piece) { return (piece >= WHITE_BISHOP) && (piece
 
 class Board
 {
-    friend class MoveGenerator;
     friend class Tests;
 
 private:
@@ -45,7 +45,6 @@ private:
     // Extended Position Description
     std::map<std::string, std::string> epd_;
 
-    Zobrist zobrist_;
     std::shared_ptr<TranspositionTable> tt_;
     HandCraftedEvaluator evaluator_;
     NNUEEvaluator* nnue_ = nullptr;

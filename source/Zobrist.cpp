@@ -3,42 +3,52 @@
  *
  */
 
+#include <random>
+
 #include "Zobrist.h"
 
 #include "Board.h"
 
-Zobrist::Zobrist()
+// Static member definitions
+U64 Zobrist::pieces_[NUM_PIECES][NUM_SQUARES] = {};
+U64 Zobrist::castling_rights_[FULL_CASTLING_RIGHTS + 1] = {};
+U64 Zobrist::ep_square_[NUM_SQUARES] = {};
+U64 Zobrist::side_ = 0;
+bool Zobrist::initialized_ = false;
+
+void Zobrist::init()
 {
-    // Initialize the random generator
-    gen_ = std::mt19937_64(0);
+    if (initialized_)
+    {
+        return;
+    }
+
+    std::mt19937_64 gen(0);
+    std::uniform_int_distribution<uint64_t> dist(0, UINT64_MAX);
 
     for (int i = 0; i < NUM_PIECES; i++)
     {
         for (int j = 0; j < NUM_SQUARES; j++)
         {
-            pieces_[i][j] = rand64();
+            pieces_[i][j] = dist(gen);
         }
     }
 
     for (int i = 0; i < FULL_CASTLING_RIGHTS + 1; i++)
     {
-        castling_rights_[i] = rand64();
+        castling_rights_[i] = dist(gen);
     }
 
     for (int i = 0; i < NUM_SQUARES; i++)
     {
-        ep_square_[i] = rand64();
+        ep_square_[i] = dist(gen);
     }
-    side_ = rand64();
+    side_ = dist(gen);
+
+    initialized_ = true;
 }
 
-U64 Zobrist::rand64()
-{
-    std::uniform_int_distribution<uint64_t> dist(0, UINT64_MAX);
-    return dist(gen_);
-}
-
-U64 Zobrist::get_zobrist_key(const Board& board) const
+U64 Zobrist::get_zobrist_key(const Board& board)
 {
     U64 zobrist_key = 0;
 

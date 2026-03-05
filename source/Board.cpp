@@ -42,7 +42,7 @@ void Board::add_piece(U8 piece, int square)
     U64 bitboard = 1ULL << square;
     bitboards_[piece & 1] |= bitboard;
     bitboards_[piece] |= bitboard;
-    irrev_.board_hash ^= zobrist_.get_pieces(piece, square);
+    irrev_.board_hash ^= Zobrist::get_pieces(piece, square);
 }
 
 void Board::remove_piece(int square)
@@ -54,13 +54,13 @@ void Board::remove_piece(int square)
     U64 bitboard = ~(1ULL << square);
     bitboards_[piece & 1] &= bitboard;
     bitboards_[piece] &= bitboard;
-    irrev_.board_hash ^= zobrist_.get_pieces(piece, square);
+    irrev_.board_hash ^= Zobrist::get_pieces(piece, square);
 }
 
 void Board::reset()
 {
+    Zobrist::init();
     MoveGenerator::init_magic_tables();
-    zobrist_ = Zobrist();
     if (!tt_)
     {
         tt_ = std::make_shared<TranspositionTable>();
@@ -117,13 +117,13 @@ void Board::do_move(Move_t move)
 
     if (irrev_.ep_square != NULL_SQUARE)
     {
-        irrev_.board_hash ^= zobrist_.get_ep_square(irrev_.ep_square);
+        irrev_.board_hash ^= Zobrist::get_ep_square(irrev_.ep_square);
     }
     irrev_.ep_square = NULL_SQUARE;
     if (is_pawn_double_push(move))
     {
         irrev_.ep_square = static_cast<U8>((to + from) >> 1);
-        irrev_.board_hash ^= zobrist_.get_ep_square(irrev_.ep_square);
+        irrev_.board_hash ^= Zobrist::get_ep_square(irrev_.ep_square);
     }
 
     if (is_castle(move))
@@ -204,7 +204,7 @@ void Board::do_move(Move_t move)
     // Update castling rights
     if (irrev_.castling_rights)
     {
-        irrev_.board_hash ^= zobrist_.get_castling_rights(irrev_.castling_rights);
+        irrev_.board_hash ^= Zobrist::get_castling_rights(irrev_.castling_rights);
         if ((board_array_[A1] != WHITE_ROOK) || (board_array_[E1] != WHITE_KING))
         {
             irrev_.castling_rights &= static_cast<U8>(~(WHITE_QUEEN_SIDE));
@@ -221,7 +221,7 @@ void Board::do_move(Move_t move)
         {
             irrev_.castling_rights &= static_cast<U8>(~(BLACK_KING_SIDE));
         }
-        irrev_.board_hash ^= zobrist_.get_castling_rights(irrev_.castling_rights);
+        irrev_.board_hash ^= Zobrist::get_castling_rights(irrev_.castling_rights);
     }
 
     // update flags
@@ -240,7 +240,7 @@ void Board::do_move(Move_t move)
 
     // update side_to_move
     irrev_.side_to_move ^= 1;
-    irrev_.board_hash ^= zobrist_.get_side();
+    irrev_.board_hash ^= Zobrist::get_side();
 
     game_ply_++;
     search_ply_++;
@@ -248,7 +248,7 @@ void Board::do_move(Move_t move)
     // update_hash();
     assert(game_ply_ < MAX_GAME_PLY);
 #ifdef EXPENSIVE_ASSERTS
-    assert(irrev_.board_hash == zobrist_.get_zobrist_key(*this));
+    assert(irrev_.board_hash == Zobrist::get_zobrist_key(*this));
 #endif
     hash_history_[game_ply_] = irrev_.board_hash;
 
@@ -359,7 +359,7 @@ void Board::do_null_move()
 
     if (irrev_.ep_square != NULL_SQUARE)
     {
-        irrev_.board_hash ^= zobrist_.get_ep_square(irrev_.ep_square);
+        irrev_.board_hash ^= Zobrist::get_ep_square(irrev_.ep_square);
     }
     irrev_.ep_square = NULL_SQUARE;
 
@@ -371,14 +371,14 @@ void Board::do_null_move()
 
     // update side_to_move
     irrev_.side_to_move ^= 1;
-    irrev_.board_hash ^= zobrist_.get_side();
+    irrev_.board_hash ^= Zobrist::get_side();
 
     game_ply_++;
     search_ply_++;
     max_search_ply_ = std::max(max_search_ply_, search_ply_);
     assert(game_ply_ < MAX_GAME_PLY);
 #ifdef EXPENSIVE_ASSERTS
-    assert(irrev_.board_hash == zobrist_.get_zobrist_key(*this));
+    assert(irrev_.board_hash == Zobrist::get_zobrist_key(*this));
 #endif
     hash_history_[game_ply_] = irrev_.board_hash;
 }
@@ -438,6 +438,6 @@ bool Board::is_draw(bool in_search)
 void Board::update_hash()
 {
     assert(game_ply_ < MAX_GAME_PLY);
-    set_hash(zobrist_.get_zobrist_key(*this));
+    set_hash(Zobrist::get_zobrist_key(*this));
     hash_history_[game_ply_] = irrev_.board_hash;
 }

@@ -7,6 +7,8 @@
 #ifndef TEST_POSITIONS_H
 #define TEST_POSITIONS_H
 
+#include <string>
+
 #include "Common.h"
 #include "Board.h"
 

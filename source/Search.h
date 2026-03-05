@@ -18,10 +18,10 @@
 #include <cmath>
 #include <ctime>
 
-#define NO_PV 0   // Not a PV node
-#define IS_PV 1
-#define NO_NULL 0  // avoid doing null move twice in a row
-#define DO_NULL 1
+constexpr int NO_PV = 0;   // Not a PV node
+constexpr int IS_PV = 1;
+constexpr int NO_NULL = 0;  // avoid doing null move twice in a row
+constexpr int DO_NULL = 1;
 
 struct SearchStats
 {

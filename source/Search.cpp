@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <cstring>
 #include <iomanip>
+#include <iostream>
+#include <string>
 
 #include "Search.h"
 
@@ -72,7 +74,7 @@ void Search::score_killers(MoveList& list, int ply)
                 {
                     // Map history to 6..79 (above default quiet=5, below killer=80)
                     int bonus = 6 + (h * 73) / (h + 1000);
-                    list.set_score(i, static_cast<U16>(bonus));
+                    list.set_score(i, bonus);
                 }
             }
         }
@@ -139,10 +141,8 @@ Move_t Search::search(int depth,
             alpha = value - ASPIRATION_WINDOW;
             beta = value + ASPIRATION_WINDOW;
         }
-#ifndef NDEBUG
         assert(value <= MAX_SCORE);
         assert(value >= -MAX_SCORE);
-#endif
         search_best_move_ = pv_.get_best_move();
 
         clock_t current_time = clock();
@@ -290,13 +290,9 @@ Move_t Search::search(int depth,
 // ---------------------------------------------------------------------------
 int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
 {
-    MoveList list;
-    int i, n, value;
-    Move_t move, best_move = 0U;
     int search_ply = board_.get_search_ply();
     int mate_value = MATE_SCORE - search_ply;
     int found_pv = 0;
-    int in_check = 0;
 
     pv_.set_length(search_ply, search_ply);
 
@@ -323,12 +319,13 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     // Check for draw
     if (board_.is_draw(true))
     {
-        value = DRAW_SCORE;
-        return value;
+        return DRAW_SCORE;
     }
 
     int hash_flag = HASH_ALPHA;
+    Move_t best_move = 0U;
     stats_.hash_probes++;
+    int value;
     if ((value = probe_hash(depth, alpha, beta, best_move)) != UNKNOWN_SCORE)
     {
         stats_.hash_hits++;
@@ -338,8 +335,7 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     // Leaf node
     if (depth == 0)
     {
-        value = quiesce(alpha, beta);
-        return value;
+        return quiesce(alpha, beta);
     }
 
     // mate distance pruning
@@ -357,7 +353,7 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     }
 
     // Are we in check?
-    in_check = MoveGenerator::in_check(board_, board_.side_to_move());
+    int in_check = MoveGenerator::in_check(board_, board_.side_to_move());
 
     // NULL move pruning
     U8 stm = board_.side_to_move();
@@ -377,18 +373,19 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
         }
     }
 
+    MoveList list;
     MoveGenerator::add_all_moves(list, board_, board_.side_to_move());
     MoveGenerator::score_moves(list, board_);
     score_killers(list, search_ply);
-    n = list.length();
+    int n = list.length();
 
     // score PV move
     pv_.score_move(list, search_ply, best_move, follow_pv_);
 
-    for (i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
         list.sort_moves(i);
-        move = list[i];
+        Move_t move = list[i];
         bool is_quiet = !is_capture(move) && !is_promotion(move);
         bool is_killer_move =
             (move == killers_[search_ply][0]) || (move == killers_[search_ply][1]);
@@ -463,13 +460,12 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     {
         if (in_check)
         {
-            value = -MATE_SCORE + search_ply;
+            return -MATE_SCORE + search_ply;
         }
         else
         {
-            value = DRAW_SCORE;
+            return DRAW_SCORE;
         }
-        return value;
     }
 
     record_hash(depth, alpha, hash_flag, best_move);
@@ -481,9 +477,6 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
 // ---------------------------------------------------------------------------
 int Search::quiesce(int alpha, int beta)
 {
-    MoveList list;
-    int i, n, value;
-    Move_t move;
     int search_ply = board_.get_search_ply();
 
     pv_.set_length(search_ply, search_ply);
@@ -530,21 +523,22 @@ int Search::quiesce(int alpha, int beta)
         alpha = stand_pat;
     }
 
+    MoveList list;
     MoveGenerator::add_loud_moves(list, board_, board_.side_to_move());
     MoveGenerator::score_moves(list, board_);
-    n = list.length();
+    int n = list.length();
 
     // score PV move
     pv_.score_move(list, search_ply, 0, follow_pv_);
 
-    for (i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
         list.sort_moves(i);
-        move = list[i];
+        Move_t move = list[i];
         if (is_capture(move))
         {
             board_.do_move(move);
-            value = -quiesce(-beta, -alpha);
+            int value = -quiesce(-beta, -alpha);
             board_.undo_move(move);
             searched_moves_++;
             stats_.total_moves_searched++;
@@ -569,9 +563,6 @@ int Search::quiesce(int alpha, int beta)
 // ---------------------------------------------------------------------------
 int Search::negamax(int depth)
 {
-    MoveList list;
-    int i, n, bestvalue, value;
-    Move_t move;
     int search_ply = board_.get_search_ply();
     nodes_visited_++;
 
@@ -593,16 +584,17 @@ int Search::negamax(int depth)
         }
     }
 
-    bestvalue = -MAX_SCORE;
+    int bestvalue = -MAX_SCORE;
 
+    MoveList list;
     MoveGenerator::add_all_moves(list, board_, board_.side_to_move());
-    n = list.length();
+    int n = list.length();
 
-    for (i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
-        move = list[i];
+        Move_t move = list[i];
         board_.do_move(move);
-        value = -negamax(depth - 1);
+        int value = -negamax(depth - 1);
         board_.undo_move(move);
         searched_moves_++;
         bestvalue = max(value, bestvalue);
@@ -612,23 +604,22 @@ int Search::negamax(int depth)
 
 Move_t Search::negamax_root(int depth)
 {
-    MoveList list;
-    int i, n, bestvalue, value;
-    Move_t move, bestmove = 0U;
+    Move_t bestmove = 0U;
 
     searched_moves_ = 0;
     nodes_visited_ = 0;
 
-    bestvalue = -MAX_SCORE;
+    int bestvalue = -MAX_SCORE;
 
+    MoveList list;
     MoveGenerator::add_all_moves(list, board_, board_.side_to_move());
-    n = list.length();
+    int n = list.length();
 
-    for (i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
-        move = list[i];
+        Move_t move = list[i];
         board_.do_move(move);
-        value = -negamax(depth - 1);
+        int value = -negamax(depth - 1);
         board_.undo_move(move);
         searched_moves_++;
         cout << Output::move(move, board_) << " (" << dec << value << "), ";
@@ -651,9 +642,6 @@ Move_t Search::negamax_root(int depth)
 // ---------------------------------------------------------------------------
 int Search::minimax(int depth, bool maximizing_player)
 {
-    MoveList list;
-    int i, n, bestvalue, value;
-    Move_t move;
     int search_ply = board_.get_search_ply();
     nodes_visited_++;
 
@@ -684,16 +672,17 @@ int Search::minimax(int depth, bool maximizing_player)
 
     if (maximizing_player == true)
     {
-        bestvalue = -MAX_SCORE;
+        int bestvalue = -MAX_SCORE;
 
+        MoveList list;
         MoveGenerator::add_all_moves(list, board_, board_.side_to_move());
-        n = list.length();
+        int n = list.length();
 
-        for (i = 0; i < n; i++)
+        for (int i = 0; i < n; i++)
         {
-            move = list[i];
+            Move_t move = list[i];
             board_.do_move(move);
-            value = minimax(depth - 1, false);
+            int value = minimax(depth - 1, false);
             board_.undo_move(move);
             searched_moves_++;
             bestvalue = max(value, bestvalue);
@@ -702,16 +691,17 @@ int Search::minimax(int depth, bool maximizing_player)
     }
     else
     {
-        bestvalue = MAX_SCORE;
+        int bestvalue = MAX_SCORE;
 
+        MoveList list;
         MoveGenerator::add_all_moves(list, board_, board_.side_to_move());
-        n = list.length();
+        int n = list.length();
 
-        for (i = 0; i < n; i++)
+        for (int i = 0; i < n; i++)
         {
-            move = list[i];
+            Move_t move = list[i];
             board_.do_move(move);
-            value = minimax(depth - 1, true);
+            int value = minimax(depth - 1, true);
             board_.undo_move(move);
             searched_moves_++;
             bestvalue = min(value, bestvalue);
@@ -722,25 +712,24 @@ int Search::minimax(int depth, bool maximizing_player)
 
 Move_t Search::minimax_root(int depth, bool maximizing_player)
 {
-    MoveList list;
-    int i, n, bestvalue, value;
-    Move_t move, bestmove = 0U;
+    Move_t bestmove = 0U;
 
     searched_moves_ = 0;
     nodes_visited_ = 0;
 
     if (maximizing_player == true)
     {
-        bestvalue = -MAX_SCORE;
+        int bestvalue = -MAX_SCORE;
 
+        MoveList list;
         MoveGenerator::add_all_moves(list, board_, board_.side_to_move());
-        n = list.length();
+        int n = list.length();
 
-        for (i = 0; i < n; i++)
+        for (int i = 0; i < n; i++)
         {
-            move = list[i];
+            Move_t move = list[i];
             board_.do_move(move);
-            value = minimax(depth - 1, false);
+            int value = minimax(depth - 1, false);
             board_.undo_move(move);
             searched_moves_++;
             cout << Output::move(move, board_) << " (" << dec << value << "), ";
@@ -757,16 +746,17 @@ Move_t Search::minimax_root(int depth, bool maximizing_player)
     }
     else
     {
-        bestvalue = MAX_SCORE;
+        int bestvalue = MAX_SCORE;
 
+        MoveList list;
         MoveGenerator::add_all_moves(list, board_, board_.side_to_move());
-        n = list.length();
+        int n = list.length();
 
-        for (i = 0; i < n; i++)
+        for (int i = 0; i < n; i++)
         {
-            move = list[i];
+            Move_t move = list[i];
             board_.do_move(move);
-            value = minimax(depth - 1, true);
+            int value = minimax(depth - 1, true);
             board_.undo_move(move);
             searched_moves_++;
             cout << Output::move(move, board_) << " (" << dec << value << "), ";

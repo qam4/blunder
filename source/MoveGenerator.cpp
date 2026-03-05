@@ -3,12 +3,16 @@
  *
  */
 
+#include <iostream>
+
 #include "MoveGenerator.h"
 
 #include "LookupTables.h"
 
-void MoveGenerator::add_moves(
-    U8 from, U64 targets, class MoveList& list, const class Board& board, const U32 flags)
+namespace MoveGenerator
+{
+
+void add_moves(U8 from, U64 targets, MoveList& list, const Board& board, const U32 flags)
 {
     while (targets)
     {
@@ -20,12 +24,12 @@ void MoveGenerator::add_moves(
     }
 }
 
-void MoveGenerator::add_moves_with_diff(int diff,
-                                        U64 targets,
-                                        class MoveList& list,
-                                        const class Board& board,
-                                        const U32 flags,
-                                        const U8 extra_capture)
+void add_moves_with_diff(int diff,
+                         U64 targets,
+                         MoveList& list,
+                         const Board& board,
+                         const U32 flags,
+                         const U8 extra_capture)
 {
     while (targets)
     {
@@ -38,8 +42,8 @@ void MoveGenerator::add_moves_with_diff(int diff,
     }
 }
 
-void MoveGenerator::add_promotions_with_diff(
-    int diff, U64 targets, class MoveList& list, const class Board& board, const U8 side)
+void add_promotions_with_diff(
+    int diff, U64 targets, MoveList& list, const Board& board, const U8 side)
 {
     U32 flags = static_cast<U32>(side << FLAGS_SHIFT);
     while (targets)
@@ -57,7 +61,7 @@ void MoveGenerator::add_promotions_with_diff(
 }
 
 // https://www.chessprogramming.org/Square_Attacked_By#In_Between
-U64 MoveGenerator::squares_between_calc(U8 sq1, U8 sq2)
+U64 squares_between_calc(U8 sq1, U8 sq2)
 {
     const U64 m1 = 0 - C64(1);
     const U64 a2a7 = C64(0x0001010101010100);
@@ -77,7 +81,7 @@ U64 MoveGenerator::squares_between_calc(U8 sq1, U8 sq2)
     return line & btwn;                        /* return the bits on that line in-between */
 }
 
-U64 MoveGenerator::lines_along_calc(U8 sq1, U8 sq2)
+U64 lines_along_calc(U8 sq1, U8 sq2)
 {
     if (sq1 == sq2)
     {
@@ -117,17 +121,17 @@ U64 MoveGenerator::lines_along_calc(U8 sq1, U8 sq2)
 // https://www.chessprogramming.org/Sliding_Piece_Attacks
 
 // Ray Masks (should be turned into lookup tables)
-U64 MoveGenerator::rank_mask_calc(int sq)
+U64 rank_mask_calc(int sq)
 {
     return C64(0xff) << (sq & 56);
 }
 
-U64 MoveGenerator::file_mask_calc(int sq)
+U64 file_mask_calc(int sq)
 {
     return C64(0x0101010101010101) << (sq & 7);
 }
 
-U64 MoveGenerator::diag_mask_calc(int sq)
+U64 diag_mask_calc(int sq)
 {
     const U64 maindia = C64(0x8040201008040201);
     int diag = 8 * (sq & 7) - (sq & 56);
@@ -136,7 +140,7 @@ U64 MoveGenerator::diag_mask_calc(int sq)
     return (maindia >> sout) << nort;
 }
 
-U64 MoveGenerator::anti_diag_mask_calc(int sq)
+U64 anti_diag_mask_calc(int sq)
 {
     const U64 maindia = C64(0x0102040810204080);
     int diag = 56 - 8 * (sq & 7) - (sq & 56);
@@ -146,110 +150,107 @@ U64 MoveGenerator::anti_diag_mask_calc(int sq)
 }
 
 // excluding the square bit:
-U64 MoveGenerator::rank_mask_ex_calc(int sq)
+U64 rank_mask_ex_calc(int sq)
 {
     return (C64(1) << sq) ^ rank_mask_calc(sq);
 }
 
-U64 MoveGenerator::file_mask_ex_calc(int sq)
+U64 file_mask_ex_calc(int sq)
 {
     return (C64(1) << sq) ^ file_mask_calc(sq);
 }
 
-U64 MoveGenerator::diag_mask_ex_calc(int sq)
+U64 diag_mask_ex_calc(int sq)
 {
     return (C64(1) << sq) ^ diag_mask_calc(sq);
 }
 
-U64 MoveGenerator::anti_diag_mask_ex_calc(int sq)
+U64 anti_diag_mask_ex_calc(int sq)
 {
     return (C64(1) << sq) ^ anti_diag_mask_calc(sq);
 }
 
-U64 MoveGenerator::rook_mask_calc(int sq)
+U64 rook_mask_calc(int sq)
 {
     return rank_mask_calc(sq) | file_mask_calc(sq);
 }
 
-U64 MoveGenerator::bishop_mask_calc(int sq)
+U64 bishop_mask_calc(int sq)
 {
     return diag_mask_calc(sq) | anti_diag_mask_calc(sq);
 }
 
-U64 MoveGenerator::rook_mask_ex_calc(int sq)
+U64 rook_mask_ex_calc(int sq)
 {
     return rank_mask_calc(sq) ^ file_mask_calc(sq);
 }
 
-U64 MoveGenerator::bishop_mask_ex_calc(int sq)
+U64 bishop_mask_ex_calc(int sq)
 {
     return diag_mask_calc(sq) ^ anti_diag_mask_calc(sq);
 }
 
 // https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks
-U64 MoveGenerator::diag_attacks(U64 occ, int sq)
+U64 diag_attacks(U64 occ, int sq)
 {
     return diag_attacks_hyperbola(occ, sq);
 }
 
-U64 MoveGenerator::anti_diag_attacks(U64 occ, int sq)
+U64 anti_diag_attacks(U64 occ, int sq)
 {
     return anti_diag_attacks_hyperbola(occ, sq);
 }
 
-U64 MoveGenerator::file_attacks(U64 occ, int sq)
+U64 file_attacks(U64 occ, int sq)
 {
     return file_attacks_hyperbola(occ, sq);
 }
 
-U64 MoveGenerator::rank_attacks(U64 occ, int sq)
+U64 rank_attacks(U64 occ, int sq)
 {
     return rank_attacks_hyperbola(occ, sq);
 }
 
-U64 MoveGenerator::rook_attacks_slow(U64 occ, int sq)
+U64 rook_attacks_slow(U64 occ, int sq)
 {
     return file_attacks(occ, sq) + rank_attacks(occ, sq);
 }
 
-U64 MoveGenerator::bishop_attacks_slow(U64 occ, int sq)
+U64 bishop_attacks_slow(U64 occ, int sq)
 {
     return diag_attacks(occ, sq) + anti_diag_attacks(occ, sq);
 }
 
-U64 MoveGenerator::rook_attacks(U64 occ, int sq)
+U64 rook_attacks(U64 occ, int sq)
 {
     return rook_attacks_magic(occ, sq);
 }
 
-U64 MoveGenerator::bishop_attacks(U64 occ, int sq)
+U64 bishop_attacks(U64 occ, int sq)
 {
     return bishop_attacks_magic(occ, sq);
 }
 
-bool MoveGenerator::ep_move_discovers_check(const class Board& board,
-                                            U64 from_bb,
-                                            U64 to_bb,
-                                            const U8 side)
+bool ep_move_discovers_check(const Board& board, U64 from_bb, U64 to_bb, const U8 side)
 {
-    U64 occupied = (board.bitboards_[WHITE] | board.bitboards_[BLACK]) ^ from_bb ^ to_bb;
+    U64 occupied = (board.bitboard(WHITE) | board.bitboard(BLACK)) ^ from_bb ^ to_bb;
     U8 attacker_side = !side;
-    U64 queens = board.bitboards_[QUEEN | attacker_side];
-    U64 rooks = board.bitboards_[ROOK | attacker_side];
+    U64 queens = board.bitboard(QUEEN | attacker_side);
+    U64 rooks = board.bitboard(ROOK | attacker_side);
     U64 non_diag_attackers = queens | rooks;
 
-    U64 kings = board.bitboards_[KING | side];
+    U64 kings = board.bitboard(KING | side);
     assert(pop_count(kings) == 1);
     U8 king_sq = bit_scan_forward(kings);
 
     return ((rank_attacks(occupied, king_sq) & non_diag_attackers) != BB_EMPTY);
 }
 
-void MoveGenerator::add_rook_moves(class MoveList& list, const class Board& board, const U8 side)
+void add_rook_moves(MoveList& list, const Board& board, const U8 side)
 {
-    U64 rooks = board.bitboards_[ROOK | side];
-    U64 occupied = board.bitboards_[WHITE] | board.bitboards_[BLACK];
-    U64 non_friendly = ~board.bitboards_[side];
+    U64 rooks = board.bitboard(ROOK | side);
+    U64 occupied = board.bitboard(WHITE) | board.bitboard(BLACK);
+    U64 non_friendly = ~board.bitboard(side);
 
 #if 0
     cout << "rooks=0x" << hex << rooks<< endl;
@@ -276,11 +277,11 @@ void MoveGenerator::add_rook_moves(class MoveList& list, const class Board& boar
     // cout << "found " << dec <<list.length() << " moves" << endl;
 }
 
-void MoveGenerator::add_bishop_moves(class MoveList& list, const class Board& board, const U8 side)
+void add_bishop_moves(MoveList& list, const Board& board, const U8 side)
 {
-    U64 bishops = board.bitboards_[BISHOP | side];
-    U64 occupied = board.bitboards_[WHITE] | board.bitboards_[BLACK];
-    U64 non_friendly = ~board.bitboards_[side];
+    U64 bishops = board.bitboard(BISHOP | side);
+    U64 occupied = board.bitboard(WHITE) | board.bitboard(BLACK);
+    U64 non_friendly = ~board.bitboard(side);
 
     while (bishops)
     {
@@ -296,11 +297,11 @@ void MoveGenerator::add_bishop_moves(class MoveList& list, const class Board& bo
     }
 }
 
-void MoveGenerator::add_queen_moves(class MoveList& list, const class Board& board, const U8 side)
+void add_queen_moves(MoveList& list, const Board& board, const U8 side)
 {
-    U64 queens = board.bitboards_[QUEEN | side];
-    U64 occupied = board.bitboards_[WHITE] | board.bitboards_[BLACK];
-    U64 non_friendly = ~board.bitboards_[side];
+    U64 queens = board.bitboard(QUEEN | side);
+    U64 occupied = board.bitboard(WHITE) | board.bitboard(BLACK);
+    U64 non_friendly = ~board.bitboard(side);
 
     while (queens)
     {
@@ -316,7 +317,7 @@ void MoveGenerator::add_queen_moves(class MoveList& list, const class Board& boa
     }
 }
 
-void MoveGenerator::add_pawn_pushes(class MoveList& list, const class Board& board, const U8 side)
+void add_pawn_pushes(MoveList& list, const Board& board, const U8 side)
 {
     const int diffs[2] = { 8, 64 - 8 };
     const U64 promotions_mask[2] = { ROW_8, ROW_1 };
@@ -324,8 +325,8 @@ void MoveGenerator::add_pawn_pushes(class MoveList& list, const class Board& boa
     U64 pushes, double_pushes, promotions, pawns, empty_squares;
 
     int diff = diffs[side];
-    pawns = board.bitboards_[PAWN | side];
-    empty_squares = ~(board.bitboards_[WHITE] | board.bitboards_[BLACK]);
+    pawns = board.bitboard(PAWN | side);
+    empty_squares = ~(board.bitboard(WHITE) | board.bitboard(BLACK));
 
     // ADD SINGLE PUSHES
     pushes = circular_left_shift(pawns, diff) & empty_squares;
@@ -341,15 +342,15 @@ void MoveGenerator::add_pawn_pushes(class MoveList& list, const class Board& boa
     add_moves_with_diff(diff + diff, double_pushes, list, board, PAWN_DOUBLE_PUSH, 0);
 }
 
-void MoveGenerator::add_pawn_attacks(class MoveList& list, const class Board& board, const U8 side)
+void add_pawn_attacks(MoveList& list, const Board& board, const U8 side)
 {
     const int diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
     const U64 promotions_mask[2] = { ROW_8, ROW_1 };
     const U64 pawn_file_mask[2] = { ~FILE_H, ~FILE_A };
     U64 attacks, ep_attacks, promotions, targets, pawns, enemy;
 
-    pawns = board.bitboards_[PAWN | side];
-    enemy = board.bitboards_[!side];
+    pawns = board.bitboard(PAWN | side);
+    enemy = board.bitboard(!side);
 
     // CALCULATE ATTACKS FOR LEFT, RIGHT
     for (int dir = 0; dir < 2; dir++)
@@ -362,9 +363,9 @@ void MoveGenerator::add_pawn_attacks(class MoveList& list, const class Board& bo
         add_moves_with_diff(diff, attacks & (~promotions_mask[side]), list, board, NO_FLAGS, 0);
 
         // ADD EP ATTACKS
-        if (board.irrev_.ep_square != NULL_SQUARE)
+        if (board.ep_square() != NULL_SQUARE)
         {
-            ep_attacks = targets & (1ULL << board.irrev_.ep_square);
+            ep_attacks = targets & (1ULL << board.ep_square());
             add_moves_with_diff(diff, ep_attacks, list, board, EP_CAPTURE, PAWN | (!side));
         }
 
@@ -374,10 +375,10 @@ void MoveGenerator::add_pawn_attacks(class MoveList& list, const class Board& bo
     }
 }
 
-void MoveGenerator::add_knight_moves(class MoveList& list, const class Board& board, const U8 side)
+void add_knight_moves(MoveList& list, const Board& board, const U8 side)
 {
-    U64 knights = board.bitboards_[KNIGHT | side];
-    U64 non_friendly = ~board.bitboards_[side];
+    U64 knights = board.bitboard(KNIGHT | side);
+    U64 non_friendly = ~board.bitboard(side);
     while (knights)
     {
         U8 from = bit_scan_forward(knights);
@@ -387,10 +388,10 @@ void MoveGenerator::add_knight_moves(class MoveList& list, const class Board& bo
     }
 }
 
-void MoveGenerator::add_king_moves(class MoveList& list, const class Board& board, const U8 side)
+void add_king_moves(MoveList& list, const Board& board, const U8 side)
 {
-    U64 kings = board.bitboards_[KING | side];
-    U64 non_friendly = ~board.bitboards_[side];
+    U64 kings = board.bitboard(KING | side);
+    U64 non_friendly = ~board.bitboard(side);
     while (kings)
     {
         U8 from = bit_scan_forward(kings);
@@ -400,8 +401,8 @@ void MoveGenerator::add_king_moves(class MoveList& list, const class Board& boar
     }
 }
 
-void MoveGenerator::add_pawn_legal_pushes(
-    class MoveList& list, const class Board& board, U64 to_mask, U64 from_mask, const U8 side)
+void add_pawn_legal_pushes(
+    MoveList& list, const Board& board, U64 to_mask, U64 from_mask, const U8 side)
 {
     const int diffs[2] = { 8, 64 - 8 };
     const U64 promotions_mask[2] = { ROW_8, ROW_1 };
@@ -409,8 +410,8 @@ void MoveGenerator::add_pawn_legal_pushes(
     U64 pushes, single_pushes, double_pushes, promotions, pawns, empty_squares;
 
     int diff = diffs[side];
-    pawns = board.bitboards_[PAWN | side] & from_mask;
-    empty_squares = ~(board.bitboards_[WHITE] | board.bitboards_[BLACK]);
+    pawns = board.bitboard(PAWN | side) & from_mask;
+    empty_squares = ~(board.bitboard(WHITE) | board.bitboard(BLACK));
 
     // ADD SINGLE PUSHES
     // Don't apply to_mask here to avoid masking double pushes
@@ -428,19 +429,19 @@ void MoveGenerator::add_pawn_legal_pushes(
     add_moves_with_diff(diff + diff, double_pushes & to_mask, list, board, PAWN_DOUBLE_PUSH, 0);
 }
 
-void MoveGenerator::add_pawn_legal_attacks(class MoveList& list,
-                                           const class Board& board,
-                                           U64 capture_mask,
-                                           U64 push_mask,
-                                           U64 from_mask,
-                                           const U8 side)
+void add_pawn_legal_attacks(MoveList& list,
+                            const Board& board,
+                            U64 capture_mask,
+                            U64 push_mask,
+                            U64 from_mask,
+                            const U8 side)
 {
     const int diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
     const U64 promotions_mask[2] = { ROW_8, ROW_1 };
     const U64 pawn_file_mask[2] = { ~FILE_H, ~FILE_A };
     U64 attacks, ep_attacks, promotions, targets, pawns;
 
-    pawns = board.bitboards_[PAWN | side] & from_mask;
+    pawns = board.bitboard(PAWN | side) & from_mask;
 
     // CALCULATE ATTACKS FOR LEFT, RIGHT
     for (int dir = 0; dir < 2; dir++)
@@ -453,9 +454,9 @@ void MoveGenerator::add_pawn_legal_attacks(class MoveList& list,
         add_moves_with_diff(diff, attacks & (~promotions_mask[side]), list, board, NO_FLAGS, 0);
 
         // ADD EP ATTACKS
-        if (board.irrev_.ep_square != NULL_SQUARE)
+        if (board.ep_square() != NULL_SQUARE)
         {
-            ep_attacks = targets & (1ULL << board.irrev_.ep_square);
+            ep_attacks = targets & (1ULL << board.ep_square());
             while (ep_attacks)
             {
                 U8 to = bit_scan_forward(ep_attacks);
@@ -487,24 +488,24 @@ void MoveGenerator::add_pawn_legal_attacks(class MoveList& list,
     }
 }
 
-void MoveGenerator::add_pawn_legal_moves(class MoveList& list,
-                                         const class Board& board,
-                                         U64 capture_mask,
-                                         U64 push_mask,
-                                         U64 from_mask,
-                                         const U8 side)
+void add_pawn_legal_moves(MoveList& list,
+                          const Board& board,
+                          U64 capture_mask,
+                          U64 push_mask,
+                          U64 from_mask,
+                          const U8 side)
 {
     add_pawn_legal_pushes(list, board, push_mask, from_mask, side);
     add_pawn_legal_attacks(list, board, capture_mask, push_mask, from_mask, side);
 }
 
-void MoveGenerator::add_pawn_pin_ray_moves(class MoveList& list,
-                                           const class Board& board,
-                                           U64 capture_mask,
-                                           U64 push_mask,
-                                           U64 pinned_mask,
-                                           U8 king_sq,
-                                           const U8 side)
+void add_pawn_pin_ray_moves(MoveList& list,
+                            const Board& board,
+                            U64 capture_mask,
+                            U64 push_mask,
+                            U64 pinned_mask,
+                            U8 king_sq,
+                            const U8 side)
 {
     // Generates pawn moves along pin rays
     const int pushes_diffs[2] = { 8, 64 - 8 };
@@ -513,8 +514,8 @@ void MoveGenerator::add_pawn_pin_ray_moves(class MoveList& list,
     const U64 promotions_mask[2] = { ROW_8, ROW_1 };
     const U64 start_row_plus_one_mask[2] = { ROW_3, ROW_6 };
     U64 pushes, single_pushes, double_pushes, promotions, pawns, empty_squares, movers;
-    pawns = board.bitboards_[PAWN | side];
-    empty_squares = ~(board.bitboards_[WHITE] | board.bitboards_[BLACK]);
+    pawns = board.bitboard(PAWN | side);
+    empty_squares = ~(board.bitboard(WHITE) | board.bitboard(BLACK));
     movers = pawns & pinned_mask;
 
     // exit early if no pinned pawns
@@ -550,9 +551,9 @@ void MoveGenerator::add_pawn_pin_ray_moves(class MoveList& list,
         add_moves_with_diff(diff, attacks & (~promotions_mask[side]), list, board, NO_FLAGS, 0);
 
         // ADD EP ATTACKS
-        if (board.irrev_.ep_square != NULL_SQUARE)
+        if (board.ep_square() != NULL_SQUARE)
         {
-            U64 ep_attacks = targets & (1ULL << board.irrev_.ep_square) & king_diags;
+            U64 ep_attacks = targets & (1ULL << board.ep_square()) & king_diags;
             while (ep_attacks)
             {
                 U8 to = bit_scan_forward(ep_attacks);
@@ -584,19 +585,19 @@ void MoveGenerator::add_pawn_pin_ray_moves(class MoveList& list,
     }
 }
 
-void MoveGenerator::add_pawn_pin_ray_attacks(class MoveList& list,
-                                             const class Board& board,
-                                             U64 capture_mask,
-                                             U64 pinned_mask,
-                                             U8 king_sq,
-                                             const U8 side)
+void add_pawn_pin_ray_attacks(MoveList& list,
+                              const Board& board,
+                              U64 capture_mask,
+                              U64 pinned_mask,
+                              U8 king_sq,
+                              const U8 side)
 {
     // Generates pawn moves along pin rays
     const int attacks_diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
     const U64 pawn_file_mask[2] = { ~FILE_H, ~FILE_A };
     const U64 promotions_mask[2] = { ROW_8, ROW_1 };
     U64 promotions, pawns, movers;
-    pawns = board.bitboards_[PAWN | side];
+    pawns = board.bitboard(PAWN | side);
     movers = pawns & pinned_mask;
 
     // exit early if no pinned pawns
@@ -619,9 +620,9 @@ void MoveGenerator::add_pawn_pin_ray_attacks(class MoveList& list,
         add_moves_with_diff(diff, attacks & (~promotions_mask[side]), list, board, NO_FLAGS, 0);
 
         // ADD EP ATTACKS
-        if (board.irrev_.ep_square != NULL_SQUARE)
+        if (board.ep_square() != NULL_SQUARE)
         {
-            U64 ep_attacks = targets & (1ULL << board.irrev_.ep_square) & king_diags;
+            U64 ep_attacks = targets & (1ULL << board.ep_square()) & king_diags;
             while (ep_attacks)
             {
                 U8 to = bit_scan_forward(ep_attacks);
@@ -653,18 +654,18 @@ void MoveGenerator::add_pawn_pin_ray_attacks(class MoveList& list,
     }
 }
 
-void MoveGenerator::add_slider_legal_moves(class MoveList& list,
-                                           const class Board& board,
-                                           U64 capture_mask,
-                                           U64 push_mask,
-                                           U64 pinned_mask,
-                                           U8 king_sq,
-                                           const U8 side)
+void add_slider_legal_moves(MoveList& list,
+                            const Board& board,
+                            U64 capture_mask,
+                            U64 push_mask,
+                            U64 pinned_mask,
+                            U8 king_sq,
+                            const U8 side)
 {
-    U64 occupied = board.bitboards_[WHITE] | board.bitboards_[BLACK];
-    U64 queens = board.bitboards_[QUEEN | side];
-    U64 rooks = board.bitboards_[ROOK | side];
-    U64 bishops = board.bitboards_[BISHOP | side];
+    U64 occupied = board.bitboard(WHITE) | board.bitboard(BLACK);
+    U64 queens = board.bitboard(QUEEN | side);
+    U64 rooks = board.bitboard(ROOK | side);
+    U64 bishops = board.bitboard(BISHOP | side);
     U64 diag_attackers = queens | bishops;
     U64 non_diag_attackers = queens | rooks;
 
@@ -718,17 +719,17 @@ void MoveGenerator::add_slider_legal_moves(class MoveList& list,
     }
 }
 
-void MoveGenerator::add_slider_legal_attacks(class MoveList& list,
-                                             const class Board& board,
-                                             U64 capture_mask,
-                                             U64 pinned_mask,
-                                             U8 king_sq,
-                                             const U8 side)
+void add_slider_legal_attacks(MoveList& list,
+                              const Board& board,
+                              U64 capture_mask,
+                              U64 pinned_mask,
+                              U8 king_sq,
+                              const U8 side)
 {
-    U64 occupied = board.bitboards_[WHITE] | board.bitboards_[BLACK];
-    U64 queens = board.bitboards_[QUEEN | side];
-    U64 rooks = board.bitboards_[ROOK | side];
-    U64 bishops = board.bitboards_[BISHOP | side];
+    U64 occupied = board.bitboard(WHITE) | board.bitboard(BLACK);
+    U64 queens = board.bitboard(QUEEN | side);
+    U64 rooks = board.bitboard(ROOK | side);
+    U64 bishops = board.bitboard(BISHOP | side);
     U64 diag_attackers = queens | bishops;
     U64 non_diag_attackers = queens | rooks;
 
@@ -778,14 +779,14 @@ void MoveGenerator::add_slider_legal_attacks(class MoveList& list,
     }
 }
 
-void MoveGenerator::add_knight_legal_moves(class MoveList& list,
-                                           const class Board& board,
-                                           U64 capture_mask,
-                                           U64 push_mask,
-                                           U64 from_mask,
-                                           const U8 side)
+void add_knight_legal_moves(MoveList& list,
+                            const Board& board,
+                            U64 capture_mask,
+                            U64 push_mask,
+                            U64 from_mask,
+                            const U8 side)
 {
-    U64 knights = board.bitboards_[KNIGHT | side] & from_mask;
+    U64 knights = board.bitboard(KNIGHT | side) & from_mask;
     while (knights)
     {
         U8 from = bit_scan_forward(knights);
@@ -797,10 +798,10 @@ void MoveGenerator::add_knight_legal_moves(class MoveList& list,
     }
 }
 
-void MoveGenerator::add_knight_legal_attacks(
-    class MoveList& list, const class Board& board, U64 capture_mask, U64 from_mask, const U8 side)
+void add_knight_legal_attacks(
+    MoveList& list, const Board& board, U64 capture_mask, U64 from_mask, const U8 side)
 {
-    U64 knights = board.bitboards_[KNIGHT | side] & from_mask;
+    U64 knights = board.bitboard(KNIGHT | side) & from_mask;
     while (knights)
     {
         U8 from = bit_scan_forward(knights);
@@ -810,10 +811,10 @@ void MoveGenerator::add_knight_legal_attacks(
     }
 }
 
-void MoveGenerator::add_king_legal_moves(
-    class MoveList& list, const class Board& board, U64 capture_mask, U64 push_mask, const U8 side)
+void add_king_legal_moves(
+    MoveList& list, const Board& board, U64 capture_mask, U64 push_mask, const U8 side)
 {
-    U64 kings = board.bitboards_[KING | side];
+    U64 kings = board.bitboard(KING | side);
     while (kings)
     {
         U8 from = bit_scan_forward(kings);
@@ -825,12 +826,9 @@ void MoveGenerator::add_king_legal_moves(
     }
 }
 
-void MoveGenerator::add_king_legal_attacks(class MoveList& list,
-                                           const class Board& board,
-                                           U64 capture_mask,
-                                           const U8 side)
+void add_king_legal_attacks(MoveList& list, const Board& board, U64 capture_mask, const U8 side)
 {
-    U64 kings = board.bitboards_[KING | side];
+    U64 kings = board.bitboard(KING | side);
     while (kings)
     {
         U8 from = bit_scan_forward(kings);
@@ -840,10 +838,7 @@ void MoveGenerator::add_king_legal_attacks(class MoveList& list,
     }
 }
 
-void MoveGenerator::add_castles(class MoveList& list,
-                                const class Board& board,
-                                U64 attacks,
-                                const U8 side)
+void add_castles(MoveList& list, const Board& board, U64 attacks, const U8 side)
 {
     // squares that must be empty
     const U64 CASTLE_BLOCKING_SQUARES[2][2] = {
@@ -873,7 +868,7 @@ void MoveGenerator::add_castles(class MoveList& list,
                                        { WHITE_KING_SIDE, BLACK_KING_SIDE } };
 
     U8 rights = board.castling_rights();
-    U64 occupied = board.bitboards_[WHITE] | board.bitboards_[BLACK];
+    U64 occupied = board.bitboard(WHITE) | board.bitboard(BLACK);
 
     for (int castle_side = 0; castle_side < 2; castle_side++)
     {
@@ -898,7 +893,7 @@ void MoveGenerator::add_castles(class MoveList& list,
     }
 }
 
-U64 MoveGenerator::rook_targets(U64 from, U64 occupied)
+U64 rook_targets(U64 from, U64 occupied)
 {
     U64 targets = BB_EMPTY;
     while (from)
@@ -912,7 +907,7 @@ U64 MoveGenerator::rook_targets(U64 from, U64 occupied)
     return targets;
 }
 
-U64 MoveGenerator::bishop_targets(U64 from, U64 occupied)
+U64 bishop_targets(U64 from, U64 occupied)
 {
     U64 targets = BB_EMPTY;
     while (from)
@@ -926,7 +921,7 @@ U64 MoveGenerator::bishop_targets(U64 from, U64 occupied)
     return targets;
 }
 
-U64 MoveGenerator::knight_targets(U64 from)
+U64 knight_targets(U64 from)
 {
     U64 targets = BB_EMPTY;
     while (from)
@@ -938,7 +933,7 @@ U64 MoveGenerator::knight_targets(U64 from)
     return targets;
 }
 
-U64 MoveGenerator::king_targets(U64 from)
+U64 king_targets(U64 from)
 {
     U64 targets = BB_EMPTY;
     while (from)
@@ -950,7 +945,7 @@ U64 MoveGenerator::king_targets(U64 from)
     return targets;
 }
 
-U64 MoveGenerator::pawn_targets(U64 from, U8 side)
+U64 pawn_targets(U64 from, U8 side)
 {
     const int diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
     const U64 pawn_file_mask[2] = { ~FILE_H, ~FILE_A };
@@ -964,16 +959,16 @@ U64 MoveGenerator::pawn_targets(U64 from, U8 side)
     return targets;
 }
 
-bool MoveGenerator::in_check(const class Board& board, const U8 side)
+bool in_check(const Board& board, const U8 side)
 {
     U64 checkers = get_checkers(board, side);
     int king_attacks_count = pop_count(checkers);
     return (king_attacks_count > 0);
 }
 
-void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board, const U8 side)
+void add_all_moves(MoveList& list, const Board& board, const U8 side)
 {
-    U64 kings = board.bitboards_[KING | side];
+    U64 kings = board.bitboard(KING | side);
     assert(pop_count(kings) == 1);
 
     // We always need legal king moves
@@ -996,8 +991,8 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
     // capture_mask and push_mask represent squares our pieces are allowed to move to or capture,
     // respectively. The difference between the two is only important for pawn EP captures
     // Since push_mask is used to block a pin, we ignore push_mask when calculating king moves
-    U64 enemy = board.bitboards_[!side];
-    U64 empty_squares = ~(board.bitboards_[WHITE] | board.bitboards_[BLACK]);
+    U64 enemy = board.bitboard(!side);
+    U64 empty_squares = ~(board.bitboard(WHITE) | board.bitboard(BLACK));
 
     U64 capture_mask = enemy;  // set of squares a piece can capture on
     U64 king_capture_mask = enemy & (~attacked_squares);
@@ -1068,9 +1063,9 @@ void MoveGenerator::add_all_moves(class MoveList& list, const class Board& board
 /// Loud moves are defined as:
 /// * Captures
 /// * Check evasions
-void MoveGenerator::add_loud_moves(class MoveList& list, const class Board& board, const U8 side)
+void add_loud_moves(MoveList& list, const Board& board, const U8 side)
 {
-    U64 kings = board.bitboards_[KING | side];
+    U64 kings = board.bitboard(KING | side);
     assert(pop_count(kings) == 1);
 
     // We always need legal king moves
@@ -1093,8 +1088,8 @@ void MoveGenerator::add_loud_moves(class MoveList& list, const class Board& boar
     // capture_mask and push_mask represent squares our pieces are allowed to move to or capture,
     // respectively. The difference between the two is only important for pawn EP captures
     // Since push_mask is used to block a pin, we ignore push_mask when calculating king moves
-    U64 enemy = board.bitboards_[!side];
-    U64 empty_squares = ~(board.bitboards_[WHITE] | board.bitboards_[BLACK]);
+    U64 enemy = board.bitboard(!side);
+    U64 empty_squares = ~(board.bitboard(WHITE) | board.bitboard(BLACK));
 
     U64 capture_mask = enemy;  // set of squares a piece can capture on
     U64 king_capture_mask = enemy & (~attacked_squares);
@@ -1160,7 +1155,7 @@ void MoveGenerator::add_loud_moves(class MoveList& list, const class Board& boar
 }
 
 #ifdef MVVLVA
-void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
+void score_moves(MoveList& list, const Board& board)
 {
     int n = list.length();
 
@@ -1183,7 +1178,7 @@ void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
     }
 }
 #else
-void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
+void score_moves(MoveList& list, const Board& board)
 {
     int n = list.length();
 
@@ -1205,7 +1200,7 @@ void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
             }
             if ((SEE_PIECE_VALUE[piece >> 1] - SEE_PIECE_VALUE[captured >> 1]) >= 0)
             {
-                if (MoveGenerator::see(board, move) < 0)
+                if (see(board, move) < 0)
                 {
                     // Bad capture
                     score = 0;
@@ -1226,13 +1221,13 @@ void MoveGenerator::score_moves(class MoveList& list, const class Board& board)
 }
 #endif
 
-U64 MoveGenerator::get_checkers(const class Board& board, const U8 side)
+U64 get_checkers(const Board& board, const U8 side)
 {
     const int diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
     const U64 pawn_file_mask[2] = { ~FILE_H, ~FILE_A };
     U8 attacker_side = !side;
 
-    U64 kings = board.bitboards_[KING | side];
+    U64 kings = board.bitboard(KING | side);
     U64 checkers = BB_EMPTY;
 
     if (pop_count(kings) != 1)
@@ -1240,15 +1235,15 @@ U64 MoveGenerator::get_checkers(const class Board& board, const U8 side)
         return checkers;
     }
     assert(pop_count(kings) == 1);
-    U64 occupied = board.bitboards_[WHITE] | board.bitboards_[BLACK];
+    U64 occupied = board.bitboard(WHITE) | board.bitboard(BLACK);
     U8 king_sq = bit_scan_forward(kings);
 
     // Knights
-    U64 knights = board.bitboards_[KNIGHT | attacker_side];
+    U64 knights = board.bitboard(KNIGHT | attacker_side);
     checkers |= KNIGHT_LOOKUP_TABLE[king_sq] & knights;
 
     // Pawns
-    U64 pawns = board.bitboards_[PAWN | attacker_side];
+    U64 pawns = board.bitboard(PAWN | attacker_side);
     for (int dir = 0; dir < 2; dir++)
     {
         int diff = diffs[dir][side];
@@ -1257,9 +1252,9 @@ U64 MoveGenerator::get_checkers(const class Board& board, const U8 side)
     }
 
     // Sliders
-    U64 queens = board.bitboards_[QUEEN | attacker_side];
-    U64 rooks = board.bitboards_[ROOK | attacker_side];
-    U64 bishops = board.bitboards_[BISHOP | attacker_side];
+    U64 queens = board.bitboard(QUEEN | attacker_side);
+    U64 rooks = board.bitboard(ROOK | attacker_side);
+    U64 bishops = board.bitboard(BISHOP | attacker_side);
 
     U64 diag_attackers = queens | bishops;
     U64 non_diag_attackers = queens | rooks;
@@ -1270,17 +1265,17 @@ U64 MoveGenerator::get_checkers(const class Board& board, const U8 side)
     return checkers;
 }
 
-MoveGenPreprocessing MoveGenerator::get_checkers_and_pinned(const class Board& board, const U8 side)
+MoveGenPreprocessing get_checkers_and_pinned(const Board& board, const U8 side)
 {
     const int diffs[2][2] = { { 7, 64 - 9 }, { 9, 64 - 7 } };
     const U64 pawn_file_mask[2] = { ~FILE_H, ~FILE_A };
     MoveGenPreprocessing mgp;
     U8 attacker_side = !side;
 
-    U64 kings = board.bitboards_[KING | side];
+    U64 kings = board.bitboard(KING | side);
     assert(pop_count(kings) == 1);
-    U64 occupied = board.bitboards_[WHITE] | board.bitboards_[BLACK];
-    U64 friendly = board.bitboards_[side];
+    U64 occupied = board.bitboard(WHITE) | board.bitboard(BLACK);
+    U64 friendly = board.bitboard(side);
     U8 king_sq = bit_scan_forward(kings);
 
     U64 checkers = BB_EMPTY;
@@ -1289,11 +1284,11 @@ MoveGenPreprocessing MoveGenerator::get_checkers_and_pinned(const class Board& b
 
     // Pawns and Knights can only be checkers, not pinners
     // Knights
-    U64 knights = board.bitboards_[KNIGHT | attacker_side];
+    U64 knights = board.bitboard(KNIGHT | attacker_side);
     checkers |= KNIGHT_LOOKUP_TABLE[king_sq] & knights;
 
     // Pawns
-    U64 pawns = board.bitboards_[PAWN | attacker_side];
+    U64 pawns = board.bitboard(PAWN | attacker_side);
     for (int dir = 0; dir < 2; dir++)
     {
         int diff = diffs[dir][side];
@@ -1302,9 +1297,9 @@ MoveGenPreprocessing MoveGenerator::get_checkers_and_pinned(const class Board& b
     }
 
     // Sliding pieces can be checkers or pinners depending on occupancy of intermediate squares
-    U64 queens = board.bitboards_[QUEEN | attacker_side];
-    U64 rooks = board.bitboards_[ROOK | attacker_side];
-    U64 bishops = board.bitboards_[BISHOP | attacker_side];
+    U64 queens = board.bitboard(QUEEN | attacker_side);
+    U64 rooks = board.bitboard(ROOK | attacker_side);
+    U64 bishops = board.bitboard(BISHOP | attacker_side);
 
     U64 diag_attackers = queens | bishops;
     U64 non_diag_attackers = queens | rooks;
@@ -1344,37 +1339,37 @@ MoveGenPreprocessing MoveGenerator::get_checkers_and_pinned(const class Board& b
 
 /// returns squares king may not move to
 /// - removes king from occupied to handle attacking sliders correctly
-U64 MoveGenerator::get_king_danger_squares(const class Board& board, const U8 side, U64 king)
+U64 get_king_danger_squares(const Board& board, const U8 side, U64 king)
 {
     U8 attacker_side = !side;
-    U64 occupied_without_king = (board.bitboards_[WHITE] | board.bitboards_[BLACK]) & (~king);
+    U64 occupied_without_king = (board.bitboard(WHITE) | board.bitboard(BLACK)) & (~king);
 
     U64 attacked_squares = BB_EMPTY;
 
-    U64 queens = board.bitboards_[QUEEN | attacker_side];
-    U64 rooks = board.bitboards_[ROOK | attacker_side];
-    U64 bishops = board.bitboards_[BISHOP | attacker_side];
+    U64 queens = board.bitboard(QUEEN | attacker_side);
+    U64 rooks = board.bitboard(ROOK | attacker_side);
+    U64 bishops = board.bitboard(BISHOP | attacker_side);
 
     U64 diag_attackers = queens | bishops;
     U64 non_diag_attackers = queens | rooks;
     attacked_squares |= bishop_targets(diag_attackers, occupied_without_king);
     attacked_squares |= rook_targets(non_diag_attackers, occupied_without_king);
 
-    U64 knights = board.bitboards_[KNIGHT | attacker_side];
+    U64 knights = board.bitboard(KNIGHT | attacker_side);
     attacked_squares |= knight_targets(knights);
 
-    U64 kings = board.bitboards_[KING | attacker_side];
+    U64 kings = board.bitboard(KING | attacker_side);
     assert(pop_count(kings) == 1);
     attacked_squares |= king_targets(kings);
 
-    U64 pawns = board.bitboards_[PAWN | attacker_side];
+    U64 pawns = board.bitboard(PAWN | attacker_side);
     attacked_squares |= pawn_targets(pawns, attacker_side);
 
     return attacked_squares;
 }
 
 #define INDENT "    "
-void MoveGenerator::generate_move_lookup_tables()
+void generate_move_lookup_tables()
 {
     using std::cout;
     using std::endl;
@@ -1716,3 +1711,5 @@ void MoveGenerator::generate_move_lookup_tables()
     }
     cout << "};" << endl << endl;
 }
+
+}  // namespace MoveGenerator

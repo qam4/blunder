@@ -6,6 +6,7 @@
 #define PARSER_H
 
 #include <optional>
+#include <string>
 
 #include "Board.h"
 #include "Common.h"

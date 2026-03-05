@@ -7,6 +7,8 @@
 #ifndef PERFT_H
 #define PERFT_H
 
+#include <string>
+
 #include "Common.h"
 #include "Board.h"
 

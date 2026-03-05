@@ -3,6 +3,8 @@
  *
  */
 
+#include <iostream>
+
 #include "PrincipalVariation.h"
 
 #include "Board.h"

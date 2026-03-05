@@ -6,6 +6,9 @@
 #ifndef TESTS_H
 #define TESTS_H
 
+#include <iostream>
+#include <string>
+
 #include "Common.h"
 #include "Board.h"
 #include "MoveGenerator.h"

@@ -7,9 +7,12 @@
 
 #include "LookupTables.h"
 
+namespace MoveGenerator
+{
+
 // https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks
 // Hyperbola quiescence: https://www.chessprogramming.org/Hyperbola_Quintessence
-U64 MoveGenerator::diag_attacks_hyperbola(U64 occ, int sq)
+U64 diag_attacks_hyperbola(U64 occ, int sq)
 {
     // lineAttacks = (o-2s) ^ (o'-2s')'
     //     with m=mask
@@ -28,7 +31,7 @@ U64 MoveGenerator::diag_attacks_hyperbola(U64 occ, int sq)
     return forward;
 }
 
-U64 MoveGenerator::anti_diag_attacks_hyperbola(U64 occ, int sq)
+U64 anti_diag_attacks_hyperbola(U64 occ, int sq)
 {
     // lineAttacks= (o-2s) ^ (o'-2s')'
     //     with m=mask
@@ -47,7 +50,7 @@ U64 MoveGenerator::anti_diag_attacks_hyperbola(U64 occ, int sq)
     return forward;
 }
 
-U64 MoveGenerator::file_attacks_hyperbola(U64 occ, int sq)
+U64 file_attacks_hyperbola(U64 occ, int sq)
 {
     // lineAttacks= (o-2s) ^ (o'-2s')'
     //     with m=mask
@@ -66,7 +69,7 @@ U64 MoveGenerator::file_attacks_hyperbola(U64 occ, int sq)
     return forward;
 }
 
-U64 MoveGenerator::rank_attacks_hyperbola(U64 occ, int sq)
+U64 rank_attacks_hyperbola(U64 occ, int sq)
 {
     // lineAttacks= (o-2s) ^ (o'-2s')'
     //     with m=mask
@@ -96,3 +99,5 @@ U64 MoveGenerator::bishop_attacks_hyperbola(U64 occ, int sq)
     return diag_attacks(occ, sq) + anti_diag_attacks(occ, sq);
 }
 */
+
+}  // namespace MoveGenerator

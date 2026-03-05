@@ -33,8 +33,8 @@ class MoveList
         return data_[--size_].move;
     }
     void set_move(int idx, Move move) { data_[idx].move = move; }
-    void set_score(int idx, U16 score) { data_[idx].score = score; }
-    U16 get_score(int idx) const { return data_[idx].score; }
+    void set_score(int idx, int score) { data_[idx].score = score; }
+    int get_score(int idx) const { return data_[idx].score; }
     Move inline operator[](int idx) const { return data_[idx].move; }
     void inline reset() { size_ = 0; }
     int inline length() const { return size_; }

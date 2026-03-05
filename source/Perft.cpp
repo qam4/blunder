@@ -1,3 +1,6 @@
+#include <iostream>
+#include <string>
+
 #include "Perft.h"
 
 #include "Move.h"
