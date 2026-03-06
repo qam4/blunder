@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>source/TestPositions.cpp file | blunder</title>
+  <title>BenchmarkResult struct | blunder</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,7 +49,8 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="dir_b2f33c71d4aa5e7af42a1ca61ff5af1b.html">source</a>/</span>TestPositions.cpp <span class="m-thin">file</span>
+          BenchmarkResult <span class="m-thin">struct</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="TestPositions_8h.html">&lt;TestPositions.h&gt;</a></div>
         </h1>
         <p><span></span></p>
         <div class="m-block m-default">
@@ -58,46 +59,44 @@
             <li>
               Reference
               <ul>
-                <li><a href="#func-members">Functions</a></li>
-                <li><a href="#var-members">Variables</a></li>
+                <li><a href="#pub-attribs">Public variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="func-members">
-          <h2><a href="#func-members">Functions</a></h2>
+        <section id="pub-attribs">
+          <h2><a href="#pub-attribs">Public variables</a></h2>
           <dl class="m-doc">
-            <dt id="a0ed32aa32fc7a688b3c72fed86e1f4f6">
-              <span class="m-doc-wrap-bumper">auto <a href="#a0ed32aa32fc7a688b3c72fed86e1f4f6" class="m-doc-self">test_positions</a>(</span><span class="m-doc-wrap">string path_to_epd) -&gt; double</span>
+            <dt id="a852effcd0848136d634d3dc8e336912b">
+              double <a href="#a852effcd0848136d634d3dc8e336912b" class="m-doc-self">score_pct</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="ae51623e2c11f0867664d815738e4bfaf">
-              <span class="m-doc-wrap-bumper">auto <a href="#ae51623e2c11f0867664d815738e4bfaf" class="m-doc-self">test_positions_benchmark</a>(</span><span class="m-doc-wrap">string path_to_epd) -&gt; double</span>
+            <dt id="a1c1225fff651cc01a52bdc8dac50aecd">
+              int <a href="#a1c1225fff651cc01a52bdc8dac50aecd" class="m-doc-self">score</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="a11b35a0fb5abe81e46d36f794b5055dd">
-              <span class="m-doc-wrap-bumper">static auto <a href="#a11b35a0fb5abe81e46d36f794b5055dd" class="m-doc-self">extract_category</a>(</span><span class="m-doc-wrap">const string&amp; id_str) -&gt; string</span>
+            <dt id="a3a253bd75d4a6e49559c67e1cdfbfaff">
+              int <a href="#a3a253bd75d4a6e49559c67e1cdfbfaff" class="m-doc-self">max_score</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="afef280c5a17b54b5a8b4711911402951">
-              <span class="m-doc-wrap-bumper">static auto <a href="#afef280c5a17b54b5a8b4711911402951" class="m-doc-self">parse_best_moves</a>(</span><span class="m-doc-wrap"><a href="classBoard.html" class="m-doc">Board</a>&amp; board,
-              vector&lt;tuple&lt;<a href="Move_8h.html#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc">Move_<wbr />t</a>, int&gt;&gt;&amp; best_moves,
-              int&amp; max_score) -&gt; bool</span>
+            <dt id="ac13976ab8928c67824dc848039943d51">
+              int <a href="#ac13976ab8928c67824dc848039943d51" class="m-doc-self">elo</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="a01d9eb24513d8a1a77ef1a11d772909c">
-              <span class="m-doc-wrap-bumper">auto <a href="#a01d9eb24513d8a1a77ef1a11d772909c" class="m-doc-self">test_positions_ex</a>(</span><span class="m-doc-wrap">const string&amp; path_to_epd,
-              <a href="TestPositions_8h.html#a5a2afa1489549bc706d12bc66c0c4e72" class="m-doc">SearchMode</a> mode,
-              int param) -&gt; <a href="structBenchmarkResult.html" class="m-doc">BenchmarkResult</a></span>
+            <dt id="a76e1ac3f130b181300d7f832673aa446">
+              long long <a href="#a76e1ac3f130b181300d7f832673aa446" class="m-doc-self">total_nodes</a>
             </dt>
             <dd><span></span></dd>
-          </dl>
-        </section>
-        <section id="var-members">
-          <h2><a href="#var-members">Variables</a></h2>
-          <dl class="m-doc">
-            <dt id="aefb0af0d3ff944d7b7c497d3ee9786d1">
-              const int <a href="#aefb0af0d3ff944d7b7c497d3ee9786d1" class="m-doc-self">TEST_POSITIONS_MAX_NODES_VISITED</a>
+            <dt id="aeb2e5ea21ee5b4c44a09abd1a19f70ae">
+              double <a href="#aeb2e5ea21ee5b4c44a09abd1a19f70ae" class="m-doc-self">total_time_secs</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a48694e0530f3719ecd60a00e5330398a">
+              int <a href="#a48694e0530f3719ecd60a00e5330398a" class="m-doc-self">nps</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a57459098e8b3853ddb630f70d0ccb3ae">
+              std::map&lt;std::string, <a href="structCategoryResult.html" class="m-doc">CategoryResult</a>&gt; <a href="#a57459098e8b3853ddb630f70d0ccb3ae" class="m-doc-self">categories</a>
             </dt>
             <dd><span></span></dd>
           </dl>
