@@ -101,7 +101,7 @@ class Board Parser::parse_fen(const std::string& fen)
         else if (token.length() >= 2 && token[0] >= 'a' && token[0] <= 'h'
                  && (token[1] == '3' || token[1] == '6'))
         {
-            char square[2] = {token[pos], token[pos + 1]};
+            char square[2] = { token[pos], token[pos + 1] };
             board.set_ep_square(Parser::square(square));
         }
         else
