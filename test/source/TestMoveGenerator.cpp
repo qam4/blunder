@@ -680,7 +680,7 @@ TEST_CASE("move_generator_can_add_all_moves", "[move generator]")
     list.reset();
 
     // En-passant discovered check
-    fen = "8/8/8/8/k2Pp2Q/8/8/3K4 b d3 0 1";
+    fen = "8/8/8/8/k2Pp2Q/8/8/3K4 b - d3 0 1";
     board = Parser::parse_fen(fen);
     MoveGenerator::add_all_moves(list, board, BLACK);
     REQUIRE(list.length() == 6);
