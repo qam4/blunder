@@ -56,6 +56,9 @@ target_include_directories(
 
 target_compile_features(blunder_lib PUBLIC cxx_std_17)
 
+find_package(Threads REQUIRED)
+target_link_libraries(blunder_lib PUBLIC Threads::Threads)
+
 target_compile_definitions(
     blunder_lib
     PRIVATE
