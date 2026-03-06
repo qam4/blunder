@@ -64,7 +64,7 @@ U64 Zobrist::get_zobrist_key(const Board& board)
     zobrist_key ^= castling_rights_[board.castling_rights()];
 
     U8 square = board.ep_square();
-    if (square != NULL_SQUARE)
+    if (square != NULL_SQUARE && square < NUM_SQUARES)
     {
         zobrist_key ^= ep_square_[square];
     }
