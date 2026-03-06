@@ -95,6 +95,7 @@ public:
         if (nnue_ && nnue_->is_loaded()) return *nnue_;
         return evaluator_;
     }
+    HandCraftedEvaluator& get_hce() { return evaluator_; }
     void set_nnue(NNUEEvaluator* nnue) { nnue_ = nnue; }
     NNUEEvaluator* get_nnue() const { return nnue_; }
 

@@ -51,6 +51,8 @@ void UCI::cmd_uci()
     std::cout << "option name Hash type spin default 16 min 1 max 1024" << std::endl;
     std::cout << "option name Book type check default " << (book_enabled_ ? "true" : "false")
               << std::endl;
+    std::cout << "option name Mobility type check default true" << std::endl;
+    std::cout << "option name Tempo type check default true" << std::endl;
     std::cout << "uciok" << std::endl;
 }
 
@@ -272,6 +274,18 @@ void UCI::cmd_setoption(const std::string& args)
         {
             book_enabled_ = true;
         }
+    }
+    else if (name == "Mobility")
+    {
+        EvalConfig cfg = board_.get_hce().config();
+        cfg.mobility_enabled = (value == "true");
+        board_.get_hce().set_config(cfg);
+    }
+    else if (name == "Tempo")
+    {
+        EvalConfig cfg = board_.get_hce().config();
+        cfg.tempo_enabled = (value == "true");
+        board_.get_hce().set_config(cfg);
     }
 }
 

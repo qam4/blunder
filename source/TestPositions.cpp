@@ -150,3 +150,207 @@ double test_positions_benchmark(string path_to_epd)
     cout << "time: " << elapsed_secs << "s" << endl;
     return score;
 }
+
+// Extract STS category from id string like "STS(v1.0) Undermine.001"
+static string extract_category(const string& id_str)
+{
+    // Find ") " which precedes the category name
+    auto pos = id_str.find(") ");
+    if (pos == string::npos)
+        return "";
+    string rest = id_str.substr(pos + 2);
+    // Category is everything before the last '.'
+    auto dot = rest.rfind('.');
+    if (dot == string::npos)
+        return rest;
+    return rest.substr(0, dot);
+}
+
+// Parse best moves from an EPD line (shared logic)
+static bool parse_best_moves(Board& board,
+                             vector<tuple<Move_t, int>>& best_moves,
+                             int& max_score)
+{
+    string bm = board.epd_op("bm");
+    string c0 = board.epd_op("c0");
+    string c7 = board.epd_op("c7");
+    string c8 = board.epd_op("c8");
+    string c9 = board.epd_op("c9");
+
+    if (!c0.empty() && !c7.empty() && !c8.empty() && !c9.empty())
+    {
+        vector<string> tokens = split(c0, ' ');
+        size_t num_tokens = tokens.size();
+
+        for (size_t i = 0; i < num_tokens; i++)
+        {
+            string token = tokens[i];
+            size_t len = token.length();
+            size_t pos = 0;
+            if (token[pos] == '"')
+            {
+                if (pos++ == len)
+                    return false;
+            }
+            string move_str;
+            char c = token[pos];
+            while (c != '=')
+            {
+                move_str += c;
+                if (pos++ == len)
+                    return false;
+                c = token[pos];
+            }
+            string score_str;
+            if (pos++ == len)
+                return false;
+            c = token[pos];
+            while (c != ',' && c != '"')
+            {
+                score_str += c;
+                if (pos++ == len)
+                    return false;
+                c = token[pos];
+            }
+            int best_move_score = stoi(score_str);
+            if (i == 0)
+            {
+                max_score += best_move_score;
+            }
+            auto best_move_opt = Parser::parse_san(move_str, board);
+            assert(best_move_opt.has_value());
+            best_moves.push_back({*best_move_opt, best_move_score});
+        }
+    }
+    else if (!bm.empty())
+    {
+        auto best_move_opt = Parser::parse_san(bm, board);
+        assert(best_move_opt.has_value());
+        best_moves.push_back({*best_move_opt, 1});
+        max_score++;
+    }
+    else
+    {
+        return false;
+    }
+    return true;
+}
+
+BenchmarkResult test_positions_ex(const string& path_to_epd,
+                                  SearchMode mode,
+                                  int param)
+{
+    BenchmarkResult result;
+
+    ifstream infile(path_to_epd);
+    if (!infile.is_open())
+    {
+        cout << "Error: Could not open " << path_to_epd << endl;
+        return result;
+    }
+
+    clock_t wall_start = clock();
+    string line;
+
+    while (std::getline(infile, line))
+    {
+        Board board = Parser::parse_epd(line);
+
+        // Extract category from id field
+        string id_str = board.epd_op("id");
+        string category = extract_category(id_str);
+
+        // Parse best moves
+        vector<tuple<Move_t, int>> best_moves;
+        int line_max = 0;
+        if (!parse_best_moves(board, best_moves, line_max))
+        {
+            cout << "Error: No best move found in: " << id_str << endl;
+            continue;
+        }
+        result.max_score += line_max;
+
+        // Search based on mode
+        Search search(board);
+        Move_t move = 0;
+        switch (mode)
+        {
+            case SearchMode::FixedNodes:
+                move = search.search(MAX_SEARCH_PLY, -1, param);
+                break;
+            case SearchMode::FixedDepth:
+                move = search.search(param, -1, -1);
+                break;
+            case SearchMode::FixedTime:
+                // param is milliseconds, search() expects microseconds
+                move = search.search(MAX_SEARCH_PLY, param * 1000, -1);
+                break;
+        }
+
+        result.total_nodes += search.get_stats().nodes_visited;
+
+        // Score the move
+        int move_score = 0;
+        for (const auto& bm : best_moves)
+        {
+            if (move == std::get<0>(bm))
+            {
+                move_score = std::get<1>(bm);
+                break;
+            }
+        }
+        result.score += move_score;
+
+        // Track per-category
+        if (!category.empty())
+        {
+            auto& cat = result.categories[category];
+            cat.score += move_score;
+            if (!best_moves.empty())
+            {
+                cat.max_score += std::get<1>(best_moves[0]);  // max is first entry
+            }
+            cat.positions++;
+        }
+    }
+
+    clock_t wall_end = clock();
+    result.total_time_secs =
+        static_cast<double>(wall_end - wall_start) / CLOCKS_PER_SEC;
+
+    if (result.max_score > 0)
+    {
+        result.score_pct = (100.0 * result.score) / result.max_score;
+        result.elo = static_cast<int>(44.523 * result.score_pct - 242.85);
+    }
+    if (result.total_time_secs > 0.0)
+    {
+        result.nps = static_cast<int>(
+            static_cast<double>(result.total_nodes) / result.total_time_secs);
+    }
+
+    // Print summary
+    cout << "Score=" << std::fixed << setprecision(2) << result.score_pct
+         << "% (" << result.score << "/" << result.max_score << ")" << endl;
+    cout << "ELO=" << result.elo << endl;
+    cout << "NPS=" << result.nps << endl;
+    cout << "Nodes=" << result.total_nodes
+         << " Time=" << std::fixed << setprecision(2) << result.total_time_secs << "s" << endl;
+
+    // Print per-category breakdown if any
+    if (!result.categories.empty())
+    {
+        cout << endl << "Category breakdown:" << endl;
+        for (const auto& [name, cat] : result.categories)
+        {
+            double pct = (cat.max_score > 0)
+                ? (100.0 * cat.score) / cat.max_score
+                : 0.0;
+            cout << "  " << name << ": " << std::fixed << setprecision(1)
+                 << pct << "% (" << cat.score << "/" << cat.max_score
+                 << ", " << cat.positions << " pos)" << endl;
+        }
+    }
+
+    return result;
+}
