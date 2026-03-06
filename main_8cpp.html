@@ -66,20 +66,49 @@
         <section id="func-members">
           <h2><a href="#func-members">Functions</a></h2>
           <dl class="m-doc">
-            <dt id="a402ea961bfc2ffeee61e3a7c330b1559">
-              <span class="m-doc-wrap-bumper">static void <a href="#a402ea961bfc2ffeee61e3a7c330b1559" class="m-doc-self">print_help</a>(</span><span class="m-doc-wrap">void)</span>
+            <dt id="a853216ac51aa181669ff4d3de74058a7">
+              <span class="m-doc-wrap-bumper">static void <a href="#a853216ac51aa181669ff4d3de74058a7" class="m-doc-self">print_help</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd><span></span></dd>
             <dt id="a300dbdb41c78b4fe759f8d85fe931492">
               <span class="m-doc-wrap-bumper">static void <a href="#a300dbdb41c78b4fe759f8d85fe931492" class="m-doc-self">usage</a>(</span><span class="m-doc-wrap">const string&amp; prog_name)</span>
             </dt>
             <dd><span></span></dd>
+            <dt>
+              <div class="m-doc-template">template&lt;typename Handler&gt;</div>
+              <span class="m-doc-wrap-bumper">static auto <a href="#a80d0c39e96171b783429434a90b8c8f2" class="m-doc">configure_mcts</a>(</span><span class="m-doc-wrap">Handler&amp; handler,
+              const <a href="structCLIConfig.html" class="m-doc">CLIConfig</a>&amp; cfg) -&gt; std::unique_ptr&lt;<a href="classDualHeadNetwork.html" class="m-doc">DualHeadNetwork</a>&gt;</span>
+            </dt>
+            <dd></dd>
+            <dt id="a9bbc23db328d5ba6a5de1847ab59b19a">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a9bbc23db328d5ba6a5de1847ab59b19a" class="m-doc-self">load_book</a>(</span><span class="m-doc-wrap"><a href="classBook.html" class="m-doc">Book</a>&amp; book,
+              const <a href="structCLIConfig.html" class="m-doc">CLIConfig</a>&amp; cfg) -&gt; bool</span>
+            </dt>
+            <dd>Load opening book from config. Returns true if book was loaded.</dd>
+            <dt id="a2a36907525f07833910aef05a00343fc">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a2a36907525f07833910aef05a00343fc" class="m-doc-self">load_nnue</a>(</span><span class="m-doc-wrap"><a href="classNNUEEvaluator.html" class="m-doc">NNUEEvaluator</a>&amp; nnue,
+              const <a href="structCLIConfig.html" class="m-doc">CLIConfig</a>&amp; cfg) -&gt; bool</span>
+            </dt>
+            <dd>Load NNUE weights. Returns true if loaded successfully.</dd>
             <dt id="a3c04138a5bfe5d72780bb7e82a18e627">
               <span class="m-doc-wrap-bumper">auto <a href="#a3c04138a5bfe5d72780bb7e82a18e627" class="m-doc-self">main</a>(</span><span class="m-doc-wrap">int argc,
               char** argv) -&gt; int</span>
             </dt>
             <dd><span></span></dd>
           </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a80d0c39e96171b783429434a90b8c8f2"><div>
+            <h3>
+              <div class="m-doc-template">
+                template&lt;typename Handler&gt;
+              </div>
+              <span class="m-doc-wrap-bumper">static std::unique_ptr&lt;<a href="classDualHeadNetwork.html" class="m-doc">DualHeadNetwork</a>&gt; </span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a80d0c39e96171b783429434a90b8c8f2" class="m-doc-self">configure_mcts</a>(</span><span class="m-doc-wrap">Handler&amp; handler,
+              const <a href="structCLIConfig.html" class="m-doc">CLIConfig</a>&amp; cfg)</span></span>
+            </h3>
+<p>Configure MCTS/AlphaZero mode on a protocol handler (<a href="classXboard.html" class="m-doc">Xboard</a> or <a href="classUCI.html" class="m-doc">UCI</a>). Returns the <a href="classDualHeadNetwork.html" class="m-doc">DualHeadNetwork</a> (caller must keep alive while handler runs).</p>
+          </div></section>
         </section>
       </div>
     </div>

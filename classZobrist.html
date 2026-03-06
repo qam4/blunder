@@ -59,43 +59,37 @@
             <li>
               Reference
               <ul>
-                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
-                <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pub-static-methods">Public static functions</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="typeless-methods">
-          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+        <section id="pub-static-methods">
+          <h2><a href="#pub-static-methods">Public static functions</a></h2>
           <dl class="m-doc">
-            <dt id="a494374c0dd2e71d9cb27e14db61a6bb7">
-              <span class="m-doc-wrap-bumper"><a href="#a494374c0dd2e71d9cb27e14db61a6bb7" class="m-doc-self">Zobrist</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="a2ad427106f6994478bf3c7edb8527226">
+              <span class="m-doc-wrap-bumper">static void <a href="#a2ad427106f6994478bf3c7edb8527226" class="m-doc-self">init</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Initialize static key tables. Must be called once before any <a href="classBoard.html" class="m-doc">Board</a> use.</dd>
+            <dt id="aaad9283eec40349c056aad1a49412140">
+              <span class="m-doc-wrap-bumper">static auto <a href="#aaad9283eec40349c056aad1a49412140" class="m-doc-self">get_zobrist_key</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; <a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a></span>
             </dt>
             <dd><span></span></dd>
-          </dl>
-        </section>
-        <section id="pub-methods">
-          <h2><a href="#pub-methods">Public functions</a></h2>
-          <dl class="m-doc">
-            <dt id="a4bb014cf0fa44d6d71f2c98a225e460d">
-              <span class="m-doc-wrap-bumper">auto <a href="#a4bb014cf0fa44d6d71f2c98a225e460d" class="m-doc-self">get_zobrist_key</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) const -&gt; <a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a></span>
+            <dt id="ab538e997fb912fc16bd75681c45aa055">
+              <span class="m-doc-wrap-bumper">static auto <a href="#ab538e997fb912fc16bd75681c45aa055" class="m-doc-self">get_pieces</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> piece,
+              int square) -&gt; <a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a5e7830276d2d5f31288eff610f7ec839">
-              <span class="m-doc-wrap-bumper">auto <a href="#a5e7830276d2d5f31288eff610f7ec839" class="m-doc-self">get_pieces</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> piece,
-              int square) const -&gt; <a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a></span>
+            <dt id="aa5c7ef934a2527ff92818a353c0ee460">
+              <span class="m-doc-wrap-bumper">static auto <a href="#aa5c7ef934a2527ff92818a353c0ee460" class="m-doc-self">get_castling_rights</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> rights) -&gt; <a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a86cf60f2c6a86bc114ba87137577c669">
-              <span class="m-doc-wrap-bumper">auto <a href="#a86cf60f2c6a86bc114ba87137577c669" class="m-doc-self">get_castling_rights</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> rights) const -&gt; <a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a></span>
+            <dt id="a8b43fc62e611158dc85293c9e977dbc9">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a8b43fc62e611158dc85293c9e977dbc9" class="m-doc-self">get_ep_square</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> square) -&gt; <a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a2562bf0df3d30a12740fba86a1c77ef7">
-              <span class="m-doc-wrap-bumper">auto <a href="#a2562bf0df3d30a12740fba86a1c77ef7" class="m-doc-self">get_ep_square</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> square) const -&gt; <a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a></span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="ab480ac5e5230860088afbc87ca8ab8bb">
-              <span class="m-doc-wrap-bumper">auto <a href="#ab480ac5e5230860088afbc87ca8ab8bb" class="m-doc-self">get_side</a>(</span><span class="m-doc-wrap">) const -&gt; <a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a></span>
+            <dt id="a081d2b32a89cc28af10f982b000288d6">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a081d2b32a89cc28af10f982b000288d6" class="m-doc-self">get_side</a>(</span><span class="m-doc-wrap">) -&gt; <a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a></span>
             </dt>
             <dd><span></span></dd>
           </dl>
