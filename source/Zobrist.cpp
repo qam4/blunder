@@ -12,7 +12,7 @@
 // Static member definitions
 U64 Zobrist::pieces_[NUM_PIECES][NUM_SQUARES] = {};
 U64 Zobrist::castling_rights_[FULL_CASTLING_RIGHTS + 1] = {};
-U64 Zobrist::ep_square_[NUM_SQUARES + 1] = {};
+U64 Zobrist::ep_square_[NUM_SQUARES] = {};
 U64 Zobrist::side_ = 0;
 bool Zobrist::initialized_ = false;
 
@@ -64,7 +64,7 @@ U64 Zobrist::get_zobrist_key(const Board& board)
     zobrist_key ^= castling_rights_[board.castling_rights()];
 
     U8 square = board.ep_square();
-    if (square != NULL_SQUARE && square < NUM_SQUARES)
+    if (square != NULL_SQUARE)
     {
         zobrist_key ^= ep_square_[square];
     }

@@ -98,10 +98,15 @@ class Board Parser::parse_fen(const std::string& fen)
         {
             board.set_ep_square(NULL_SQUARE);
         }
+        else if (token.length() >= 2 && token[0] >= 'a' && token[0] <= 'h'
+                 && (token[1] == '3' || token[1] == '6'))
+        {
+            char square[2] = {token[pos], token[pos + 1]};
+            board.set_ep_square(Parser::square(square));
+        }
         else
         {
-            char square[2] = { token[pos], token[pos + 1] };
-            board.set_ep_square(Parser::square(square));
+            board.set_ep_square(NULL_SQUARE);
         }
     }
 

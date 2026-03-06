@@ -248,3 +248,31 @@ TEST_CASE("parser_can_parse_move", "[parser]")
         moveParseTest("rnbqk2r/pppp1ppp/4pn2/8/1bP5/2N2N2/PPQPPPPP/R1B1KB1R b KQkq - 3 4", "e8g8")
         == build_castle(KING_CASTLE));
 }
+
+TEST_CASE("parser_handles_malformed_fen_ep_square", "[parser]")
+{
+    // Missing castling field — ep square field gets garbage
+    Board board = Parser::parse_fen("8/8/8/8/k2Pp2Q/8/8/3K4 b d3 0 1");
+    // Parser should treat "d3" as castling (invalid chars ignored) and "0" as ep
+    // which is not a valid ep square — should default to NULL_SQUARE
+    REQUIRE(board.ep_square() == NULL_SQUARE);
+
+    // Correct FEN with explicit dash for castling
+    board = Parser::parse_fen("8/8/8/8/k2Pp2Q/8/8/3K4 b - d3 0 1");
+    REQUIRE(board.ep_square() == D3);
+
+    // Invalid ep square (not rank 3 or 6)
+    board = Parser::parse_fen("8/8/8/8/8/8/8/4K2k w - e4 0 1");
+    REQUIRE(board.ep_square() == NULL_SQUARE);
+
+    // Valid ep squares
+    board = Parser::parse_fen("rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
+    REQUIRE(board.ep_square() == E3);
+
+    board = Parser::parse_fen("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2");
+    REQUIRE(board.ep_square() == E6);
+
+    // Numeric garbage as ep square
+    board = Parser::parse_fen("8/8/8/8/8/8/8/4K2k w - 0 0 1");
+    REQUIRE(board.ep_square() == NULL_SQUARE);
+}
