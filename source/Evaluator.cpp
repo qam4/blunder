@@ -5,13 +5,13 @@
  * Stockfish-style tapered evaluation with dual-phase PSQT.
  */
 
+#include <algorithm>
+
 #include "Evaluator.h"
 
 #include "Board.h"
 #include "MoveGenerator.h"
 #include "MoveList.h"
-
-#include <algorithm>
 
 // Phase constants
 static constexpr int MIDGAME_LIMIT = 15258;
@@ -25,9 +25,9 @@ static constexpr int NUM_PHASES = 2;
 // Index: 0=empty, 1=Pawn, 2=Knight, 3=Bishop, 4=Rook, 5=Queen, 6=King
 static const int PIECE_VALUE_BONUS[NUM_PHASES][NUM_PIECES / 2] = {
     // MG: empty, pawn, knight, bishop, rook, queen, king
-    {  0, 124, 781, 825, 1276, 2538, 0 },
+    { 0, 124, 781, 825, 1276, 2538, 0 },
     // EG
-    {  0, 206, 854, 915, 1380, 2682, 0 }
+    { 0, 206, 854, 915, 1380, 2682, 0 }
 };
 
 // clang-format off
@@ -79,8 +79,8 @@ static const int PIECE_SQUARE_BONUS[NUM_PHASES][5][8][4] = {
 // clang-format on
 
 HandCraftedEvaluator::HandCraftedEvaluator()
-    : piece_square_table_{}
-    , config_{}
+    : piece_square_table_ {}
+    , config_ {}
 {
     psqt_init();
 }
@@ -141,7 +141,8 @@ int HandCraftedEvaluator::evaluate(const Board& board)
     for (int square = 0; square < NUM_SQUARES; square++)
     {
         U8 piece = board[square];
-        if (piece == EMPTY) continue;
+        if (piece == EMPTY)
+            continue;
 
         if (piece & BLACK)
         {

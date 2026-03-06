@@ -36,16 +36,15 @@ TEST_CASE("test_positions_STS-Rating", "[.][slow][test-positions]")
 
 TEST_CASE("test_positions_WAC_depth8", "[.][slow][test-positions][fixed-depth]")
 {
-    auto result = test_positions_ex(test_positions_dir + "WAC.epd",
-                                    SearchMode::FixedDepth, 8);
+    auto result = test_positions_ex(test_positions_dir + "WAC.epd", SearchMode::FixedDepth, 8);
     INFO("WAC depth-8: " << result.score_pct << "% NPS=" << result.nps);
     CHECK(result.score_pct >= 50.0);
 }
 
 TEST_CASE("test_positions_STS_depth8", "[.][slow][test-positions][fixed-depth]")
 {
-    auto result = test_positions_ex(test_positions_dir + "STS1-STS15_LAN_v6.epd",
-                                    SearchMode::FixedDepth, 8);
+    auto result =
+        test_positions_ex(test_positions_dir + "STS1-STS15_LAN_v6.epd", SearchMode::FixedDepth, 8);
     INFO("STS depth-8: " << result.score_pct << "% ELO=" << result.elo << " NPS=" << result.nps);
     CHECK(result.score_pct >= 50.0);
 }
@@ -54,16 +53,16 @@ TEST_CASE("test_positions_STS_depth8", "[.][slow][test-positions][fixed-depth]")
 
 TEST_CASE("test_positions_WAC_time1s", "[.][slow][test-positions][fixed-time]")
 {
-    auto result = test_positions_ex(test_positions_dir + "WAC.epd",
-                                    SearchMode::FixedTime, 1000);  // 1 second per position
+    auto result = test_positions_ex(
+        test_positions_dir + "WAC.epd", SearchMode::FixedTime, 1000);  // 1 second per position
     INFO("WAC 1s/pos: " << result.score_pct << "% NPS=" << result.nps);
     CHECK(result.score_pct >= 50.0);
 }
 
 TEST_CASE("test_positions_STS_time1s", "[.][slow][test-positions][fixed-time]")
 {
-    auto result = test_positions_ex(test_positions_dir + "STS1-STS15_LAN_v6.epd",
-                                    SearchMode::FixedTime, 1000);
+    auto result = test_positions_ex(
+        test_positions_dir + "STS1-STS15_LAN_v6.epd", SearchMode::FixedTime, 1000);
     INFO("STS 1s/pos: " << result.score_pct << "% ELO=" << result.elo << " NPS=" << result.nps);
     CHECK(result.score_pct >= 50.0);
 }

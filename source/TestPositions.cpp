@@ -167,9 +167,7 @@ static string extract_category(const string& id_str)
 }
 
 // Parse best moves from an EPD line (shared logic)
-static bool parse_best_moves(Board& board,
-                             vector<tuple<Move_t, int>>& best_moves,
-                             int& max_score)
+static bool parse_best_moves(Board& board, vector<tuple<Move_t, int>>& best_moves, int& max_score)
 {
     string bm = board.epd_op("bm");
     string c0 = board.epd_op("c0");
@@ -219,14 +217,14 @@ static bool parse_best_moves(Board& board,
             }
             auto best_move_opt = Parser::parse_san(move_str, board);
             assert(best_move_opt.has_value());
-            best_moves.push_back({*best_move_opt, best_move_score});
+            best_moves.push_back({ *best_move_opt, best_move_score });
         }
     }
     else if (!bm.empty())
     {
         auto best_move_opt = Parser::parse_san(bm, board);
         assert(best_move_opt.has_value());
-        best_moves.push_back({*best_move_opt, 1});
+        best_moves.push_back({ *best_move_opt, 1 });
         max_score++;
     }
     else
@@ -236,9 +234,7 @@ static bool parse_best_moves(Board& board,
     return true;
 }
 
-BenchmarkResult test_positions_ex(const string& path_to_epd,
-                                  SearchMode mode,
-                                  int param)
+BenchmarkResult test_positions_ex(const string& path_to_epd, SearchMode mode, int param)
 {
     BenchmarkResult result;
 
@@ -315,8 +311,7 @@ BenchmarkResult test_positions_ex(const string& path_to_epd,
     }
 
     clock_t wall_end = clock();
-    result.total_time_secs =
-        static_cast<double>(wall_end - wall_start) / CLOCKS_PER_SEC;
+    result.total_time_secs = static_cast<double>(wall_end - wall_start) / CLOCKS_PER_SEC;
 
     if (result.max_score > 0)
     {
@@ -325,17 +320,17 @@ BenchmarkResult test_positions_ex(const string& path_to_epd,
     }
     if (result.total_time_secs > 0.0)
     {
-        result.nps = static_cast<int>(
-            static_cast<double>(result.total_nodes) / result.total_time_secs);
+        result.nps =
+            static_cast<int>(static_cast<double>(result.total_nodes) / result.total_time_secs);
     }
 
     // Print summary
-    cout << "Score=" << std::fixed << setprecision(2) << result.score_pct
-         << "% (" << result.score << "/" << result.max_score << ")" << endl;
+    cout << "Score=" << std::fixed << setprecision(2) << result.score_pct << "% (" << result.score
+         << "/" << result.max_score << ")" << endl;
     cout << "ELO=" << result.elo << endl;
     cout << "NPS=" << result.nps << endl;
-    cout << "Nodes=" << result.total_nodes
-         << " Time=" << std::fixed << setprecision(2) << result.total_time_secs << "s" << endl;
+    cout << "Nodes=" << result.total_nodes << " Time=" << std::fixed << setprecision(2)
+         << result.total_time_secs << "s" << endl;
 
     // Print per-category breakdown if any
     if (!result.categories.empty())
@@ -343,12 +338,9 @@ BenchmarkResult test_positions_ex(const string& path_to_epd,
         cout << endl << "Category breakdown:" << endl;
         for (const auto& [name, cat] : result.categories)
         {
-            double pct = (cat.max_score > 0)
-                ? (100.0 * cat.score) / cat.max_score
-                : 0.0;
-            cout << "  " << name << ": " << std::fixed << setprecision(1)
-                 << pct << "% (" << cat.score << "/" << cat.max_score
-                 << ", " << cat.positions << " pos)" << endl;
+            double pct = (cat.max_score > 0) ? (100.0 * cat.score) / cat.max_score : 0.0;
+            cout << "  " << name << ": " << std::fixed << setprecision(1) << pct << "% ("
+                 << cat.score << "/" << cat.max_score << ", " << cat.positions << " pos)" << endl;
         }
     }
 

@@ -11,7 +11,6 @@
 
 namespace MoveGenerator
 {
-
 void add_moves(U8 from, U64 targets, MoveList& list, const Board& board, const U32 flags)
 {
     while (targets)

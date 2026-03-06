@@ -9,7 +9,6 @@
 
 namespace MoveGenerator
 {
-
 // https://www.chessprogramming.org/Efficient_Generation_of_Sliding_Piece_Attacks
 // Hyperbola quiescence: https://www.chessprogramming.org/Hyperbola_Quintessence
 U64 diag_attacks_hyperbola(U64 occ, int sq)
