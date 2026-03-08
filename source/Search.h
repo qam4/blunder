@@ -17,6 +17,7 @@
 
 #include <cmath>
 #include <ctime>
+#include <vector>
 
 constexpr int NO_PV = 0;   // Not a PV node
 constexpr int IS_PV = 1;
@@ -75,6 +76,15 @@ struct SearchStats
     }
 };
 
+/// Holds one PV line result: the score and the sequence of moves.
+struct PVLine {
+    int score = -MAX_SCORE;
+    std::vector<Move_t> moves;  // PV move sequence
+
+    Move_t best_move() const { return moves.empty() ? Move_t(0U) : moves[0]; }
+    Move_t ponder_move() const { return moves.size() >= 2 ? moves[1] : Move_t(0U); }
+};
+
 class Search
 {
 public:
@@ -84,7 +94,8 @@ public:
     Move_t search(int depth,
                   int search_time = DEFAULT_SEARCH_TIME,
                   int max_nodes_visited = -1,
-                  bool xboard = false);
+                  bool xboard = false,
+                  int multipv_count = 1);
 
     // Algorithm implementations
     int alphabeta(int alpha, int beta, int depth, int is_pv, int can_null);
@@ -100,6 +111,9 @@ public:
     PrincipalVariation& get_pv() { return pv_; }
     TimeManager& get_tm() { return tm_; }
     const SearchStats& get_stats() const { return stats_; }
+
+    // Access the MultiPV results from the last search
+    const std::vector<PVLine>& get_multipv_results() const { return multipv_results_; }
 
     // Killer move accessors (for move scoring)
     Move_t get_killer(int ply, int slot) const { return killers_[ply][slot]; }
@@ -148,6 +162,11 @@ private:
 
     void store_killer(int ply, Move_t move);
     void score_killers(MoveList& list, int ply);
+
+    // MultiPV state
+    std::vector<Move_t> excluded_root_moves_;
+    std::vector<PVLine> multipv_results_;
+    std::vector<Move_t> extract_pv_moves() const;
 };
 
 #endif /* SEARCH_H */

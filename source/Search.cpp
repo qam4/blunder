@@ -84,10 +84,52 @@ void Search::score_killers(MoveList& list, int ply)
 // ---------------------------------------------------------------------------
 // Iterative deepening search
 // ---------------------------------------------------------------------------
+// Helper: format a move in UCI coordinate notation
+static std::string format_move_uci(Move_t m, const Board& board)
+{
+    Move mv(m);
+    std::string s;
+    if (mv.is_castle())
+    {
+        bool white = (board.side_to_move() == WHITE);
+        if (mv.flags() & (KING_CASTLE >> FLAGS_SHIFT))
+        {
+            s = white ? "e1g1" : "e8g8";
+        }
+        else
+        {
+            s = white ? "e1c1" : "e8c8";
+        }
+    }
+    else
+    {
+        int from = mv.from();
+        int to = mv.to();
+        s += static_cast<char>('a' + (from % 8));
+        s += static_cast<char>('1' + (from / 8));
+        s += static_cast<char>('a' + (to % 8));
+        s += static_cast<char>('1' + (to / 8));
+        if (mv.is_promotion())
+        {
+            U8 promo = mv.promote_to();
+            switch (promo)
+            {
+                case QUEEN:  s += 'q'; break;
+                case ROOK:   s += 'r'; break;
+                case BISHOP: s += 'b'; break;
+                case KNIGHT: s += 'n'; break;
+                default:     s += 'q'; break;
+            }
+        }
+    }
+    return s;
+}
+
 Move_t Search::search(int depth,
                       int search_time /*=DEFAULT_SEARCH_TIME*/,
                       int max_nodes_visited /*=-1*/,
-                      bool xboard /*=false*/)
+                      bool xboard /*=false*/,
+                      int multipv_count /*=1*/)
 {
     // If search_time is -1 and max_nodes is -1, assume allocate() was already
     // called by the caller (smart time management). Otherwise use legacy start().
@@ -105,6 +147,17 @@ Move_t Search::search(int depth,
     Move_t last_best_move = 0U;
     searched_moves_ = 0;
     nodes_visited_ = 0;
+
+    // Count legal moves to cap MultiPV count
+    MoveList legal_moves;
+    MoveGenerator::add_all_moves(legal_moves, board_, board_.side_to_move());
+    int num_legal_moves = legal_moves.length();
+    int effective_multipv = min(multipv_count, num_legal_moves);
+    if (effective_multipv < 1) effective_multipv = 1;
+
+    // Initialize multipv_results_ for the effective count
+    multipv_results_.clear();
+    multipv_results_.resize(effective_multipv);
 
     int alpha = -MAX_SCORE;
     int beta = MAX_SCORE;
@@ -125,39 +178,95 @@ Move_t Search::search(int depth,
                 }
             }
         }
-        follow_pv_ = 1;
-        max_search_ply_ = 0;
 
-        int value = alphabeta(alpha, beta, current_depth, IS_PV, DO_NULL);
+        // --- MultiPV loop ---
+        excluded_root_moves_.clear();
+        std::vector<PVLine> depth_results(effective_multipv);
+        bool depth_completed = true;
 
-        // If search was aborted (time or input), stop immediately and use
-        // the best move from the last completed iteration.
-        if (abort_)
+        for (int pv_index = 0; pv_index < effective_multipv; pv_index++)
+        {
+            // For the first PV line, use aspiration windows; for subsequent
+            // lines, use full window since we don't have a prior score.
+            int pv_alpha = (pv_index == 0) ? alpha : -MAX_SCORE;
+            int pv_beta  = (pv_index == 0) ? beta  :  MAX_SCORE;
+
+            follow_pv_ = 1;
+            max_search_ply_ = 0;
+
+            int value = alphabeta(pv_alpha, pv_beta, current_depth, IS_PV, DO_NULL);
+
+            // If search was aborted, stop and keep results from last fully completed depth
+            if (abort_)
+            {
+                depth_completed = false;
+                break;
+            }
+
+            // Aspiration window re-search (only for first PV line)
+            if (pv_index == 0)
+            {
+                if ((value <= pv_alpha) || (value >= pv_beta))
+                {
+                    pv_alpha = -MAX_SCORE;
+                    pv_beta = MAX_SCORE;
+                    follow_pv_ = 1;
+                    value = alphabeta(pv_alpha, pv_beta, current_depth, IS_PV, DO_NULL);
+
+                    if (abort_)
+                    {
+                        depth_completed = false;
+                        break;
+                    }
+                }
+                else
+                {
+                    alpha = value - ASPIRATION_WINDOW;
+                    beta = value + ASPIRATION_WINDOW;
+                }
+            }
+
+            assert(value <= MAX_SCORE);
+            assert(value >= -MAX_SCORE);
+
+            // Store score + PV for this iteration
+            depth_results[pv_index].score = value;
+            depth_results[pv_index].moves = extract_pv_moves();
+
+            // Add root move to exclusion set for subsequent PV iterations
+            Move_t root_move = depth_results[pv_index].best_move();
+            if (root_move != 0U)
+            {
+                excluded_root_moves_.push_back(root_move);
+            }
+
+            // Check time limit between PV iterations (not after the last one)
+            if (pv_index < effective_multipv - 1)
+            {
+                if (tm_.should_stop(nodes_visited_) || tm_.is_time_over(nodes_visited_))
+                {
+                    depth_completed = false;
+                    break;
+                }
+            }
+        }
+
+        // If depth was not fully completed, keep results from last completed depth
+        if (!depth_completed)
         {
             break;
         }
 
-        // Aspiration window
-        if ((value <= alpha) || (value >= beta))
-        {
-            alpha = -MAX_SCORE;
-            beta = MAX_SCORE;
-            follow_pv_ = 1;
-            value = alphabeta(alpha, beta, current_depth, IS_PV, DO_NULL);
+        // Sort results by descending score
+        std::sort(depth_results.begin(), depth_results.end(),
+                  [](const PVLine& a, const PVLine& b) { return a.score > b.score; });
 
-            if (abort_)
-            {
-                break;
-            }
-        }
-        else
-        {
-            alpha = value - ASPIRATION_WINDOW;
-            beta = value + ASPIRATION_WINDOW;
-        }
-        assert(value <= MAX_SCORE);
-        assert(value >= -MAX_SCORE);
-        search_best_move_ = pv_.get_best_move();
+        // Commit this depth's results
+        multipv_results_ = depth_results;
+
+        // Update search_best_move_ and search_best_score_ from top PV line
+        search_best_move_ = multipv_results_[0].best_move();
+        search_best_score_ = multipv_results_[0].score;
 
         clock_t current_time = clock();
         int elapsed_csecs = int((100 * double(current_time - tm_.start_time())) / CLOCKS_PER_SEC);
@@ -165,7 +274,7 @@ Move_t Search::search(int depth,
         if (xboard)
         {
             cout << current_depth << " ";
-            cout << value << " ";
+            cout << multipv_results_[0].score << " ";
             cout << elapsed_csecs << " ";
             cout << nodes_visited_ << " ";
             pv_.print(board_);
@@ -174,66 +283,36 @@ Move_t Search::search(int depth,
         else if (output_mode_ == OutputMode::UCI)
         {
             int elapsed_ms = elapsed_csecs * 10;
-            cout << "info depth " << current_depth << " score cp " << value << " nodes "
-                 << nodes_visited_ << " nps " << stats_.nps() << " time " << elapsed_ms << " pv";
-            // Output PV in coordinate notation (UCI format)
-            Board copy = board_;
-            for (int i = 0; i < pv_.length(); i++)
+
+            // Output one info line per PV line
+            for (int pv_idx = 0; pv_idx < effective_multipv; pv_idx++)
             {
-                Move_t m = pv_.get_move(i);
-                if (!is_valid_move(m, copy, false))
+                const PVLine& pvline = multipv_results_[pv_idx];
+                cout << "info depth " << current_depth
+                     << " score cp " << pvline.score
+                     << " nodes " << nodes_visited_
+                     << " nps " << stats_.nps()
+                     << " time " << elapsed_ms;
+
+                // Include multipv field only when multipv_count > 1
+                if (multipv_count > 1)
                 {
-                    break;
+                    cout << " multipv " << (pv_idx + 1);
                 }
-                Move mv(m);
-                std::string s;
-                if (mv.is_castle())
+
+                cout << " pv";
+                Board copy = board_;
+                for (const Move_t& m : pvline.moves)
                 {
-                    bool white = (copy.side_to_move() == WHITE);
-                    if (mv.flags() & (KING_CASTLE >> FLAGS_SHIFT))
+                    if (!is_valid_move(m, copy, false))
                     {
-                        s = white ? "e1g1" : "e8g8";
+                        break;
                     }
-                    else
-                    {
-                        s = white ? "e1c1" : "e8c8";
-                    }
+                    cout << " " << format_move_uci(m, copy);
+                    copy.do_move(m);
                 }
-                else
-                {
-                    int from = mv.from();
-                    int to = mv.to();
-                    s += static_cast<char>('a' + (from % 8));
-                    s += static_cast<char>('1' + (from / 8));
-                    s += static_cast<char>('a' + (to % 8));
-                    s += static_cast<char>('1' + (to / 8));
-                    if (mv.is_promotion())
-                    {
-                        U8 promo = mv.promote_to();
-                        switch (promo)
-                        {
-                            case QUEEN:
-                                s += 'q';
-                                break;
-                            case ROOK:
-                                s += 'r';
-                                break;
-                            case BISHOP:
-                                s += 'b';
-                                break;
-                            case KNIGHT:
-                                s += 'n';
-                                break;
-                            default:
-                                s += 'q';
-                                break;
-                        }
-                    }
-                }
-                cout << " " << s;
-                copy.do_move(m);
+                cout << endl;
             }
-            cout << endl;
         }
         else
         {
@@ -241,7 +320,7 @@ Move_t Search::search(int depth,
             cout << ", search ply=" << max_search_ply_;
             cout << ", searched moves=" << searched_moves_;
             cout << ", time=" << double(elapsed_csecs / 100.0) << "s";
-            cout << ", score=" << value;
+            cout << ", score=" << multipv_results_[0].score;
             cout << ", pv=";
             pv_.print(board_);
             cout << endl;
@@ -265,15 +344,14 @@ Move_t Search::search(int depth,
         }
 
         last_best_move = search_best_move_;
-        search_best_score_ = value;
 
         // Score-based time adjustment after a few depths
         if (current_depth >= 6)
         {
-            tm_.adjust_for_score(value);
+            tm_.adjust_for_score(search_best_score_);
         }
 
-        if (abs(value) >= MATE_SCORE - MAX_SEARCH_PLY)
+        if (abs(search_best_score_) >= MATE_SCORE - MAX_SEARCH_PLY)
         {
             break;
         }
@@ -284,19 +362,40 @@ Move_t Search::search(int depth,
         }
     }
 
+    // Clear exclusion set after search completes
+    excluded_root_moves_.clear();
+
     // Fallback: if search found no move (e.g. time expired before depth 1
     // completed), pick the first legal move so we never return 0.
     if (last_best_move == 0U)
     {
-        MoveList fallback;
-        MoveGenerator::add_all_moves(fallback, board_, board_.side_to_move());
-        if (fallback.length() > 0)
+        if (num_legal_moves > 0)
         {
-            last_best_move = fallback[0];
+            last_best_move = legal_moves[0];
         }
     }
 
     return last_best_move;
+}
+
+// ---------------------------------------------------------------------------
+// Extract PV moves from the PV table into a vector
+// ---------------------------------------------------------------------------
+std::vector<Move_t> Search::extract_pv_moves() const
+{
+    std::vector<Move_t> moves;
+    Board copy = board_;
+    for (int i = 0; i < pv_.length(); i++)
+    {
+        Move_t m = pv_.get_move(i);
+        if (!is_valid_move(m, copy, false))
+        {
+            break;
+        }
+        moves.push_back(m);
+        copy.do_move(m);
+    }
+    return moves;
 }
 
 // ---------------------------------------------------------------------------
@@ -400,6 +499,16 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     {
         list.sort_moves(i);
         Move_t move = list[i];
+
+        // MultiPV: skip root moves that were already chosen as better PV lines
+        if (search_ply == 0 && !excluded_root_moves_.empty()) {
+            bool excluded = false;
+            for (Move_t ex : excluded_root_moves_) {
+                if (move == ex) { excluded = true; break; }
+            }
+            if (excluded) continue;
+        }
+
         bool is_quiet = !is_capture(move) && !is_promotion(move);
         bool is_killer_move =
             (move == killers_[search_ply][0]) || (move == killers_[search_ply][1]);

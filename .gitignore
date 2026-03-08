@@ -5,6 +5,7 @@ build/
 cmake-build-*/
 prefix/
 **/.DS_Store
+output/
 scripts/output/
 scripts/__pycache__/
 baselines/

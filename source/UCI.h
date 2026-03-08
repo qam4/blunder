@@ -110,6 +110,7 @@ private:
 
     // Options
     int hash_size_mb_ = 16;
+    int multipv_count_ = 1;
 
     std::unordered_map<std::string, Handler> handlers_;
 };

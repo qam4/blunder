@@ -53,6 +53,7 @@ void UCI::cmd_uci()
               << std::endl;
     std::cout << "option name Mobility type check default true" << std::endl;
     std::cout << "option name Tempo type check default true" << std::endl;
+    std::cout << "option name MultiPV type spin default 1 min 1 max 256" << std::endl;
     std::cout << "uciok" << std::endl;
 }
 
@@ -287,6 +288,13 @@ void UCI::cmd_setoption(const std::string& args)
         cfg.tempo_enabled = (value == "true");
         board_.get_hce().set_config(cfg);
     }
+    else if (name == "MultiPV")
+    {
+        int n = std::stoi(value);
+        if (n < 1) n = 1;
+        if (n > 256) n = 256;
+        multipv_count_ = n;
+    }
 }
 
 void UCI::start_search(int depth,
@@ -392,12 +400,14 @@ void UCI::start_search(int depth,
 
             search_.set_verbose(true);
             search_.set_output_mode(Search::OutputMode::UCI);
-            best_move = search_.search(depth, -1, nodes, false);
+            best_move = search_.search(depth, -1, nodes, false, multipv_count_);
 
-            // Extract ponder move from PV
-            if (search_.get_pv().length() >= 2)
+            // Extract bestmove and ponder from top PV line
+            const auto& results = search_.get_multipv_results();
+            if (!results.empty())
             {
-                ponder_move = search_.get_pv().get_move(1);
+                best_move = results[0].best_move();
+                ponder_move = results[0].ponder_move();
             }
 
             send_bestmove(best_move, ponder_move);
