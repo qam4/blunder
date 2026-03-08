@@ -1,0 +1,55 @@
+{
+  "platforms": {
+    "linux": {
+      "engine_binary": "build/${preset}/blunder",
+      "test_binary": "build/${preset}/test/blunder_test",
+      "fast_chess": "~/fast-chess/fast-chess",
+      "opening_book": "books/i-gm1950.bin",
+      "wac_epd": "test/data/test-positions/WAC.epd",
+      "sts_epd": "test/data/test-positions/STS1-STS15_LAN_v6.epd"
+    },
+    "windows": {
+      "engine_binary": "build/${preset}/blunder.exe",
+      "test_binary": "build/${preset}/test/blunder_test.exe",
+      "fast_chess": "C:/tools/fast-chess/fast-chess.exe",
+      "opening_book": "books/i-gm1950.bin",
+      "wac_epd": "test/data/test-positions/WAC.epd",
+      "sts_epd": "test/data/test-positions/STS1-STS15_LAN_v6.epd"
+    }
+  },
+  "engines": {
+    "blunder-hce": {
+      "cmd": "${engine_binary}",
+      "protocol": "xboard",
+      "args": ["--xboard"],
+      "options": {}
+    },
+    "blunder-nnue": {
+      "cmd": "${engine_binary}",
+      "protocol": "uci",
+      "args": ["--uci"],
+      "options": {"EvalType": "nnue"}
+    },
+    "stockfish": {
+      "cmd": "/usr/local/bin/stockfish",
+      "protocol": "uci",
+      "args": [],
+      "options": {"Threads": "1", "Hash": "128"}
+    }
+  },
+  "defaults": {
+    "preset": "dev",
+    "evaluator": "hce",
+    "mode": "all",
+    "tc": "10+0.1",
+    "concurrency": 4,
+    "sprt_elo0": 0,
+    "sprt_elo1": 10,
+    "rounds": 2500,
+    "book_depth": 4,
+    "baseline_engine": "blunder-hce",
+    "candidate_engine": "blunder-hce",
+    "timeout_wac": 600,
+    "timeout_sts": 3600
+  }
+}

@@ -6,20 +6,20 @@ Build the `bench` CLI tool as a Python package under `scripts/bench/`, backed by
 
 ## Tasks
 
-- [ ] 1. Set up project scaffolding and package structure
-  - [ ] 1.1 Create `pyproject.toml` at repo root with project name `blunder-bench`, `requires-python = ">=3.10"`, zero runtime dependencies, and `[project.scripts] bench = "bench.cli:main"` entry point. Create `requirements.txt` with dev dependencies (ruff, mypy, tox, pytest, hypothesis). Create `tox.ini` with `lint`, `typecheck`, and `test` environments.
+- [x] 1. Set up project scaffolding and package structure
+  - [x] 1.1 Create `pyproject.toml` at repo root with project name `blunder-bench`, `requires-python = ">=3.10"`, zero runtime dependencies, and `[project.scripts] bench = "bench.cli:main"` entry point. Create `requirements.txt` with dev dependencies (ruff, mypy, tox, pytest, hypothesis). Create `tox.ini` with `lint`, `typecheck`, and `test` environments.
     - _Requirements: 13.1, 13.2, 13.3, 13.4, 13.5, 13.6, 13.7_
-  - [ ] 1.2 Create the `scripts/bench/` package with `__init__.py` and `__main__.py` (for `python -m bench` support). The `__main__.py` should import and call `cli.main()`.
+  - [x] 1.2 Create the `scripts/bench/` package with `__init__.py` and `__main__.py` (for `python -m bench` support). The `__main__.py` should import and call `cli.main()`.
     - _Requirements: 13.3, 13.5_
-  - [ ] 1.3 Create `scripts/bench/cli.py` with the `main()` entry point, top-level argparse parser with `--config`, `--preset`, `--verbose` global flags, and stub subcommand parsers for `run`, `gauntlet`, `compare`, `run-all`. Each subcommand should print a "not yet implemented" message and return 0.
+  - [x] 1.3 Create `scripts/bench/cli.py` with the `main()` entry point, top-level argparse parser with `--config`, `--preset`, `--verbose` global flags, and stub subcommand parsers for `run`, `gauntlet`, `compare`, `run-all`. Each subcommand should print a "not yet implemented" message and return 0.
     - _Requirements: 1.7, 8.4_
 
-- [ ] 2. Implement configuration loader (`config.py`)
-  - [ ] 2.1 Create `scripts/bench/config.py` with dataclasses (`PlatformPaths`, `EngineEntry`, `Defaults`, `Config`) and the `load_config()` function. Implement JSON loading, schema validation (required fields check), platform detection (`os.name`), variable interpolation (`${preset}`, `${engine_binary}`), path expansion (`~`, relative-to-project-root), and `.exe` appending on Windows.
+- [x] 2. Implement configuration loader (`config.py`)
+  - [x] 2.1 Create `scripts/bench/config.py` with dataclasses (`PlatformPaths`, `EngineEntry`, `Defaults`, `Config`) and the `load_config()` function. Implement JSON loading, schema validation (required fields check), platform detection (`os.name`), variable interpolation (`${preset}`, `${engine_binary}`), path expansion (`~`, relative-to-project-root), and `.exe` appending on Windows.
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 2.1, 2.2, 2.3, 8.1, 8.2, 8.3, 8.5, 8.6_
-  - [ ] 2.2 Implement engine registry resolution: lookup by name, error with available names on miss.
+  - [x] 2.2 Implement engine registry resolution: lookup by name, error with available names on miss.
     - _Requirements: 2.4, 2.5, 2.6_
-  - [ ] 2.3 Wire `load_config()` into `cli.py` so it runs before subcommand dispatch, passing the `Config` object to each handler.
+  - [x] 2.3 Wire `load_config()` into `cli.py` so it runs before subcommand dispatch, passing the `Config` object to each handler.
     - _Requirements: 1.1, 1.4, 1.7_
   - [ ]* 2.4 Write property tests for config validation (Property 1)
     - **Property 1: Config validation accepts valid configs and rejects invalid ones**
@@ -37,29 +37,29 @@ Build the `bench` CLI tool as a Python package under `scripts/bench/`, backed by
     - **Property 5: Engine registry lookup**
     - **Validates: Requirements 2.4, 2.5**
 
-- [ ] 3. Create the JSON config file
-  - [ ] 3.1 Create `scripts/bench-config.json` with `platforms` (linux/windows paths), `engines` (blunder-hce, blunder-nnue, stockfish), and `defaults` sections matching the design schema.
+- [x] 3. Create the JSON config file
+  - [x] 3.1 Create `scripts/bench-config.json` with `platforms` (linux/windows paths), `engines` (blunder-hce, blunder-nnue, stockfish), and `defaults` sections matching the design schema.
     - _Requirements: 1.2, 1.3, 2.1, 2.6, 5.4, 5.5, 12.5_
 
-- [ ] 4. Checkpoint — Verify scaffolding
+- [x] 4. Checkpoint — Verify scaffolding
   - Ensure `tox` runs lint + typecheck + tests cleanly. Ensure `pip install -e .` registers the `bench` command and `bench --help` shows subcommands. Ask the user if questions arise.
 
-- [ ] 5. Implement git metadata module (`git_meta.py`)
-  - [ ] 5.1 Create `scripts/bench/git_meta.py` with `GitInfo` dataclass and `get_git_info()` function. Run `git rev-parse --short HEAD` and `git rev-parse --abbrev-ref HEAD`, detect dirty state with `git diff --quiet`, fall back to `"unknown"` if not a git repo.
+- [x] 5. Implement git metadata module (`git_meta.py`)
+  - [x] 5.1 Create `scripts/bench/git_meta.py` with `GitInfo` dataclass and `get_git_info()` function. Run `git rev-parse --short HEAD` and `git rev-parse --abbrev-ref HEAD`, detect dirty state with `git diff --quiet`, fall back to `"unknown"` if not a git repo.
     - _Requirements: 9.1, 9.2, 9.3, 9.4_
   - [ ]* 5.2 Write property test for git hash format (Property 14)
     - **Property 14: Git hash format**
     - **Validates: Requirements 9.1**
 
-- [ ] 6. Implement CSV store module (`csv_store.py`)
-  - [ ] 6.1 Create `scripts/bench/csv_store.py` with `append_main_result()`, `append_category_results()`, `read_main_results()`, and `get_previous_result()`. Auto-create output directory and CSV files with headers if missing. Use the backward-compatible column format from the design.
+- [x] 6. Implement CSV store module (`csv_store.py`)
+  - [x] 6.1 Create `scripts/bench/csv_store.py` with `append_main_result()`, `append_category_results()`, `read_main_results()`, and `get_previous_result()`. Auto-create output directory and CSV files with headers if missing. Use the backward-compatible column format from the design.
     - _Requirements: 4.1, 4.2, 4.4, 4.5, 10.2_
   - [ ]* 6.2 Write property test for CSV round-trip (Property 8)
     - **Property 8: CSV result round-trip**
     - **Validates: Requirements 4.1, 4.2, 4.5, 10.2**
 
-- [ ] 7. Implement output parsers (`parsers.py`)
-  - [ ] 7.1 Create `scripts/bench/parsers.py` with `BenchmarkResult`, `CategoryResult`, `GauntletResult` dataclasses, `parse_benchmark_output()` for Catch2 stdout, and `parse_fastchess_output()` for fast-chess stdout. Use the regex patterns from the design.
+- [x] 7. Implement output parsers (`parsers.py`)
+  - [x] 7.1 Create `scripts/bench/parsers.py` with `BenchmarkResult`, `CategoryResult`, `GauntletResult` dataclasses, `parse_benchmark_output()` for Catch2 stdout, and `parse_fastchess_output()` for fast-chess stdout. Use the regex patterns from the design.
     - _Requirements: 3.6, 3.7, 5.6, 10.1, 12.3, 12.4_
   - [ ]* 7.2 Write property test for benchmark output parse round-trip (Property 7)
     - **Property 7: Benchmark output parsing round-trip**
@@ -68,13 +68,13 @@ Build the `bench` CLI tool as a Python package under `scripts/bench/`, backed by
     - **Property 11: Fast-chess output parsing**
     - **Validates: Requirements 5.6, 12.3, 12.4**
 
-- [ ] 8. Checkpoint — Verify core modules
+- [x] 8. Checkpoint — Verify core modules
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 9. Implement benchmark runner (`run.py`)
-  - [ ] 9.1 Create `scripts/bench/run.py` with `cmd_run()`. Implement suite/mode expansion (Cartesian product of `--suite` × `--mode`), Catch2 test name mapping, subprocess invocation of the test binary, output parsing, summary table printing, CSV logging via `csv_store`, and regression detection (WAC >2pp, STS >50pts, NPS >10% drop).
+- [x] 9. Implement benchmark runner (`run.py`)
+  - [x] 9.1 Create `scripts/bench/run.py` with `cmd_run()`. Implement suite/mode expansion (Cartesian product of `--suite` × `--mode`), Catch2 test name mapping, subprocess invocation of the test binary, output parsing, summary table printing, CSV logging via `csv_store`, and regression detection (WAC >2pp, STS >50pts, NPS >10% drop).
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 4.1, 4.2, 4.3, 4.6, 10.1, 10.4, 10.5, 11.1, 11.2, 11.3, 11.4, 11.5_
-  - [ ] 9.2 Wire `cmd_run` into the `run` subparser in `cli.py` with `--suite`, `--mode`, and `--evaluator` flags.
+  - [x] 9.2 Wire `cmd_run` into the `run` subparser in `cli.py` with `--suite`, `--mode`, and `--evaluator` flags.
     - _Requirements: 3.2, 3.3, 3.5_
   - [ ]* 9.3 Write property test for suite/mode expansion (Property 6)
     - **Property 6: Suite and mode expansion**
@@ -83,10 +83,10 @@ Build the `bench` CLI tool as a Python package under `scripts/bench/`, backed by
     - **Property 9: Regression detection thresholds**
     - **Validates: Requirements 4.6, 11.1, 11.2, 11.3, 11.4, 11.5**
 
-- [ ] 10. Implement gauntlet runner (`gauntlet.py`)
-  - [ ] 10.1 Create `scripts/bench/gauntlet.py` with `cmd_gauntlet()`. Implement fast-chess command construction from engine entries + CLI flags + config defaults, real-time stdout streaming with simultaneous file logging, output parsing for W/L/D/Elo/SPRT, and saving PGN + log to timestamped output directory.
+- [x] 10. Implement gauntlet runner (`gauntlet.py`)
+  - [x] 10.1 Create `scripts/bench/gauntlet.py` with `cmd_gauntlet()`. Implement fast-chess command construction from engine entries + CLI flags + config defaults, real-time stdout streaming with simultaneous file logging, output parsing for W/L/D/Elo/SPRT, and saving PGN + log to timestamped output directory.
     - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7, 5.8, 5.9, 5.10, 12.1, 12.2, 12.3, 12.4, 12.5, 12.6_
-  - [ ] 10.2 Wire `cmd_gauntlet` into the `gauntlet` subparser in `cli.py` with `--type`, `--baseline`, `--candidate`, `--engines`, `--tc`, `--rounds`, `--concurrency`, `--book`, `--book-depth`, `--elo0`, `--elo1`, and `--fast-chess-args` flags.
+  - [x] 10.2 Wire `cmd_gauntlet` into the `gauntlet` subparser in `cli.py` with `--type`, `--baseline`, `--candidate`, `--engines`, `--tc`, `--rounds`, `--concurrency`, `--book`, `--book-depth`, `--elo0`, `--elo1`, and `--fast-chess-args` flags.
     - _Requirements: 5.2, 5.3, 5.4, 5.5, 5.10, 12.6_
   - [ ]* 10.3 Write property test for fast-chess command construction (Property 10)
     - **Property 10: Fast-chess command construction**
@@ -95,22 +95,22 @@ Build the `bench` CLI tool as a Python package under `scripts/bench/`, backed by
     - **Property 12: Gauntlet defaults from config**
     - **Validates: Requirements 5.4**
 
-- [ ] 11. Implement comparison tool (`compare.py`)
-  - [ ] 11.1 Create `scripts/bench/compare.py` with `cmd_compare()`. Implement CSV reading and pivoting by evaluator or commit, side-by-side table display with deltas, STS per-category breakdown with >5pp highlighting, and missing-data messages.
+- [x] 11. Implement comparison tool (`compare.py`)
+  - [x] 11.1 Create `scripts/bench/compare.py` with `cmd_compare()`. Implement CSV reading and pivoting by evaluator or commit, side-by-side table display with deltas, STS per-category breakdown with >5pp highlighting, and missing-data messages.
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 10.3_
-  - [ ] 11.2 Wire `cmd_compare` into the `compare` subparser in `cli.py` with `--by` and `--commits` flags.
+  - [x] 11.2 Wire `cmd_compare` into the `compare` subparser in `cli.py` with `--by` and `--commits` flags.
     - _Requirements: 6.2, 6.4_
   - [ ]* 11.3 Write property test for STS category strength/weakness classification (Property 13)
     - **Property 13: STS category strength/weakness classification**
     - **Validates: Requirements 6.5, 10.5**
 
-- [ ] 12. Implement run-all pipeline (`run_all.py`)
-  - [ ] 12.1 Create `scripts/bench/run_all.py` with `cmd_run_all()`. Orchestrate `cmd_run(--suite all --mode all)` then `cmd_gauntlet(--type sprt)`, collect failures without aborting, print consolidated summary.
+- [x] 12. Implement run-all pipeline (`run_all.py`)
+  - [x] 12.1 Create `scripts/bench/run_all.py` with `cmd_run_all()`. Orchestrate `cmd_run(--suite all --mode all)` then `cmd_gauntlet(--type sprt)`, collect failures without aborting, print consolidated summary.
     - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6_
-  - [ ] 12.2 Wire `cmd_run_all` into the `run-all` subparser in `cli.py` with `--evaluator` flag.
+  - [x] 12.2 Wire `cmd_run_all` into the `run-all` subparser in `cli.py` with `--evaluator` flag.
     - _Requirements: 7.6_
 
-- [ ] 13. Final checkpoint — Full validation
+- [x] 13. Final checkpoint — Full validation
   - Ensure `tox` passes all environments (lint, typecheck, test). Ensure `bench run --help`, `bench gauntlet --help`, `bench compare --help`, and `bench run-all --help` all display correct flags. Ask the user if questions arise.
 
 ## Notes

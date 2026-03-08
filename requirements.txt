@@ -1,0 +1,7 @@
+# Runtime: no external dependencies (stdlib only)
+# Dev dependencies:
+ruff>=0.4.0
+mypy>=1.10.0
+tox>=4.0
+pytest>=8.0
+hypothesis>=6.100

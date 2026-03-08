@@ -16,3 +16,15 @@ CMakeUserPresets.json
 weights/*.bin
 training_data/
 
+
+# Python bytecode
+__pycache__/
+
+# Hypothesis test caches
+.hypothesis/
+
+# Python egg-info
+*.egg-info/
+
+# Sensitive files
+token.txt
