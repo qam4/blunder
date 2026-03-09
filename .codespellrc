@@ -4,4 +4,4 @@ check-filenames =
 check-hidden =
 skip = */.git,*/build,*/prefix,*/.mypy_cache,*/__pycache__
 quiet-level = 2
-ignore-words-list = sowe,soea,nowe,noea
+ignore-words-list = sowe,soea,nowe,noea,iff

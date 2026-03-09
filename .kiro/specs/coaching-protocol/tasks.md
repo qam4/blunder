@@ -101,7 +101,7 @@ Implement the Coaching Protocol in Blunder by adding four new components (CoachJ
     - **Validates: Requirements 13.3, 13.4**
     - **Property 10: Eval drop non-negativity** — For diverse positions and moves, verify eval_drop_cp >= 0 and equals best_eval_cp - user_eval_cp
     - **Validates: Requirements 13.2**
-    - **Property 11: Refutation line presence** — For diverse comparison reports, verify refutation_line is non-null/non-empty iff classification is blunder
+    - **Property 11: Refutation line presence** — For diverse comparison reports, verify refutation_line is non-null/non-empty if and only if classification is blunder
     - **Validates: Requirements 14.1, 14.2**
 
 - [x] 5. Checkpoint — Ensure all tests pass

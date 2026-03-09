@@ -460,7 +460,7 @@ The current version is **1.0.0**.
 
 ## 6. Implementation Notes
 
-### For Engine Implementors (Blunder)
+### For Engine Implementers (Blunder)
 
 1. **Command parsing**: Split the input line on spaces. First token is `coach`, second is the command name, remaining tokens are key-value parameters.
 2. **JSON output**: Use compact JSON (no pretty-printing) for the single-line payload between markers.
@@ -470,7 +470,7 @@ The current version is **1.0.0**.
 6. **Eval perspective**: All `eval_cp` values are from the side-to-move perspective. Positive means the side to move is better.
 7. **Move notation**: All moves in `moves`, `user_move`, `best_move`, and `refutation_line` fields use UCI notation (e.g. `"e2e4"`, `"e7e8q"` for promotion).
 
-### For Client Implementors (chess-coach)
+### For Client Implementers (chess-coach)
 
 1. **Handshake order**: Send `uci` → wait for `uciok` → send `isready` → wait for `readyok` → send `coach ping` → wait for response or timeout.
 2. **Timeout**: Use a 2-second timeout for `coach ping` and a configurable timeout (default 30s) for `coach eval` and `coach compare`.

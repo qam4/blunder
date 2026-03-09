@@ -116,7 +116,7 @@ Add MultiPV support to the blunder chess engine's UCI protocol and alpha-beta se
 
   - [ ]* 6.3 Write property test: Multipv field conditional presence (Property 6)
     - **Property 6: Multipv field conditional presence**
-    - Capture info output, verify `multipv` field present iff `multipv_count > 1`, values range from 1 to number of PV lines
+    - Capture info output, verify `multipv` field present if and only if `multipv_count > 1`, values range from 1 to number of PV lines
     - **Validates: Requirements 4.1, 4.3**
 
   - [ ]* 6.4 Write property test: Info line field completeness (Property 7)
