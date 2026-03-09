@@ -16,6 +16,7 @@
 
 #include "Board.h"
 #include "Book.h"
+#include "CoachDispatcher.h"
 #include "DualHeadNetwork.h"
 #include "MCTS.h"
 #include "NNUEEvaluator.h"
@@ -94,6 +95,7 @@ private:
     Book book_;
     bool book_enabled_ = false;
     NNUEEvaluator* nnue_ = nullptr;
+    CoachDispatcher coach_dispatcher_;
 
     // MCTS configuration
     bool use_mcts_ = false;

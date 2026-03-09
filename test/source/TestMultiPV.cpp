@@ -5,11 +5,11 @@
  * Validates: Requirements 1.1, 2.3, 6.1, 7.1, 7.2
  */
 
-#include <catch2/catch_test_macros.hpp>
-
 #include <iostream>
 #include <sstream>
 #include <string>
+
+#include <catch2/catch_test_macros.hpp>
 
 #include "Board.h"
 #include "Book.h"
@@ -23,7 +23,7 @@
 static const std::string BOOK_PATH = std::string(PROJECT_ROOT_DIR) + "/books/i-gm1950.bin";
 
 // Helper: capture stdout while executing a callable
-template <typename Func>
+template<typename Func>
 static std::string capture_stdout(Func&& fn)
 {
     std::ostringstream captured;
@@ -43,12 +43,14 @@ TEST_CASE("uci handshake advertises MultiPV option", "[multipv][uci]")
 
     // Capture the output of sending "uci" command by calling cmd_uci indirectly.
     // We feed "uci\nquit\n" via stdin redirection.
-    std::string output = capture_stdout([&]() {
-        std::istringstream input("uci\nquit\n");
-        std::streambuf* old_cin = std::cin.rdbuf(input.rdbuf());
-        uci.run();
-        std::cin.rdbuf(old_cin);
-    });
+    std::string output = capture_stdout(
+        [&]()
+        {
+            std::istringstream input("uci\nquit\n");
+            std::streambuf* old_cin = std::cin.rdbuf(input.rdbuf());
+            uci.run();
+            std::cin.rdbuf(old_cin);
+        });
 
     // Verify the MultiPV option line is present
     std::string expected_option = "option name MultiPV type spin default 1 min 1 max 256";
@@ -80,7 +82,6 @@ TEST_CASE("default MultiPV count is 1", "[multipv][search]")
     REQUIRE(results[0].best_move() != Move_t(0U));
 }
 
-
 // ============================================================================
 // Req 6.1: Book move takes precedence over MultiPV search
 // ============================================================================
@@ -97,17 +98,19 @@ TEST_CASE("book move takes precedence over MultiPV search", "[multipv][book]")
     // Send commands: set MultiPV to 4, set starting position, go depth 4
     // The starting position is in the book, so a book move should be returned
     // without performing a MultiPV search.
-    std::string output = capture_stdout([&]() {
-        std::istringstream input(
-            "uci\n"
-            "setoption name MultiPV value 4\n"
-            "position startpos\n"
-            "go depth 4\n"
-            "quit\n");
-        std::streambuf* old_cin = std::cin.rdbuf(input.rdbuf());
-        uci.run();
-        std::cin.rdbuf(old_cin);
-    });
+    std::string output = capture_stdout(
+        [&]()
+        {
+            std::istringstream input(
+                "uci\n"
+                "setoption name MultiPV value 4\n"
+                "position startpos\n"
+                "go depth 4\n"
+                "quit\n");
+            std::streambuf* old_cin = std::cin.rdbuf(input.rdbuf());
+            uci.run();
+            std::cin.rdbuf(old_cin);
+        });
 
     // The output should contain "bestmove" (book move returned)
     REQUIRE(output.find("bestmove") != std::string::npos);

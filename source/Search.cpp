@@ -114,11 +114,21 @@ static std::string format_move_uci(Move_t m, const Board& board)
             U8 promo = mv.promote_to();
             switch (promo)
             {
-                case QUEEN:  s += 'q'; break;
-                case ROOK:   s += 'r'; break;
-                case BISHOP: s += 'b'; break;
-                case KNIGHT: s += 'n'; break;
-                default:     s += 'q'; break;
+                case QUEEN:
+                    s += 'q';
+                    break;
+                case ROOK:
+                    s += 'r';
+                    break;
+                case BISHOP:
+                    s += 'b';
+                    break;
+                case KNIGHT:
+                    s += 'n';
+                    break;
+                default:
+                    s += 'q';
+                    break;
             }
         }
     }
@@ -153,7 +163,8 @@ Move_t Search::search(int depth,
     MoveGenerator::add_all_moves(legal_moves, board_, board_.side_to_move());
     int num_legal_moves = legal_moves.length();
     int effective_multipv = min(multipv_count, num_legal_moves);
-    if (effective_multipv < 1) effective_multipv = 1;
+    if (effective_multipv < 1)
+        effective_multipv = 1;
 
     // Initialize multipv_results_ for the effective count
     multipv_results_.clear();
@@ -189,7 +200,7 @@ Move_t Search::search(int depth,
             // For the first PV line, use aspiration windows; for subsequent
             // lines, use full window since we don't have a prior score.
             int pv_alpha = (pv_index == 0) ? alpha : -MAX_SCORE;
-            int pv_beta  = (pv_index == 0) ? beta  :  MAX_SCORE;
+            int pv_beta = (pv_index == 0) ? beta : MAX_SCORE;
 
             follow_pv_ = 1;
             max_search_ply_ = 0;
@@ -258,7 +269,8 @@ Move_t Search::search(int depth,
         }
 
         // Sort results by descending score
-        std::sort(depth_results.begin(), depth_results.end(),
+        std::sort(depth_results.begin(),
+                  depth_results.end(),
                   [](const PVLine& a, const PVLine& b) { return a.score > b.score; });
 
         // Commit this depth's results
@@ -288,11 +300,8 @@ Move_t Search::search(int depth,
             for (int pv_idx = 0; pv_idx < effective_multipv; pv_idx++)
             {
                 const PVLine& pvline = multipv_results_[pv_idx];
-                cout << "info depth " << current_depth
-                     << " score cp " << pvline.score
-                     << " nodes " << nodes_visited_
-                     << " nps " << stats_.nps()
-                     << " time " << elapsed_ms;
+                cout << "info depth " << current_depth << " score cp " << pvline.score << " nodes "
+                     << nodes_visited_ << " nps " << stats_.nps() << " time " << elapsed_ms;
 
                 // Include multipv field only when multipv_count > 1
                 if (multipv_count > 1)
@@ -501,12 +510,19 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
         Move_t move = list[i];
 
         // MultiPV: skip root moves that were already chosen as better PV lines
-        if (search_ply == 0 && !excluded_root_moves_.empty()) {
+        if (search_ply == 0 && !excluded_root_moves_.empty())
+        {
             bool excluded = false;
-            for (Move_t ex : excluded_root_moves_) {
-                if (move == ex) { excluded = true; break; }
+            for (Move_t ex : excluded_root_moves_)
+            {
+                if (move == ex)
+                {
+                    excluded = true;
+                    break;
+                }
             }
-            if (excluded) continue;
+            if (excluded)
+                continue;
         }
 
         bool is_quiet = !is_capture(move) && !is_promotion(move);

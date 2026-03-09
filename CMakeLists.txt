@@ -46,6 +46,10 @@ add_library(
     source/See.cpp
     source/Evaluator.cpp
     source/NNUEEvaluator.cpp
+    source/CoachJson.cpp
+    source/CoachDispatcher.cpp
+    source/PositionAnalyzer.cpp
+    source/MoveComparator.cpp
 )
 
 target_include_directories(

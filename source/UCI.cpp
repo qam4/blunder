@@ -18,6 +18,7 @@
 
 UCI::UCI()
     : search_(board_)
+    , coach_dispatcher_(board_, search_, nullptr)
 {
     init_handlers();
 }
@@ -41,6 +42,7 @@ void UCI::init_handlers()
     handlers_["stop"] = [this](const std::string& /*args*/) { cmd_stop(); };
     handlers_["setoption"] = [this](const std::string& args) { cmd_setoption(args); };
     handlers_["quit"] = [](const std::string& /*args*/) {};  // handled in run()
+    handlers_["coach"] = [this](const std::string& args) { coach_dispatcher_.dispatch(args); };
 }
 
 void UCI::cmd_uci()
@@ -291,8 +293,10 @@ void UCI::cmd_setoption(const std::string& args)
     else if (name == "MultiPV")
     {
         int n = std::stoi(value);
-        if (n < 1) n = 1;
-        if (n > 256) n = 256;
+        if (n < 1)
+            n = 1;
+        if (n > 256)
+            n = 256;
         multipv_count_ = n;
     }
 }
