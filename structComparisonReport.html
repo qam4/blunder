@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>source/Search.cpp file | blunder</title>
+  <title>ComparisonReport struct | blunder</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,7 +49,8 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="dir_b2f33c71d4aa5e7af42a1ca61ff5af1b.html">source</a>/</span>Search.cpp <span class="m-thin">file</span>
+          ComparisonReport <span class="m-thin">struct</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="MoveComparator_8h.html">&lt;MoveComparator.h&gt;</a></div>
         </h1>
         <p><span></span></p>
         <div class="m-block m-default">
@@ -58,17 +59,68 @@
             <li>
               Reference
               <ul>
-                <li><a href="#func-members">Functions</a></li>
+                <li><a href="#pub-attribs">Public variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="func-members">
-          <h2><a href="#func-members">Functions</a></h2>
+        <section id="pub-attribs">
+          <h2><a href="#pub-attribs">Public variables</a></h2>
           <dl class="m-doc">
-            <dt id="a6cd0e683d8be2a9c1c393f65446774e9">
-              <span class="m-doc-wrap-bumper">static auto <a href="#a6cd0e683d8be2a9c1c393f65446774e9" class="m-doc-self">format_move_uci</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc">Move_<wbr />t</a> m,
-              const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; std::string</span>
+            <dt id="ad001b0ff1deb8fb3ae0443e0933eb20f">
+              std::string <a href="#ad001b0ff1deb8fb3ae0443e0933eb20f" class="m-doc-self">fen</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="adc29541b571bddb6d3f6845159a0eb0b">
+              std::string <a href="#adc29541b571bddb6d3f6845159a0eb0b" class="m-doc-self">user_move</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a7d78c1bcc88f8040d646ebb726bde731">
+              int <a href="#a7d78c1bcc88f8040d646ebb726bde731" class="m-doc-self">user_eval_cp</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a78d86b823b2a2a65c75c7d4e08265b89">
+              std::string <a href="#a78d86b823b2a2a65c75c7d4e08265b89" class="m-doc-self">best_move</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="aff4bde1a73b64a2e2ddb76ba1e43a769">
+              int <a href="#aff4bde1a73b64a2e2ddb76ba1e43a769" class="m-doc-self">best_eval_cp</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a315e62a9de5050ae304f83828cc5fec5">
+              int <a href="#a315e62a9de5050ae304f83828cc5fec5" class="m-doc-self">eval_drop_cp</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a83eae2aecd2dc6fb172d5a3039426cb1">
+              std::string <a href="#a83eae2aecd2dc6fb172d5a3039426cb1" class="m-doc-self">classification</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="aef5beb48f86b0d014b2eb6f9d09f8c02">
+              std::string <a href="#aef5beb48f86b0d014b2eb6f9d09f8c02" class="m-doc-self">nag</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ab774a194fe86fd12d600e8a3abf6977c">
+              std::string <a href="#ab774a194fe86fd12d600e8a3abf6977c" class="m-doc-self">best_move_idea</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="aa36ef02abd7990e261a046a6fb7a2f7a">
+              std::vector&lt;std::string&gt; <a href="#aa36ef02abd7990e261a046a6fb7a2f7a" class="m-doc-self">refutation_line</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a360c28f3a117ad03d44513a234ac7a3e">
+              std::vector&lt;<a href="structTactic.html" class="m-doc">Tactic</a>&gt; <a href="#a360c28f3a117ad03d44513a234ac7a3e" class="m-doc-self">missed_tactics</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a23db76752036ace8a6505a2c421315d4">
+              std::vector&lt;<a href="structPVLine.html" class="m-doc">PVLine</a>&gt; <a href="#a23db76752036ace8a6505a2c421315d4" class="m-doc-self">top_lines</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a2b803c79b822610b1627664c080bc9ea">
+              bool <a href="#a2b803c79b822610b1627664c080bc9ea" class="m-doc-self">critical_moment</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ab3e5179c8615e826d77f76e31e9e02b0">
+              std::string <a href="#ab3e5179c8615e826d77f76e31e9e02b0" class="m-doc-self">critical_reason</a>
             </dt>
             <dd><span></span></dd>
           </dl>

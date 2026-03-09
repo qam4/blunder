@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>source/Search.cpp file | blunder</title>
+  <title>MoveComparator class | blunder</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,7 +49,8 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="dir_b2f33c71d4aa5e7af42a1ca61ff5af1b.html">source</a>/</span>Search.cpp <span class="m-thin">file</span>
+          MoveComparator <span class="m-thin">class</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="MoveComparator_8h.html">&lt;MoveComparator.h&gt;</a></div>
         </h1>
         <p><span></span></p>
         <div class="m-block m-default">
@@ -58,17 +59,34 @@
             <li>
               Reference
               <ul>
-                <li><a href="#func-members">Functions</a></li>
+                <li><a href="#pub-static-methods">Public static functions</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="func-members">
-          <h2><a href="#func-members">Functions</a></h2>
+        <section id="pub-static-methods">
+          <h2><a href="#pub-static-methods">Public static functions</a></h2>
           <dl class="m-doc">
-            <dt id="a6cd0e683d8be2a9c1c393f65446774e9">
-              <span class="m-doc-wrap-bumper">static auto <a href="#a6cd0e683d8be2a9c1c393f65446774e9" class="m-doc-self">format_move_uci</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc">Move_<wbr />t</a> m,
-              const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; std::string</span>
+            <dt id="a866074b03e8e1159c986402e4b77061a">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a866074b03e8e1159c986402e4b77061a" class="m-doc-self">compare</a>(</span><span class="m-doc-wrap"><a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="classSearch.html" class="m-doc">Search</a>&amp; search,
+              <a href="Move_8h.html#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc">Move_<wbr />t</a> user_move,
+              int multipv_count = 3) -&gt; <a href="structComparisonReport.html" class="m-doc">ComparisonReport</a></span>
+            </dt>
+            <dd>Full comparison flow (stub — implemented in task 4.2)</dd>
+            <dt id="ad49c0c5f963052d4fcdf322e17c458d5">
+              <span class="m-doc-wrap-bumper">static auto <a href="#ad49c0c5f963052d4fcdf322e17c458d5" class="m-doc-self">classify</a>(</span><span class="m-doc-wrap">int eval_drop_cp) -&gt; std::string</span>
+            </dt>
+            <dd>Classification helpers (testable in isolation)</dd>
+            <dt id="aba7df4d1da7a81ddff5224b459116145">
+              <span class="m-doc-wrap-bumper">static auto <a href="#aba7df4d1da7a81ddff5224b459116145" class="m-doc-self">compute_nag</a>(</span><span class="m-doc-wrap">int eval_drop_cp,
+              bool is_best_move) -&gt; std::string</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="af499446aa8628d4667d9ad675bb845f2">
+              <span class="m-doc-wrap-bumper">static auto <a href="#af499446aa8628d4667d9ad675bb845f2" class="m-doc-self">describe_best_move</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="Move_8h.html#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc">Move_<wbr />t</a> best_move,
+              const std::vector&lt;<a href="Move_8h.html#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc">Move_<wbr />t</a>&gt;&amp; pv_moves) -&gt; std::string</span>
             </dt>
             <dd><span></span></dd>
           </dl>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>source/Search.h file | blunder</title>
+  <title>PositionAnalyzer class | blunder</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,7 +49,8 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="dir_b2f33c71d4aa5e7af42a1ca61ff5af1b.html">source</a>/</span>Search.h <span class="m-thin">file</span>
+          PositionAnalyzer <span class="m-thin">class</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="PositionAnalyzer_8h.html">&lt;PositionAnalyzer.h&gt;</a></div>
         </h1>
         <p><span></span></p>
         <div class="m-block m-default">
@@ -58,46 +59,60 @@
             <li>
               Reference
               <ul>
-                <li><a href="#nested-classes">Classes</a></li>
-                <li><a href="#var-members">Variables</a></li>
+                <li><a href="#pub-static-methods">Public static functions</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="nested-classes">
-          <h2><a href="#nested-classes">Classes</a></h2>
+        <section id="pub-static-methods">
+          <h2><a href="#pub-static-methods">Public static functions</a></h2>
           <dl class="m-doc">
-            <dt>
-              struct <a href="structSearchStats.html" class="m-doc">SearchStats</a>
+            <dt id="a610d7376b2bb31d3aa2e46f0c66cb506">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a610d7376b2bb31d3aa2e46f0c66cb506" class="m-doc-self">analyze</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              const std::vector&lt;<a href="structPVLine.html" class="m-doc">PVLine</a>&gt;&amp; pv_lines) -&gt; <a href="structPositionReport.html" class="m-doc">PositionReport</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt>
-              struct <a href="structPVLine.html" class="m-doc">PVLine</a>
-            </dt>
-            <dd>Holds one PV line result: the score and the sequence of moves.</dd>
-            <dt>
-              class <a href="classSearch.html" class="m-doc">Search</a>
+            <dt id="a4c498389666f376960c8ee75fdbd5302">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a4c498389666f376960c8ee75fdbd5302" class="m-doc-self">compute_eval_breakdown</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; <a href="structEvalBreakdown.html" class="m-doc">EvalBreakdown</a></span>
             </dt>
             <dd><span></span></dd>
-          </dl>
-        </section>
-        <section id="var-members">
-          <h2><a href="#var-members">Variables</a></h2>
-          <dl class="m-doc">
-            <dt id="a71a9d567fd7f8e87bd310ec1e3387f64">
-              int <a href="#a71a9d567fd7f8e87bd310ec1e3387f64" class="m-doc-self">NO_PV</a> <span class="m-label m-flat m-primary">constexpr</span>
+            <dt id="a02f6d8e3dc3be82176000d28f444596f">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a02f6d8e3dc3be82176000d28f444596f" class="m-doc-self">find_hanging_pieces</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> side) -&gt; std::vector&lt;<a href="structHangingPiece.html" class="m-doc">HangingPiece</a>&gt;</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="aa9f076a655b04113bf596f34ee59a2b6">
-              int <a href="#aa9f076a655b04113bf596f34ee59a2b6" class="m-doc-self">IS_PV</a> <span class="m-label m-flat m-primary">constexpr</span>
+            <dt id="a56455ca27dcb03419317652440806cbf">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a56455ca27dcb03419317652440806cbf" class="m-doc-self">find_threats</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> side) -&gt; std::vector&lt;<a href="structThreat.html" class="m-doc">Threat</a>&gt;</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="af725d031c8f06e212b78ec4b85a99cbe">
-              int <a href="#af725d031c8f06e212b78ec4b85a99cbe" class="m-doc-self">NO_NULL</a> <span class="m-label m-flat m-primary">constexpr</span>
+            <dt id="a8bfa3c636e9ff0cfcd4c8105fdacee1d">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a8bfa3c636e9ff0cfcd4c8105fdacee1d" class="m-doc-self">analyze_pawns</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> side) -&gt; <a href="structPawnFeatures.html" class="m-doc">PawnFeatures</a></span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a021474ba86d7ee3d8e07d338fbd210a9">
-              int <a href="#a021474ba86d7ee3d8e07d338fbd210a9" class="m-doc-self">DO_NULL</a> <span class="m-label m-flat m-primary">constexpr</span>
+            <dt id="aaaadc27806fe547266bca42bf5086da1">
+              <span class="m-doc-wrap-bumper">static auto <a href="#aaaadc27806fe547266bca42bf5086da1" class="m-doc-self">assess_king_safety</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> side) -&gt; <a href="structKingSafety.html" class="m-doc">KingSafety</a></span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a2d0d1260bebadf7d7ec7926eaf7bf2c8">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a2d0d1260bebadf7d7ec7926eaf7bf2c8" class="m-doc-self">build_threat_map</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; std::vector&lt;<a href="structThreatMapEntry.html" class="m-doc">ThreatMapEntry</a>&gt;</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a450c29f9d911d3c6aa0240a9fcf5fb6e">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a450c29f9d911d3c6aa0240a9fcf5fb6e" class="m-doc-self">detect_tactics</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              const std::vector&lt;<a href="structPVLine.html" class="m-doc">PVLine</a>&gt;&amp; pv_lines) -&gt; std::vector&lt;<a href="structTactic.html" class="m-doc">Tactic</a>&gt;</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="aeb708676fff6580045495b7cfa1fed6b">
+              <span class="m-doc-wrap-bumper">static auto <a href="#aeb708676fff6580045495b7cfa1fed6b" class="m-doc-self">is_critical_moment</a>(</span><span class="m-doc-wrap">const std::vector&lt;<a href="structPVLine.html" class="m-doc">PVLine</a>&gt;&amp; pv_lines,
+              std::string&amp; reason) -&gt; bool</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a5f1b9804f363d339a88184d5f77a6046">
+              <span class="m-doc-wrap-bumper">static auto <a href="#a5f1b9804f363d339a88184d5f77a6046" class="m-doc-self">label_line_theme</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board,
+              const std::vector&lt;<a href="Move_8h.html#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc">Move_<wbr />t</a>&gt;&amp; moves) -&gt; std::string</span>
             </dt>
             <dd><span></span></dd>
           </dl>

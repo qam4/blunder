@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>source/Search.cpp file | blunder</title>
+  <title>PositionReport struct | blunder</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,7 +49,8 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="dir_b2f33c71d4aa5e7af42a1ca61ff5af1b.html">source</a>/</span>Search.cpp <span class="m-thin">file</span>
+          PositionReport <span class="m-thin">struct</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="PositionAnalyzer_8h.html">&lt;PositionAnalyzer.h&gt;</a></div>
         </h1>
         <p><span></span></p>
         <div class="m-block m-default">
@@ -58,17 +59,76 @@
             <li>
               Reference
               <ul>
-                <li><a href="#func-members">Functions</a></li>
+                <li><a href="#pub-attribs">Public variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="func-members">
-          <h2><a href="#func-members">Functions</a></h2>
+        <section id="pub-attribs">
+          <h2><a href="#pub-attribs">Public variables</a></h2>
           <dl class="m-doc">
-            <dt id="a6cd0e683d8be2a9c1c393f65446774e9">
-              <span class="m-doc-wrap-bumper">static auto <a href="#a6cd0e683d8be2a9c1c393f65446774e9" class="m-doc-self">format_move_uci</a>(</span><span class="m-doc-wrap"><a href="Move_8h.html#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc">Move_<wbr />t</a> m,
-              const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; std::string</span>
+            <dt id="a8f67ca1c4cfe40c7511f5826e8e609d0">
+              std::string <a href="#a8f67ca1c4cfe40c7511f5826e8e609d0" class="m-doc-self">fen</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ab030e5c3225f841d211d4a4c5d6afc30">
+              int <a href="#ab030e5c3225f841d211d4a4c5d6afc30" class="m-doc-self">eval_cp</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a6c56e2a1facae11170945d465c109c92">
+              <a href="structEvalBreakdown.html" class="m-doc">EvalBreakdown</a> <a href="#a6c56e2a1facae11170945d465c109c92" class="m-doc-self">breakdown</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a594b481b6efd391d24c7f87abdce6d1f">
+              std::vector&lt;<a href="structHangingPiece.html" class="m-doc">HangingPiece</a>&gt; <a href="#a594b481b6efd391d24c7f87abdce6d1f" class="m-doc-self">hanging_white</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a709d0aedf99a69ce797ef8fe262f39ab">
+              std::vector&lt;<a href="structHangingPiece.html" class="m-doc">HangingPiece</a>&gt; <a href="#a709d0aedf99a69ce797ef8fe262f39ab" class="m-doc-self">hanging_black</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="af94f96ac4697f76c0bc334aeba060276">
+              std::vector&lt;<a href="structThreat.html" class="m-doc">Threat</a>&gt; <a href="#af94f96ac4697f76c0bc334aeba060276" class="m-doc-self">threats_white</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a9952b1c7782ebbe4c49d4d8467614dd9">
+              std::vector&lt;<a href="structThreat.html" class="m-doc">Threat</a>&gt; <a href="#a9952b1c7782ebbe4c49d4d8467614dd9" class="m-doc-self">threats_black</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ad6492f94c351194eaac569ea3402bf6d">
+              <a href="structPawnFeatures.html" class="m-doc">PawnFeatures</a> <a href="#ad6492f94c351194eaac569ea3402bf6d" class="m-doc-self">pawns_white</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a808d50ded8aa774b84019e095effc617">
+              <a href="structPawnFeatures.html" class="m-doc">PawnFeatures</a> <a href="#a808d50ded8aa774b84019e095effc617" class="m-doc-self">pawns_black</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="afffcca586ce5365440d6686fcaac2fa7">
+              <a href="structKingSafety.html" class="m-doc">KingSafety</a> <a href="#afffcca586ce5365440d6686fcaac2fa7" class="m-doc-self">king_safety_white</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a932a153a286325144077be16c6e4ec8e">
+              <a href="structKingSafety.html" class="m-doc">KingSafety</a> <a href="#a932a153a286325144077be16c6e4ec8e" class="m-doc-self">king_safety_black</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a011980e388d29a34625a4ea1c830d62e">
+              std::vector&lt;<a href="structPVLine.html" class="m-doc">PVLine</a>&gt; <a href="#a011980e388d29a34625a4ea1c830d62e" class="m-doc-self">top_lines</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a57eada9a9f657fdeb977a8030fc3b887">
+              std::vector&lt;<a href="structTactic.html" class="m-doc">Tactic</a>&gt; <a href="#a57eada9a9f657fdeb977a8030fc3b887" class="m-doc-self">tactics</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a13a17a84b6074cea903113cf979717df">
+              std::vector&lt;<a href="structThreatMapEntry.html" class="m-doc">ThreatMapEntry</a>&gt; <a href="#a13a17a84b6074cea903113cf979717df" class="m-doc-self">threat_map</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a53604771e0b579263fd7c46644e631e7">
+              bool <a href="#a53604771e0b579263fd7c46644e631e7" class="m-doc-self">critical_moment</a>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="aad8f209b9779aea9376fc85e9883973f">
+              std::string <a href="#aad8f209b9779aea9376fc85e9883973f" class="m-doc-self">critical_reason</a>
             </dt>
             <dd><span></span></dd>
           </dl>

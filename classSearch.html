@@ -89,11 +89,12 @@
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
-            <dt id="ad803d42a2bac2b66b50e5c3e22f21902">
-              <span class="m-doc-wrap-bumper">auto <a href="#ad803d42a2bac2b66b50e5c3e22f21902" class="m-doc-self">search</a>(</span><span class="m-doc-wrap">int depth,
+            <dt id="ad6f41f402b2a77bf0db9073b3e11fcd7">
+              <span class="m-doc-wrap-bumper">auto <a href="#ad6f41f402b2a77bf0db9073b3e11fcd7" class="m-doc-self">search</a>(</span><span class="m-doc-wrap">int depth,
               int search_time = <a href="Constants_8h.html#a15173aa8e0c1e4205f02db0fde25da97" class="m-doc">DEFAULT_<wbr />SEARCH_<wbr />TIME</a>,
               int max_nodes_visited = -1,
-              bool xboard = false) -&gt; <a href="Move_8h.html#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc">Move_<wbr />t</a></span>
+              bool xboard = false,
+              int multipv_count = 1) -&gt; <a href="Move_8h.html#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc">Move_<wbr />t</a></span>
             </dt>
             <dd><span></span></dd>
             <dt id="ae33fe90e1d9549abbc887f3c595c1033">
@@ -145,6 +146,10 @@
             <dd><span></span></dd>
             <dt id="ab0eb93a9b02b3f8f03c8a7bbe98ed83d">
               <span class="m-doc-wrap-bumper">auto <a href="#ab0eb93a9b02b3f8f03c8a7bbe98ed83d" class="m-doc-self">get_stats</a>(</span><span class="m-doc-wrap">) const -&gt; const <a href="structSearchStats.html" class="m-doc">SearchStats</a>&amp;</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a5d5ab0fd2a38e9531df13cfadb5c2dc1">
+              <span class="m-doc-wrap-bumper">auto <a href="#a5d5ab0fd2a38e9531df13cfadb5c2dc1" class="m-doc-self">get_multipv_results</a>(</span><span class="m-doc-wrap">) const -&gt; const std::vector&lt;<a href="structPVLine.html" class="m-doc">PVLine</a>&gt;&amp;</span>
             </dt>
             <dd><span></span></dd>
             <dt id="adc6f2f93906f9f971c06b3de623d92ee">
