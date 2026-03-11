@@ -38,6 +38,8 @@ double test_positions(string path_to_epd)
     std::string line;
     int score = 0;
     int max_score = 0;
+    long long total_nodes = 0;
+    clock_t wall_start = clock();
     while (std::getline(infile, line))
     {
         std::istringstream iss(line);
@@ -121,6 +123,7 @@ double test_positions(string path_to_epd)
         // Search with max depth, infinite time, max 1000000 moves searched
         Search search(board);
         Move_t move = search.search(MAX_SEARCH_PLY, -1, TEST_POSITIONS_MAX_NODES_VISITED);
+        total_nodes += search.get_stats().nodes_visited;
         for (auto best_move : best_moves)
         {
             if (move == std::get<0>(best_move))
@@ -137,6 +140,16 @@ double test_positions(string path_to_epd)
     cout << "Score=" << std::fixed << std::setprecision(2) << score_percent << "% (" << score << "/"
          << max_score << ")" << endl;
     cout << "ELO=" << int(elo_estimate) << endl;
+
+    clock_t wall_end = clock();
+    double total_time_secs = static_cast<double>(wall_end - wall_start) / CLOCKS_PER_SEC;
+    int nps = (total_time_secs > 0.0)
+        ? static_cast<int>(static_cast<double>(total_nodes) / total_time_secs)
+        : 0;
+    cout << "NPS=" << nps << endl;
+    cout << "Nodes=" << total_nodes << " Time=" << std::fixed << std::setprecision(2)
+         << total_time_secs << "s" << endl;
+
     return double(score) / max_score;
 }
 
