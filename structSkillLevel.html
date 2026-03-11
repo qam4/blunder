@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>source/Search.h file | blunder</title>
+  <title>SkillLevel struct | blunder</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="icon" href="favicon-dark.png" type="image/png" />
@@ -49,59 +49,52 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="dir_b2f33c71d4aa5e7af42a1ca61ff5af1b.html">source</a>/</span>Search.h <span class="m-thin">file</span>
+          SkillLevel <span class="m-thin">struct</span>
+          <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="Search_8h.html">&lt;Search.h&gt;</a></div>
         </h1>
-        <p><span></span></p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
             <li>
               Reference
               <ul>
-                <li><a href="#nested-classes">Classes</a></li>
-                <li><a href="#var-members">Variables</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pub-attribs">Public variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="nested-classes">
-          <h2><a href="#nested-classes">Classes</a></h2>
+<p>Skill-level noise generator for weakening play. Uses a fast xorshift64 PRNG seeded per-search for determinism.</p>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
-            <dt>
-              struct <a href="structSearchStats.html" class="m-doc">SearchStats</a>
+            <dt id="af263d455d2610bbe600fbd83952636d2">
+              <span class="m-doc-wrap-bumper">void <a href="#af263d455d2610bbe600fbd83952636d2" class="m-doc-self">seed</a>(</span><span class="m-doc-wrap">uint64_t s)</span>
             </dt>
-            <dd><span></span></dd>
-            <dt>
-              struct <a href="structPVLine.html" class="m-doc">PVLine</a>
+            <dd>Seed the PRNG. Call once per search().</dd>
+            <dt id="accf1aae81e9b74e8fcd9dff583cad43e">
+              <span class="m-doc-wrap-bumper">auto <a href="#accf1aae81e9b74e8fcd9dff583cad43e" class="m-doc-self">next</a>(</span><span class="m-doc-wrap">) -&gt; uint64_t</span>
             </dt>
-            <dd>Holds one PV line result: the score and the sequence of moves.</dd>
-            <dt>
-              struct <a href="structSkillLevel.html" class="m-doc">SkillLevel</a>
+            <dd>Return a pseudo-random 64-bit value and advance state.</dd>
+            <dt id="a63a0f654304db062cce6850db662cfc2">
+              <span class="m-doc-wrap-bumper">auto <a href="#a63a0f654304db062cce6850db662cfc2" class="m-doc-self">noise_amplitude</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
             </dt>
-            <dd></dd>
-            <dt>
-              class <a href="classSearch.html" class="m-doc">Search</a>
+            <dd>Noise amplitude in centipawns: (20 - level) * 15.</dd>
+            <dt id="a90a9b0494496c6a4f7ede6f757778d5a">
+              <span class="m-doc-wrap-bumper">auto <a href="#a90a9b0494496c6a4f7ede6f757778d5a" class="m-doc-self">noise</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
             </dt>
-            <dd><span></span></dd>
+            <dd>Return a random offset in [-amplitude, +amplitude].</dd>
           </dl>
         </section>
-        <section id="var-members">
-          <h2><a href="#var-members">Variables</a></h2>
+        <section id="pub-attribs">
+          <h2><a href="#pub-attribs">Public variables</a></h2>
           <dl class="m-doc">
-            <dt id="a71a9d567fd7f8e87bd310ec1e3387f64">
-              int <a href="#a71a9d567fd7f8e87bd310ec1e3387f64" class="m-doc-self">NO_PV</a> <span class="m-label m-flat m-primary">constexpr</span>
+            <dt id="ae5d50ed83f2bef498cff2f014e173f44">
+              int <a href="#ae5d50ed83f2bef498cff2f014e173f44" class="m-doc-self">level</a>
             </dt>
             <dd><span></span></dd>
-            <dt id="aa9f076a655b04113bf596f34ee59a2b6">
-              int <a href="#aa9f076a655b04113bf596f34ee59a2b6" class="m-doc-self">IS_PV</a> <span class="m-label m-flat m-primary">constexpr</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="af725d031c8f06e212b78ec4b85a99cbe">
-              int <a href="#af725d031c8f06e212b78ec4b85a99cbe" class="m-doc-self">NO_NULL</a> <span class="m-label m-flat m-primary">constexpr</span>
-            </dt>
-            <dd><span></span></dd>
-            <dt id="a021474ba86d7ee3d8e07d338fbd210a9">
-              int <a href="#a021474ba86d7ee3d8e07d338fbd210a9" class="m-doc-self">DO_NULL</a> <span class="m-label m-flat m-primary">constexpr</span>
+            <dt id="a7034cb1d92e460eae7818596f4777e9d">
+              uint64_t <a href="#a7034cb1d92e460eae7818596f4777e9d" class="m-doc-self">prng_state</a>
             </dt>
             <dd><span></span></dd>
           </dl>
