@@ -56,6 +56,9 @@ void UCI::cmd_uci()
     std::cout << "option name Mobility type check default true" << std::endl;
     std::cout << "option name Tempo type check default true" << std::endl;
     std::cout << "option name MultiPV type spin default 1 min 1 max 256" << std::endl;
+    std::cout << "option name Skill type spin default 20 min 1 max 20" << std::endl;
+    std::cout << "option name UCI_LimitStrength type check default false" << std::endl;
+    std::cout << "option name UCI_Elo type spin default 1500 min 500 max 2500" << std::endl;
     std::cout << "uciok" << std::endl;
 }
 
@@ -81,6 +84,7 @@ void UCI::cmd_ucinewgame()
         nnue_->refresh(board_);
     }
     move_nr_ = 0;
+    search_.new_game_seed();
 }
 
 void UCI::cmd_position(const std::string& args)
@@ -299,6 +303,56 @@ void UCI::cmd_setoption(const std::string& args)
             n = 256;
         multipv_count_ = n;
     }
+    else if (name == "Skill")
+    {
+        int n = std::stoi(value);
+        if (n < 1)
+            n = 1;
+        if (n > 20)
+            n = 20;
+        skill_level_ = n;
+        // Only apply directly if UCI_LimitStrength is not overriding
+        if (!uci_limit_strength_)
+        {
+            search_.set_skill_level(n);
+        }
+    }
+    else if (name == "UCI_LimitStrength")
+    {
+        uci_limit_strength_ = (value == "true");
+        if (uci_limit_strength_)
+        {
+            // Map UCI_Elo to skill level: skill = max(1, (elo - 500) / 100)
+            int mapped = (uci_elo_ - 500) / 100;
+            if (mapped < 1)
+                mapped = 1;
+            if (mapped > 20)
+                mapped = 20;
+            search_.set_skill_level(mapped);
+        }
+        else
+        {
+            search_.set_skill_level(20);
+        }
+    }
+    else if (name == "UCI_Elo")
+    {
+        int n = std::stoi(value);
+        if (n < 500)
+            n = 500;
+        if (n > 2500)
+            n = 2500;
+        uci_elo_ = n;
+        if (uci_limit_strength_)
+        {
+            int mapped = (uci_elo_ - 500) / 100;
+            if (mapped < 1)
+                mapped = 1;
+            if (mapped > 20)
+                mapped = 20;
+            search_.set_skill_level(mapped);
+        }
+    }
 }
 
 void UCI::start_search(int depth,
@@ -320,8 +374,16 @@ void UCI::start_search(int depth,
             Move_t best_move = 0;
             Move_t ponder_move = 0;
 
-            // Check opening book first
-            if (book_enabled_ && book_.within_depth(move_nr_) && book_.has_move(board_))
+            // Disable skill noise in analysis mode (infinite search)
+            search_.set_analysis_mode(infinite);
+
+            // Check opening book first.
+            // Scale book depth with skill: skill 20 = full book, skill 1 = no book.
+            // Lower-skilled "players" know less opening theory.
+            int skill = search_.get_skill_level();
+            bool book_in_range =
+                (skill >= 20) ? book_.within_depth(move_nr_) : (move_nr_ < skill - 1);
+            if (book_enabled_ && book_in_range && book_.has_move(board_))
             {
                 Move_t book_move = book_.get_move(board_);
                 if (book_move != Move(0))

@@ -83,8 +83,11 @@ int Xboard::search_best_move(int stm,
     (void)time_control;
     (void)time_per_move;
 
-    // Check the opening book first
-    if (book_enabled_ && book_.within_depth(move_nr_) && book_.has_move(board_))
+    // Check the opening book first.
+    // Scale book depth with skill: skill 20 = full book, skill 1 = no book.
+    int skill = search_.get_skill_level();
+    bool book_in_range = (skill >= 20) ? book_.within_depth(move_nr_) : (move_nr_ < skill - 1);
+    if (book_enabled_ && book_in_range && book_.has_move(board_))
     {
         Move_t book_move = book_.get_move(board_);
         if (book_move != Move(0))
@@ -93,6 +96,9 @@ int Xboard::search_best_move(int stm,
             return 0;  // book move, score is 0
         }
     }
+
+    // Normal play — skill noise is active
+    search_.set_analysis_mode(false);
 
     // MCTS search path
     if (use_mcts_)
@@ -149,6 +155,7 @@ void Xboard::ponder_until_input(int stm)
     // Run search in pondering mode: no time limit, aborts when input arrives
     search_.set_pondering(true);
     search_.set_abort(false);
+    search_.set_analysis_mode(true);  // no skill noise during analysis/pondering
 
     // search() resets search_ply_ to 0, which would corrupt the move_stack_
     // entries saved by the caller (e.g. the ponder move applied before this
@@ -291,6 +298,7 @@ void Xboard::init_handlers()
         rs.max_depth = MAX_SEARCH_PLY;
         randomize_ = OFF;
         move_nr_ = 0;
+        search_.new_game_seed();
     };
 
     handlers_["setboard"] = [this](const std::string& args, RunState& rs)

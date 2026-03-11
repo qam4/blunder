@@ -113,6 +113,9 @@ private:
     // Options
     int hash_size_mb_ = 16;
     int multipv_count_ = 1;
+    int skill_level_ = 20;
+    bool uci_limit_strength_ = false;
+    int uci_elo_ = 1500;
 
     std::unordered_map<std::string, Handler> handlers_;
 };

@@ -154,6 +154,10 @@ Move_t Search::search(int depth,
     std::memset(history_, 0, sizeof(history_));
     stats_.reset();
 
+    // Seed skill noise PRNG: deterministic per position + game, but varies
+    // across games via game_seed_counter_.
+    skill_.seed(board_.get_hash() ^ (game_seed_counter_ * 0x9E3779B97F4A7C15ULL));
+
     Move_t last_best_move = 0U;
     searched_moves_ = 0;
     nodes_visited_ = 0;
@@ -457,7 +461,14 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     // Leaf node
     if (depth == 0)
     {
-        return quiesce(alpha, beta);
+        int q = quiesce(alpha, beta);
+        // Apply skill noise in the main search leaf, not in quiescence itself,
+        // so the engine still resolves tactical sequences cleanly.
+        if (!analysis_mode_ && skill_.level < 20)
+        {
+            q += skill_.noise();
+        }
+        return q;
     }
 
     // mate distance pruning

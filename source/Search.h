@@ -16,6 +16,7 @@
 #include "TranspositionTable.h"
 
 #include <cmath>
+#include <cstdint>
 #include <ctime>
 #include <vector>
 
@@ -85,6 +86,47 @@ struct PVLine {
     Move_t ponder_move() const { return moves.size() >= 2 ? moves[1] : Move_t(0U); }
 };
 
+/// Skill-level noise generator for weakening play.
+/// Uses a fast xorshift64 PRNG seeded per-search for determinism.
+struct SkillLevel
+{
+    int level = 20;           // 1..20, 20 = full strength
+    uint64_t prng_state = 0;  // xorshift64 state
+
+    /// Seed the PRNG. Call once per search().
+    void seed(uint64_t s)
+    {
+        prng_state = s ? s : 1;  // must be non-zero
+    }
+
+    /// Return a pseudo-random 64-bit value and advance state.
+    uint64_t next()
+    {
+        uint64_t x = prng_state;
+        x ^= x << 13;
+        x ^= x >> 7;
+        x ^= x << 17;
+        prng_state = x;
+        return x;
+    }
+
+    /// Noise amplitude in centipawns: (20 - level) * 15.
+    int noise_amplitude() const { return (20 - level) * 15; }
+
+    /// Return a random offset in [-amplitude, +amplitude].
+    int noise()
+    {
+        int amp = noise_amplitude();
+        if (amp == 0)
+        {
+            return 0;
+        }
+        // Map next() to range [0, 2*amp] then shift to [-amp, +amp]
+        int range = 2 * amp + 1;
+        return static_cast<int>(next() % static_cast<uint64_t>(range)) - amp;
+    }
+};
+
 class Search
 {
 public:
@@ -133,6 +175,17 @@ public:
     void set_pondering(bool p) { pondering_ = p; }
     bool is_pondering() const { return pondering_; }
 
+    // Skill level: 1-20, 20 = full strength. Lower adds eval noise.
+    void set_skill_level(int level) { skill_.level = level; }
+    int get_skill_level() const { return skill_.level; }
+
+    // Analysis mode: when true, skill noise is disabled regardless of level.
+    void set_analysis_mode(bool a) { analysis_mode_ = a; }
+    bool is_analysis_mode() const { return analysis_mode_; }
+
+    // Advance the game seed so each game gets different noise patterns.
+    void new_game_seed() { game_seed_counter_++; }
+
 private:
     // Hash helpers (delegate to TT)
     int probe_hash(int depth, int alpha, int beta, Move_t& best_move);
@@ -146,6 +199,10 @@ private:
     OutputMode output_mode_ = OutputMode::NORMAL;
     bool abort_ = false;
     bool pondering_ = false;
+    bool analysis_mode_ = false;
+
+    SkillLevel skill_;
+    uint64_t game_seed_counter_ = 0;
 
     int searched_moves_ = 0;
     int nodes_visited_ = 0;
