@@ -29,6 +29,11 @@ CoachDispatcher::CoachDispatcher(Board& board, Search& search, NNUEEvaluator* nn
 
 void CoachDispatcher::dispatch(const std::string& args)
 {
+    // Coaching analysis always runs at full strength — temporarily disable
+    // skill noise so eval/compare results are accurate.
+    bool was_analysis = search_.is_analysis_mode();
+    search_.set_analysis_mode(true);
+
     try
     {
         std::istringstream iss(args);
@@ -55,6 +60,8 @@ void CoachDispatcher::dispatch(const std::string& args)
     {
         send_error("internal_error", "Unknown error occurred");
     }
+
+    search_.set_analysis_mode(was_analysis);
 }
 
 // ---------------------------------------------------------------------------
