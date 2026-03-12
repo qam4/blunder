@@ -57,8 +57,9 @@ _RE_CATEGORY = re.compile(r"\s+(.+?):\s+(\d+\.\d+)% \((\d+)/(\d+), (\d+) pos\)")
 
 _RE_FC_SCORE = re.compile(
     r"Score of .+ vs .+:\s+(\d+)\s+-\s+(\d+)\s+-\s+(\d+)"
+    r"|Games:\s+\d+,\s+Wins:\s+(\d+),\s+Losses:\s+(\d+),\s+Draws:\s+(\d+)"
 )
-_RE_FC_ELO = re.compile(r"Elo difference:\s+([-+]?\d+\.?\d*)\s+\+/-\s+(\d+\.?\d*)")
+_RE_FC_ELO = re.compile(r"Elo(?:\s+difference)?:\s+([-+]?\d+\.?\d*)\s+\+/-\s+(\d+\.?\d*)")
 _RE_FC_SPRT = re.compile(r"(H[01]) was accepted")
 
 
@@ -120,9 +121,15 @@ def parse_fastchess_output(stdout: str) -> GauntletResult:
     if not score_m:
         raise ValueError("Could not parse score from fast-chess output")
 
-    wins = int(score_m.group(1))
-    losses = int(score_m.group(2))
-    draws = int(score_m.group(3))
+    # Groups 1-3 for old format, 4-6 for new format
+    if score_m.group(1) is not None:
+        wins = int(score_m.group(1))
+        losses = int(score_m.group(2))
+        draws = int(score_m.group(3))
+    else:
+        wins = int(score_m.group(4))
+        losses = int(score_m.group(5))
+        draws = int(score_m.group(6))
 
     elo_m = _RE_FC_ELO.search(stdout)
     if elo_m:

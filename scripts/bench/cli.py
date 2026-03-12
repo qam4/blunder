@@ -8,6 +8,7 @@ from pathlib import Path
 
 from bench.compare import cmd_compare
 from bench.config import load_config
+from bench.elo_search import cmd_elo
 from bench.gauntlet import cmd_gauntlet
 from bench.run import cmd_run
 from bench.run_all import cmd_run_all
@@ -184,6 +185,32 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Override evaluator type for the benchmark run step (default from config)",
     )
     run_all_parser.set_defaults(func=cmd_run_all)
+
+    # --- elo ---
+    elo_parser = subparsers.add_parser(
+        "elo", help="Binary search for absolute Elo rating vs Stockfish"
+    )
+    elo_parser.add_argument(
+        "--lo", type=int, default=1000,
+        help="Lower bound of Elo search range (default: 1000)",
+    )
+    elo_parser.add_argument(
+        "--hi", type=int, default=3000,
+        help="Upper bound of Elo search range (default: 3000)",
+    )
+    elo_parser.add_argument(
+        "--rounds", type=int, default=20,
+        help="Games per binary search step (default: 20)",
+    )
+    elo_parser.add_argument(
+        "--tc", metavar="TC", default=None,
+        help="Time control string (default: 5+0.05)",
+    )
+    elo_parser.add_argument(
+        "--threshold", type=int, default=50,
+        help="Stop when Elo range narrows to this (default: 50)",
+    )
+    elo_parser.set_defaults(func=cmd_elo)
 
     return parser
 

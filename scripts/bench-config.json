@@ -31,10 +31,16 @@
       "options": {"EvalType": "nnue"}
     },
     "stockfish": {
-      "cmd": "/usr/local/bin/stockfish",
+      "cmd": "stockfish",
       "protocol": "uci",
       "args": [],
       "options": {"Threads": "1", "Hash": "128"}
+    },
+    "stockfish-2400": {
+      "cmd": "stockfish",
+      "protocol": "uci",
+      "args": [],
+      "options": {"Threads": "1", "Hash": "128", "UCI_LimitStrength": "true", "UCI_Elo": "2400"}
     }
   },
   "defaults": {
