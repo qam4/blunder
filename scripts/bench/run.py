@@ -213,6 +213,9 @@ def _run_test_streaming(
     for line in proc.stdout:
         lines.append(line)
         elapsed = time.monotonic() - start
+        # Always write raw output to stdout so external monitors see activity
+        sys.stdout.write(line)
+        sys.stdout.flush()
         if verbose:
             sys.stderr.write(f"       │ {line.rstrip()}\n")
             sys.stderr.flush()

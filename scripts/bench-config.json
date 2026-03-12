@@ -20,8 +20,8 @@
   "engines": {
     "blunder-hce": {
       "cmd": "${engine_binary}",
-      "protocol": "xboard",
-      "args": ["--xboard"],
+      "protocol": "uci",
+      "args": ["--uci"],
       "options": {}
     },
     "blunder-nnue": {

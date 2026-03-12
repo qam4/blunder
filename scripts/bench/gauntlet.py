@@ -42,14 +42,14 @@ def build_fastchess_cmd(
     """
     cmd: list[str] = [fast_chess_path]
 
-    # Engine definitions
+    # Engine definitions — each key=value pair as a separate argument
     for eng in engines:
-        engine_arg = f"cmd={eng.cmd} name={eng.name} proto={eng.protocol}"
+        parts: list[str] = ["-engine", f"cmd={eng.cmd}", f"name={eng.name}", f"proto={eng.protocol}"]
         for opt_name, opt_value in eng.options.items():
-            engine_arg += f" option.{opt_name}={opt_value}"
-        for arg in eng.args:
-            engine_arg += f" arg={arg}"
-        cmd.extend(["-engine", engine_arg])
+            parts.append(f"option.{opt_name}={opt_value}")
+        if eng.args:
+            parts.append(f"args={' '.join(eng.args)}")
+        cmd.extend(parts)
 
     # Time control
     cmd.extend(["-each", f"tc={tc}"])
@@ -58,14 +58,17 @@ def build_fastchess_cmd(
     cmd.extend(["-rounds", str(rounds)])
     cmd.extend(["-concurrency", str(concurrency)])
 
-    # Opening book
-    cmd.extend([
-        "-openings",
-        f"file={book_path}",
-        "format=pgn",
-        "order=random",
-        f"plies={book_depth}",
-    ])
+    # Opening book (skip if format is not supported by fast-chess)
+    book_ext = Path(book_path).suffix.lower()
+    if book_ext in (".epd", ".pgn"):
+        book_format = "epd" if book_ext == ".epd" else "pgn"
+        cmd.extend([
+            "-openings",
+            f"file={book_path}",
+            f"format={book_format}",
+            "order=random",
+            f"plies={book_depth}",
+        ])
 
     # SPRT or roundrobin
     if sprt_elo0 is not None and sprt_elo1 is not None:
@@ -79,8 +82,8 @@ def build_fastchess_cmd(
     else:
         cmd.extend(["-tournament", "roundrobin"])
 
-    # PGN output
-    cmd.extend(["-pgnout", pgn_path])
+    # PGN output (fast-chess >= 1.8 requires key=value format)
+    cmd.extend(["-pgnout", f"file={pgn_path}"])
 
     # Extra args (split by spaces and appended as-is)
     if extra_args:
@@ -130,10 +133,14 @@ def cmd_gauntlet(config: Config, args: argparse.Namespace) -> int:
         # SPRT: baseline vs candidate
         baseline_name = getattr(args, "baseline", None) or config.defaults.baseline_engine
         candidate_name = getattr(args, "candidate", None) or config.defaults.candidate_engine
-        engine_entries = [
-            resolve_engine(config, baseline_name),
-            resolve_engine(config, candidate_name),
-        ]
+        baseline = resolve_engine(config, baseline_name)
+        candidate = resolve_engine(config, candidate_name)
+        # fast-chess requires unique engine names
+        if baseline.name == candidate.name:
+            from dataclasses import replace
+            baseline = replace(baseline, name=f"{baseline.name}-baseline")
+            candidate = replace(candidate, name=f"{candidate.name}-candidate")
+        engine_entries = [baseline, candidate]
 
     # Resolve parameters: CLI flags override config defaults
     tc = getattr(args, "tc", None) or config.defaults.tc
