@@ -89,6 +89,13 @@ void UCI::cmd_ucinewgame()
 
 void UCI::cmd_position(const std::string& args)
 {
+    // Wait for any ongoing search to finish before modifying the board
+    if (search_thread_.joinable())
+    {
+        search_.set_abort(true);
+        search_thread_.join();
+    }
+
     std::istringstream iss(args);
     std::string token;
     iss >> token;
@@ -470,7 +477,7 @@ void UCI::start_search(int depth,
 
             // Extract bestmove and ponder from top PV line
             const auto& results = search_.get_multipv_results();
-            if (!results.empty())
+            if (!results.empty() && results[0].best_move() != 0U)
             {
                 best_move = results[0].best_move();
                 ponder_move = results[0].ponder_move();
