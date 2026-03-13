@@ -285,7 +285,7 @@ Move_t Search::search(int depth,
         search_best_score_ = multipv_results_[0].score;
 
         clock_t current_time = clock();
-        int elapsed_csecs = int((100 * double(current_time - tm_.start_time())) / CLOCKS_PER_SEC);
+        int elapsed_csecs = tm_.elapsed_us() / 10000;
 
         if (xboard)
         {
@@ -436,6 +436,7 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
         }
         if (tm_.is_time_over(nodes_visited_))
         {
+            abort_ = true;
             return 0;
         }
     }
@@ -645,6 +646,7 @@ int Search::quiesce(int alpha, int beta)
         }
         if (tm_.is_time_over(nodes_visited_))
         {
+            abort_ = true;
             return 0;
         }
     }

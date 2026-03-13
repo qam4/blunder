@@ -9,19 +9,25 @@
  *   - Instability detection: extend time when best move changes
  *   - Score-based adjustment: reduce time when clearly winning/losing
  *   - Hard limit is never exceeded
+ *
+ * Uses std::chrono::steady_clock for wall-time measurement (not CPU time).
+ * This is critical for UCI time management where wtime/btime are wall-clock.
  */
 
 #ifndef TIMEMANAGER_H
 #define TIMEMANAGER_H
 
 #include <algorithm>
-#include <ctime>
+#include <chrono>
 
 #include "Constants.h"
 
 class TimeManager
 {
 public:
+    using Clock = std::chrono::steady_clock;
+    using TimePoint = Clock::time_point;
+
     /// Allocate time for a move based on clock state.
     /// @param time_left_cs  Remaining time in centiseconds
     /// @param inc_cs        Increment per move in centiseconds
@@ -65,14 +71,15 @@ public:
 
         soft_limit_ = base;
 
-        // Hard limit: 3x soft limit, but never more than max_allowed
-        hard_limit_ = (std::min)(soft_limit_ * 3, max_allowed);
+        // Hard limit: 2x soft limit, but never more than 1/4 of remaining time
+        int quarter_time = time_left_us / 4;
+        hard_limit_ = (std::min)(soft_limit_ * 2, (std::min)(max_allowed, quarter_time));
         if (hard_limit_ < soft_limit_)
         {
             hard_limit_ = soft_limit_;
         }
 
-        start_time_ = clock();
+        start_ = Clock::now();
         max_nodes_ = -1;
         score_adjusted_ = false;
     }
@@ -84,7 +91,7 @@ public:
         soft_limit_ = search_time;
         hard_limit_ = search_time;
         max_nodes_ = max_nodes;
-        start_time_ = clock();
+        start_ = Clock::now();
         score_adjusted_ = false;
     }
 
@@ -109,6 +116,14 @@ public:
         }
     }
 
+    /// Elapsed wall time in microseconds since start/allocate.
+    int elapsed_us() const
+    {
+        auto now = Clock::now();
+        return static_cast<int>(
+            std::chrono::duration_cast<std::chrono::microseconds>(now - start_).count());
+    }
+
     /// Called every 2048 nodes in alphabeta/quiesce to check hard time limit.
     bool is_time_over(int nodes_visited) const
     {
@@ -123,11 +138,7 @@ public:
             return false;
         }
 
-        clock_t current_time = clock();
-        int elapsed_us = static_cast<int>(
-            (1000000.0 * static_cast<double>(current_time - start_time_)) / CLOCKS_PER_SEC);
-
-        return (elapsed_us > limit);
+        return (elapsed_us() > limit);
     }
 
     /// Called between iterative deepening iterations to decide whether
@@ -145,20 +156,16 @@ public:
             return false;
         }
 
-        clock_t current_time = clock();
-        int elapsed_us = static_cast<int>(
-            (1000000.0 * static_cast<double>(current_time - start_time_)) / CLOCKS_PER_SEC);
-
-        return (elapsed_us > limit);
+        return (elapsed_us() > limit);
     }
 
-    clock_t start_time() const { return start_time_; }
+    TimePoint start_time() const { return start_; }
     int search_time() const { return search_time_; }
     int soft_limit() const { return soft_limit_; }
     int hard_limit() const { return hard_limit_; }
 
 private:
-    clock_t start_time_ = 0;
+    TimePoint start_ = Clock::now();
     int search_time_ = DEFAULT_SEARCH_TIME;
     int soft_limit_ = DEFAULT_SEARCH_TIME;
     int hard_limit_ = DEFAULT_SEARCH_TIME;

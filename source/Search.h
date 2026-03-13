@@ -15,6 +15,7 @@
 #include "TimeManager.h"
 #include "TranspositionTable.h"
 
+#include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <ctime>
@@ -32,7 +33,7 @@ struct SearchStats
     int hash_hits = 0;
     int beta_cutoffs = 0;
     int total_moves_searched = 0;
-    clock_t start_time = 0;
+    std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
 
     void reset()
     {
@@ -41,12 +42,13 @@ struct SearchStats
         hash_hits = 0;
         beta_cutoffs = 0;
         total_moves_searched = 0;
-        start_time = clock();
+        start_time = std::chrono::steady_clock::now();
     }
 
     double elapsed_secs() const
     {
-        return static_cast<double>(clock() - start_time) / CLOCKS_PER_SEC;
+        auto now = std::chrono::steady_clock::now();
+        return std::chrono::duration<double>(now - start_time).count();
     }
 
     int nps() const

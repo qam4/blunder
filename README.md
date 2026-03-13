@@ -11,6 +11,17 @@ search algorithms, move ordering, and evaluation used in the engine.
 
 See the [BUILDING](BUILDING.md) document.
 
+# Strength
+
+Measured via binary search against Stockfish 16.1 with `UCI_LimitStrength`
+(20 games per Elo level, tc=5+0.05, `bench elo` subcommand):
+
+| Evaluator | Estimated Elo | STS Score | WAC Score |
+|-----------|---------------|-----------|-----------|
+| HCE       | ~2212         | —         | 60.3% (181/300) |
+
+STS Elo estimate: 2443 (static positions, no time pressure).
+
 # Contributing
 
 See the [CONTRIBUTING](CONTRIBUTING.md) document.
