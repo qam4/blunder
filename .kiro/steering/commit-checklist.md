@@ -18,6 +18,12 @@ Watch for `std::ifstream::good()` returning false at EOF — prefer `fail()`.
 
 # Release Rules
 
+- When bumping the version, update ALL version references in the codebase:
+  - `CMakeLists.txt` — `VERSION X.Y.Z`
+  - `pyproject.toml` — `version = "X.Y.Z"`
+  - `source/CoachDispatcher.cpp` — `serialize_pong("Blunder", "X.Y.Z")`
+  - Git tag: `vX.Y.Z`
+
 - The release workflow creates a draft release — remind the user to manually
   publish (undraft) it on GitHub so build artifacts are accessible for A/B testing
 
