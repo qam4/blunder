@@ -1464,11 +1464,6 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
             // Check for discovered attacks in PV
             // The piece that just moved from from_sq — did it unblock a slider?
             {
-                U64 pv_own_pieces_da = pv_board.bitboard(PAWN | moved_side)
-                    | pv_board.bitboard(KNIGHT | moved_side)
-                    | pv_board.bitboard(BISHOP | moved_side) | pv_board.bitboard(ROOK | moved_side)
-                    | pv_board.bitboard(QUEEN | moved_side) | pv_board.bitboard(KING | moved_side);
-
                 // Check own sliders that might have been blocked by the moved piece
                 U64 pv_sliders = pv_board.bitboard(BISHOP | moved_side)
                     | pv_board.bitboard(ROOK | moved_side) | pv_board.bitboard(QUEEN | moved_side);

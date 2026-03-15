@@ -53,6 +53,7 @@ void UCI::cmd_uci()
     std::cout << "option name Hash type spin default 16 min 1 max 1024" << std::endl;
     std::cout << "option name Book type check default " << (book_enabled_ ? "true" : "false")
               << std::endl;
+    std::cout << "option name BookFile type string default " << std::endl;
     std::cout << "option name Mobility type check default true" << std::endl;
     std::cout << "option name Tempo type check default true" << std::endl;
     std::cout << "option name MultiPV type spin default 1 min 1 max 256" << std::endl;
@@ -290,6 +291,18 @@ void UCI::cmd_setoption(const std::string& args)
             book_enabled_ = false;
         }
         else if (value == "true")
+        {
+            book_enabled_ = true;
+        }
+    }
+    else if (name == "BookFile")
+    {
+        if (value.empty())
+        {
+            book_.close();
+            book_enabled_ = false;
+        }
+        else if (book_.open(value))
         {
             book_enabled_ = true;
         }
