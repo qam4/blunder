@@ -85,12 +85,23 @@
               <span class="m-doc-wrap-bumper">void <a href="#a8d200015e41455b7f3e4d7072f3db4a3" class="m-doc-self">resize</a>(</span><span class="m-doc-wrap">int size_mb)</span>
             </dt>
             <dd><span></span></dd>
-            <dt id="a797265e44e916e40602ed671fde6eec1">
-              <span class="m-doc-wrap-bumper">auto <a href="#a797265e44e916e40602ed671fde6eec1" class="m-doc-self">probe</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a> hash,
+            <dt id="a7a94a813762d265e02f8aabf559e24f0">
+              <span class="m-doc-wrap-bumper">void <a href="#a7a94a813762d265e02f8aabf559e24f0" class="m-doc-self">new_generation</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="aa4e8539817ca9f9f6486ffe74432da6a">
+              <span class="m-doc-wrap-bumper">auto <a href="#aa4e8539817ca9f9f6486ffe74432da6a" class="m-doc-self">generation</a>(</span><span class="m-doc-wrap">) const -&gt; uint8_t</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="a0aaef18b896999dc0fb4f6549568d602">
+              <span class="m-doc-wrap-bumper">auto <a href="#a0aaef18b896999dc0fb4f6549568d602" class="m-doc-self">probe</a>(</span><span class="m-doc-wrap"><a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a> hash,
               int depth,
               int alpha,
               int beta,
-              <a href="Move_8h.html#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc">Move_<wbr />t</a>&amp; best_move) -&gt; int</span>
+              <a href="Move_8h.html#a7f28988fc6d784f06a66dde1a6f4318c" class="m-doc">Move_<wbr />t</a>&amp; best_move,
+              int* tt_depth_out = nullptr,
+              int* tt_flags_out = nullptr,
+              int* tt_value_out = nullptr) -&gt; int</span>
             </dt>
             <dd><span></span></dd>
             <dt id="af67acd0e5ebdb454e71009b22313e73e">
