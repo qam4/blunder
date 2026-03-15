@@ -49,25 +49,26 @@ EvalBreakdown PositionAnalyzer::compute_eval_breakdown(const Board& board)
     int total = hce.evaluate(board_copy);
 
     bd.pawn_structure = hce.get_pawn_structure_score();
-    bd.king_safety    = hce.get_king_safety_score();
-    bd.mobility       = hce.get_mobility_score();
-    bd.piece_bonuses  = hce.get_piece_bonuses_score();
+    bd.king_safety = hce.get_king_safety_score();
+    bd.mobility = hce.get_mobility_score();
+    bd.piece_bonuses = hce.get_piece_bonuses_score();
 
     // Tempo: +28 for white-to-move, -28 for black-to-move (white-relative)
     bd.tempo = (board_copy.side_to_move() == WHITE) ? 28 : -28;
 
     // Material = total minus all named sub-scores
-    bd.material = total - bd.pawn_structure - bd.king_safety
-                  - bd.mobility - bd.piece_bonuses - bd.tempo;
+    bd.material =
+        total - bd.pawn_structure - bd.king_safety - bd.mobility - bd.piece_bonuses - bd.tempo;
 
     // Convert white-relative to side-to-move perspective
-    if (board.side_to_move() == BLACK) {
-        bd.material       = -bd.material;
-        bd.mobility       = -bd.mobility;
-        bd.king_safety    = -bd.king_safety;
+    if (board.side_to_move() == BLACK)
+    {
+        bd.material = -bd.material;
+        bd.mobility = -bd.mobility;
+        bd.king_safety = -bd.king_safety;
         bd.pawn_structure = -bd.pawn_structure;
-        bd.tempo          = -bd.tempo;
-        bd.piece_bonuses  = -bd.piece_bonuses;
+        bd.tempo = -bd.tempo;
+        bd.piece_bonuses = -bd.piece_bonuses;
     }
     return bd;
 }
@@ -238,7 +239,8 @@ PositionReport PositionAnalyzer::analyze(const Board& board, const std::vector<P
                 {
                     // Check if undefended (0 own defenders)
                     U8 piece_color = entry.piece & 1;
-                    int own_def = (piece_color == WHITE) ? entry.white_defenders : entry.black_defenders;
+                    int own_def =
+                        (piece_color == WHITE) ? entry.white_defenders : entry.black_defenders;
                     if (own_def == 0)
                         clause = piece_str + " is undefended and attacked";
                     else
@@ -433,7 +435,8 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
                 t.source_square = sq;
                 t.target_squares.push_back(check_sq);
                 t.uci_move = uci_from_squares(sq, check_sq);
-                t.description = piece_on_square_str(KNIGHT | side, sq) + " can give check via " + t.uci_move;
+                t.description =
+                    piece_on_square_str(KNIGHT | side, sq) + " can give check via " + t.uci_move;
                 result.push_back(t);
             }
             knights &= knights - 1;
@@ -455,7 +458,8 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
                 t.source_square = sq;
                 t.target_squares.push_back(check_sq);
                 t.uci_move = uci_from_squares(sq, check_sq);
-                t.description = piece_on_square_str(board[sq], sq) + " can give check via " + t.uci_move;
+                t.description =
+                    piece_on_square_str(board[sq], sq) + " can give check via " + t.uci_move;
                 result.push_back(t);
             }
             rook_like &= rook_like - 1;
@@ -481,7 +485,8 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
                     t.source_square = sq;
                     t.target_squares.push_back(check_sq);
                     t.uci_move = uci_from_squares(sq, check_sq);
-                    t.description = piece_on_square_str(board[sq], sq) + " can give check via " + t.uci_move;
+                    t.description =
+                        piece_on_square_str(board[sq], sq) + " can give check via " + t.uci_move;
                     result.push_back(t);
                 }
             }
@@ -886,9 +891,7 @@ std::vector<ThreatMapEntry> PositionAnalyzer::build_threat_map(const Board& boar
         | board.bitboard(BLACK_KING);
 
     // Key central squares
-    auto is_key_central = [](int sq) {
-        return sq == D4 || sq == D5 || sq == E4 || sq == E5;
-    };
+    auto is_key_central = [](int sq) { return sq == D4 || sq == D5 || sq == E4 || sq == E5; };
 
     for (int sq = 0; sq < NUM_SQUARES; sq++)
     {
@@ -959,31 +962,33 @@ std::vector<ThreatMapEntry> PositionAnalyzer::build_threat_map(const Board& boar
 
     // Sort by priority: occupied net-attacked pieces (by piece value desc) first,
     // then contested central squares
-    std::sort(candidates.begin(), candidates.end(),
-        [&](const ThreatMapEntry& a, const ThreatMapEntry& b) {
-            // Priority 1: occupied net-attacked pieces
-            bool a_occ_attacked = (a.piece != EMPTY && a.net_attacked);
-            bool b_occ_attacked = (b.piece != EMPTY && b.net_attacked);
-            if (a_occ_attacked != b_occ_attacked)
-                return a_occ_attacked > b_occ_attacked;
+    std::sort(candidates.begin(),
+              candidates.end(),
+              [&](const ThreatMapEntry& a, const ThreatMapEntry& b)
+              {
+                  // Priority 1: occupied net-attacked pieces
+                  bool a_occ_attacked = (a.piece != EMPTY && a.net_attacked);
+                  bool b_occ_attacked = (b.piece != EMPTY && b.net_attacked);
+                  if (a_occ_attacked != b_occ_attacked)
+                      return a_occ_attacked > b_occ_attacked;
 
-            // Within occupied net-attacked: sort by piece value descending
-            if (a_occ_attacked && b_occ_attacked)
-            {
-                int a_val = piece_value(a.piece & ~1);
-                int b_val = piece_value(b.piece & ~1);
-                if (a_val != b_val)
-                    return a_val > b_val;
-            }
+                  // Within occupied net-attacked: sort by piece value descending
+                  if (a_occ_attacked && b_occ_attacked)
+                  {
+                      int a_val = piece_value(a.piece & ~1);
+                      int b_val = piece_value(b.piece & ~1);
+                      if (a_val != b_val)
+                          return a_val > b_val;
+                  }
 
-            // Priority 2: key central squares
-            bool a_central = is_key_central(a.square);
-            bool b_central = is_key_central(b.square);
-            if (a_central != b_central)
-                return a_central > b_central;
+                  // Priority 2: key central squares
+                  bool a_central = is_key_central(a.square);
+                  bool b_central = is_key_central(b.square);
+                  if (a_central != b_central)
+                      return a_central > b_central;
 
-            return a.square < b.square;  // stable tie-break
-        });
+                  return a.square < b.square;  // stable tie-break
+              });
 
     // Truncate to 16 entries max
     if (candidates.size() > 16)
@@ -1244,8 +1249,8 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
     // On-board: Discovered attack detection
     // -----------------------------------------------------------------------
     {
-        U64 sliders_da = board.bitboard(BISHOP | stm) | board.bitboard(ROOK | stm)
-                       | board.bitboard(QUEEN | stm);
+        U64 sliders_da =
+            board.bitboard(BISHOP | stm) | board.bitboard(ROOK | stm) | board.bitboard(QUEEN | stm);
 
         while (sliders_da)
         {
@@ -1279,13 +1284,15 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                 U64 occ_without_blocker = occupied & ~(1ULL << blocker_sq);
                 U64 extended_atk = BB_EMPTY;
                 if (slider_pt == BISHOP || slider_pt == QUEEN)
-                    extended_atk |= MoveGenerator::bishop_targets(1ULL << slider_sq, occ_without_blocker);
+                    extended_atk |=
+                        MoveGenerator::bishop_targets(1ULL << slider_sq, occ_without_blocker);
                 if (slider_pt == ROOK || slider_pt == QUEEN)
-                    extended_atk |= MoveGenerator::rook_targets(1ULL << slider_sq, occ_without_blocker);
+                    extended_atk |=
+                        MoveGenerator::rook_targets(1ULL << slider_sq, occ_without_blocker);
 
                 // Look for opponent higher-value pieces now attacked on the same line
                 U64 behind_blocker = line & ~(1ULL << slider_sq) & ~(1ULL << blocker_sq)
-                                   & ~squares_between(slider_sq, blocker_sq);
+                    & ~squares_between(slider_sq, blocker_sq);
                 U64 targets_behind = extended_atk & behind_blocker & opp_pieces;
 
                 while (targets_behind)
@@ -1306,17 +1313,21 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                                 blocker_moves = MoveGenerator::knight_targets(1ULL << blocker_sq);
                                 break;
                             case BISHOP:
-                                blocker_moves = MoveGenerator::bishop_targets(1ULL << blocker_sq, occupied);
+                                blocker_moves =
+                                    MoveGenerator::bishop_targets(1ULL << blocker_sq, occupied);
                                 break;
                             case ROOK:
-                                blocker_moves = MoveGenerator::rook_targets(1ULL << blocker_sq, occupied);
+                                blocker_moves =
+                                    MoveGenerator::rook_targets(1ULL << blocker_sq, occupied);
                                 break;
                             case QUEEN:
-                                blocker_moves = MoveGenerator::rook_targets(1ULL << blocker_sq, occupied)
+                                blocker_moves =
+                                    MoveGenerator::rook_targets(1ULL << blocker_sq, occupied)
                                     | MoveGenerator::bishop_targets(1ULL << blocker_sq, occupied);
                                 break;
                             case PAWN:
-                                blocker_moves = MoveGenerator::pawn_targets(1ULL << blocker_sq, stm);
+                                blocker_moves =
+                                    MoveGenerator::pawn_targets(1ULL << blocker_sq, stm);
                                 // Also include pawn pushes
                                 if (stm == WHITE)
                                     blocker_moves |= ((1ULL << blocker_sq) << 8) & ~occupied;
@@ -1340,10 +1351,8 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                             t.in_pv = false;
                             t.description = "Discovered attack: "
                                 + piece_on_square_str(blocker_piece, blocker_sq)
-                                + " moves to reveal "
-                                + piece_on_square_str(slider_piece, slider_sq)
-                                + " attacking "
-                                + piece_on_square_str(target_piece, target_sq);
+                                + " moves to reveal " + piece_on_square_str(slider_piece, slider_sq)
+                                + " attacking " + piece_on_square_str(target_piece, target_sq);
                             result.push_back(t);
                         }
                     }
@@ -1457,21 +1466,16 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
             {
                 U64 pv_own_pieces_da = pv_board.bitboard(PAWN | moved_side)
                     | pv_board.bitboard(KNIGHT | moved_side)
-                    | pv_board.bitboard(BISHOP | moved_side)
-                    | pv_board.bitboard(ROOK | moved_side)
-                    | pv_board.bitboard(QUEEN | moved_side)
-                    | pv_board.bitboard(KING | moved_side);
+                    | pv_board.bitboard(BISHOP | moved_side) | pv_board.bitboard(ROOK | moved_side)
+                    | pv_board.bitboard(QUEEN | moved_side) | pv_board.bitboard(KING | moved_side);
 
                 // Check own sliders that might have been blocked by the moved piece
                 U64 pv_sliders = pv_board.bitboard(BISHOP | moved_side)
-                    | pv_board.bitboard(ROOK | moved_side)
-                    | pv_board.bitboard(QUEEN | moved_side);
+                    | pv_board.bitboard(ROOK | moved_side) | pv_board.bitboard(QUEEN | moved_side);
 
                 U64 pv_opp_da = pv_board.bitboard(PAWN | moved_opp)
-                    | pv_board.bitboard(KNIGHT | moved_opp)
-                    | pv_board.bitboard(BISHOP | moved_opp)
-                    | pv_board.bitboard(ROOK | moved_opp)
-                    | pv_board.bitboard(QUEEN | moved_opp)
+                    | pv_board.bitboard(KNIGHT | moved_opp) | pv_board.bitboard(BISHOP | moved_opp)
+                    | pv_board.bitboard(ROOK | moved_opp) | pv_board.bitboard(QUEEN | moved_opp)
                     | pv_board.bitboard(KING | moved_opp);
 
                 while (pv_sliders)
@@ -1492,8 +1496,8 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                             s_atk |= MoveGenerator::rook_targets(1ULL << s_sq, pv_occupied);
 
                         // Check if slider now attacks opponent pieces on the line beyond from_sq
-                        U64 beyond_from = line & ~(1ULL << s_sq)
-                            & ~squares_between(s_sq, from_sq) & ~(1ULL << from_sq);
+                        U64 beyond_from = line & ~(1ULL << s_sq) & ~squares_between(s_sq, from_sq)
+                            & ~(1ULL << from_sq);
                         U64 revealed_targets = s_atk & beyond_from & pv_opp_da;
 
                         while (revealed_targets)
@@ -1513,10 +1517,8 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                                              piece_on_square_str(rt_piece, rt_sq) };
                                 t.in_pv = true;
                                 t.description = "Discovered attack in PV: "
-                                    + piece_on_square_str(piece_moved, to_sq)
-                                    + " moves to reveal "
-                                    + piece_on_square_str(s_piece, s_sq)
-                                    + " attacking "
+                                    + piece_on_square_str(piece_moved, to_sq) + " moves to reveal "
+                                    + piece_on_square_str(s_piece, s_sq) + " attacking "
                                     + piece_on_square_str(rt_piece, rt_sq);
                                 result.push_back(t);
                             }

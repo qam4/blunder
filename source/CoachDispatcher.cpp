@@ -142,8 +142,10 @@ void CoachDispatcher::cmd_eval(const std::string& args)
     const auto& raw_lines = search_.get_multipv_results();
     std::vector<PVLine> pv_lines;
     pv_lines.reserve(raw_lines.size());
-    for (const auto& line : raw_lines) {
-        if (!line.moves.empty()) {
+    for (const auto& line : raw_lines)
+    {
+        if (!line.moves.empty())
+        {
             pv_lines.push_back(line);
         }
     }
