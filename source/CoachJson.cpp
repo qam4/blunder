@@ -285,7 +285,9 @@ std::string serialize_position_report(const PositionReport& r)
     std::string breakdown = object({ { "material", to_json(r.breakdown.material) },
                                      { "mobility", to_json(r.breakdown.mobility) },
                                      { "king_safety", to_json(r.breakdown.king_safety) },
-                                     { "pawn_structure", to_json(r.breakdown.pawn_structure) } });
+                                     { "pawn_structure", to_json(r.breakdown.pawn_structure) },
+                                     { "tempo", to_json(r.breakdown.tempo) },
+                                     { "piece_bonuses", to_json(r.breakdown.piece_bonuses) } });
 
     // hanging_pieces helper lambda
     auto serialize_hanging = [](const std::vector<HangingPiece>& pieces)
@@ -319,6 +321,7 @@ std::string serialize_position_report(const PositionReport& r)
             elems.push_back(object({ { "type", to_json(t.type) },
                                      { "source_square", square_to_json(t.source_square) },
                                      { "target_squares", array(tgt_strs) },
+                                     { "uci_move", to_json(t.uci_move) },
                                      { "description", to_json(t.description) } }));
         }
         return array(elems);
@@ -404,6 +407,7 @@ std::string serialize_position_report(const PositionReport& r)
                     { "top_lines", top_lines },
                     { "tactics", tactics },
                     { "threat_map", threat_map },
+                    { "threat_map_summary", to_json(r.threat_map_summary) },
                     { "critical_moment", to_json(r.critical_moment) },
                     { "critical_reason", critical_reason_json } });
 }

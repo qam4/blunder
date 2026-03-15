@@ -139,7 +139,14 @@ void CoachDispatcher::cmd_eval(const std::string& args)
     search_.get_tm().start(1000000);  // 1 second
     search_.search(12, -1, -1, false, multipv);
 
-    const auto& pv_lines = search_.get_multipv_results();
+    const auto& raw_lines = search_.get_multipv_results();
+    std::vector<PVLine> pv_lines;
+    pv_lines.reserve(raw_lines.size());
+    for (const auto& line : raw_lines) {
+        if (!line.moves.empty()) {
+            pv_lines.push_back(line);
+        }
+    }
 
     // Analyze position
     PositionReport report = PositionAnalyzer::analyze(board_, pv_lines);

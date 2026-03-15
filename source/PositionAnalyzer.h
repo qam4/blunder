@@ -22,6 +22,8 @@ struct EvalBreakdown {
     int mobility;
     int king_safety;
     int pawn_structure;
+    int tempo;
+    int piece_bonuses;
 };
 
 struct HangingPiece {
@@ -33,6 +35,7 @@ struct Threat {
     std::string type;        // "check", "capture", "fork", "pin", "skewer", "discovered_attack"
     U8 source_square;
     std::vector<U8> target_squares;
+    std::string uci_move;       // e.g. "c4f7", "f3d6"
     std::string description;
 };
 
@@ -80,6 +83,7 @@ struct PositionReport {
     std::vector<PVLine> top_lines;  // reuses PVLine from Search.h
     std::vector<Tactic> tactics;
     std::vector<ThreatMapEntry> threat_map;
+    std::string threat_map_summary;
     bool critical_moment;
     std::string critical_reason;  // empty when not critical
 };

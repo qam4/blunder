@@ -29,47 +29,46 @@ static constexpr U64 FILE_BB[8] = {
 // ---------------------------------------------------------------------------
 // compute_eval_breakdown()
 //
-// Decomposes the HCE evaluation into four components:
-//   material      — total eval minus sub-scores (PSQT + tempo residual)
-//   mobility      — from HCE eval_mobility()
-//   king_safety   — from HCE eval_king_safety()
+// Decomposes the HCE evaluation into six components:
+//   material       — PSQT material (total minus all named sub-scores)
+//   mobility       — from HCE eval_mobility()
+//   king_safety    — from HCE eval_king_safety()
 //   pawn_structure — from HCE eval_pawn_structure()
+//   piece_bonuses  — from HCE eval_piece_bonuses()
+//   tempo          — +28 for white-to-move, -28 for black-to-move
 //
 // Calls evaluate() on the board's HCE to populate cached sub-scores, then
-// reads them via the public accessors. The material field captures the
-// remaining score (PSQT material + piece bonuses + tempo).
+// reads them via the public accessors.
 // All values are from the side-to-move perspective (matching evaluate()).
 // ---------------------------------------------------------------------------
 EvalBreakdown PositionAnalyzer::compute_eval_breakdown(const Board& board)
 {
     EvalBreakdown bd {};
-
-    // evaluate() is non-const (it caches sub-scores), so we need a mutable copy
     Board board_copy = board;
     HandCraftedEvaluator& hce = board_copy.get_hce();
-
-    // Run the full evaluation to populate all cached sub-scores
     int total = hce.evaluate(board_copy);
 
-    // Read cached sub-scores (white-relative, from evaluate())
     bd.pawn_structure = hce.get_pawn_structure_score();
-    bd.king_safety = hce.get_king_safety_score();
-    bd.mobility = hce.get_mobility_score();
+    bd.king_safety    = hce.get_king_safety_score();
+    bd.mobility       = hce.get_mobility_score();
+    bd.piece_bonuses  = hce.get_piece_bonuses_score();
 
-    // Material = total minus the known sub-scores
-    // This captures PSQT material, piece bonuses, and tempo
-    bd.material =
-        total - bd.pawn_structure - bd.king_safety - bd.mobility - hce.get_piece_bonuses_score();
+    // Tempo: +28 for white-to-move, -28 for black-to-move (white-relative)
+    bd.tempo = (board_copy.side_to_move() == WHITE) ? 28 : -28;
 
-    // evaluate() returns white-relative; convert to side-to-move perspective
-    if (board.side_to_move() == BLACK)
-    {
-        bd.material = -bd.material;
-        bd.mobility = -bd.mobility;
-        bd.king_safety = -bd.king_safety;
+    // Material = total minus all named sub-scores
+    bd.material = total - bd.pawn_structure - bd.king_safety
+                  - bd.mobility - bd.piece_bonuses - bd.tempo;
+
+    // Convert white-relative to side-to-move perspective
+    if (board.side_to_move() == BLACK) {
+        bd.material       = -bd.material;
+        bd.mobility       = -bd.mobility;
+        bd.king_safety    = -bd.king_safety;
         bd.pawn_structure = -bd.pawn_structure;
+        bd.tempo          = -bd.tempo;
+        bd.piece_bonuses  = -bd.piece_bonuses;
     }
-
     return bd;
 }
 
@@ -172,6 +171,11 @@ PawnFeatures PositionAnalyzer::analyze_pawns(const Board& board, U8 side)
 // ---------------------------------------------------------------------------
 // analyze() — full position analysis (task 2.5)
 // ---------------------------------------------------------------------------
+
+// Forward declarations for helpers defined later in this file
+static std::string piece_char(U8 piece_type);
+static std::string piece_on_square_str(U8 piece, U8 sq);
+
 PositionReport PositionAnalyzer::analyze(const Board& board, const std::vector<PVLine>& pv_lines)
 {
     PositionReport report {};
@@ -211,6 +215,52 @@ PositionReport PositionAnalyzer::analyze(const Board& board, const std::vector<P
 
     // 15. Threat map
     report.threat_map = build_threat_map(board);
+
+    // 15b. Threat map summary
+    if (report.threat_map.empty())
+    {
+        report.threat_map_summary = "no significant threats on the board";
+    }
+    else
+    {
+        std::string summary;
+        int count = 0;
+        for (const auto& entry : report.threat_map)
+        {
+            if (count >= 4)
+                break;
+
+            std::string clause;
+            if (entry.piece != EMPTY)
+            {
+                std::string piece_str = piece_on_square_str(entry.piece, entry.square);
+                if (entry.net_attacked)
+                {
+                    // Check if undefended (0 own defenders)
+                    U8 piece_color = entry.piece & 1;
+                    int own_def = (piece_color == WHITE) ? entry.white_defenders : entry.black_defenders;
+                    if (own_def == 0)
+                        clause = piece_str + " is undefended and attacked";
+                    else
+                        clause = piece_str + " is under attack";
+                }
+                else
+                {
+                    clause = piece_str + " is contested";
+                }
+            }
+            else
+            {
+                clause = Output::square(entry.square) + " is contested by both sides";
+            }
+
+            if (!summary.empty())
+                summary += "; ";
+            summary += clause;
+            count++;
+        }
+        report.threat_map_summary = summary;
+    }
 
     // 16. Critical moment
     std::string reason;
@@ -313,6 +363,17 @@ static std::string piece_on_square_str(U8 piece, U8 sq)
     return piece_char(piece) + Output::square(sq);
 }
 
+// Helper: build a 4-char UCI move string from source and destination squares
+static std::string uci_from_squares(U8 from, U8 to)
+{
+    std::string s;
+    s += static_cast<char>('a' + (from & 7));
+    s += static_cast<char>('1' + (from >> 3));
+    s += static_cast<char>('a' + (to & 7));
+    s += static_cast<char>('1' + (to >> 3));
+    return s;
+}
+
 // ---------------------------------------------------------------------------
 // find_threats()
 //
@@ -366,11 +427,13 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
             U64 check_moves = targets & knight_check_sqs & ~own_pieces;
             if (check_moves)
             {
+                U8 check_sq = bit_scan_forward(check_moves);
                 Threat t;
                 t.type = "check";
                 t.source_square = sq;
-                t.target_squares.push_back(opp_king_sq);
-                t.description = piece_on_square_str(KNIGHT | side, sq) + " can give check";
+                t.target_squares.push_back(check_sq);
+                t.uci_move = uci_from_squares(sq, check_sq);
+                t.description = piece_on_square_str(KNIGHT | side, sq) + " can give check via " + t.uci_move;
                 result.push_back(t);
             }
             knights &= knights - 1;
@@ -386,11 +449,13 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
             U64 check_moves = targets & king_rook_atk & ~own_pieces;
             if (check_moves)
             {
+                U8 check_sq = bit_scan_forward(check_moves);
                 Threat t;
                 t.type = "check";
                 t.source_square = sq;
-                t.target_squares.push_back(opp_king_sq);
-                t.description = piece_on_square_str(board[sq], sq) + " can give check";
+                t.target_squares.push_back(check_sq);
+                t.uci_move = uci_from_squares(sq, check_sq);
+                t.description = piece_on_square_str(board[sq], sq) + " can give check via " + t.uci_move;
                 result.push_back(t);
             }
             rook_like &= rook_like - 1;
@@ -410,11 +475,13 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
                 U8 pt = board[sq] & ~1;
                 if (pt != QUEEN)  // queens already handled above via rook_like
                 {
+                    U8 check_sq = bit_scan_forward(check_moves);
                     Threat t;
                     t.type = "check";
                     t.source_square = sq;
-                    t.target_squares.push_back(opp_king_sq);
-                    t.description = piece_on_square_str(board[sq], sq) + " can give check";
+                    t.target_squares.push_back(check_sq);
+                    t.uci_move = uci_from_squares(sq, check_sq);
+                    t.description = piece_on_square_str(board[sq], sq) + " can give check via " + t.uci_move;
                     result.push_back(t);
                 }
             }
@@ -450,9 +517,11 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
                 t.type = "capture";
                 t.source_square = atk_sq;
                 t.target_squares.push_back(target_sq);
+                t.uci_move = uci_from_squares(atk_sq, target_sq);
                 std::string desc = piece_on_square_str(atk_piece, atk_sq) + " can capture ";
                 desc += (undefended ? "undefended " : "");
                 desc += piece_on_square_str(target_piece, target_sq);
+                desc += " via " + t.uci_move;
                 t.description = desc;
                 result.push_back(t);
             }
@@ -633,7 +702,8 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
 // Evaluates the pawn shield around the king of `side`:
 // - Count pawns on the king's file and adjacent files within 1-2 ranks ahead
 // - Check for open files near the king
-// - Generate a score (negative = unsafe) and human-readable description
+// - Detect pawn storms (enemy pawns advanced near king)
+// - Generate a score (negative = unsafe) and position-aware description
 // ---------------------------------------------------------------------------
 KingSafety PositionAnalyzer::assess_king_safety(const Board& board, U8 side)
 {
@@ -650,6 +720,7 @@ KingSafety PositionAnalyzer::assess_king_safety(const Board& board, U8 side)
 
     int missing_shield = 0;
     int open_files_near_king = 0;
+    bool pawn_storm = false;
     std::string missing_files;
 
     const char file_chars[] = "abcdefgh";
@@ -663,6 +734,19 @@ KingSafety PositionAnalyzer::assess_king_safety(const Board& board, U8 side)
         // Check if this is an open file (no pawns of either side)
         if (file_friendly == 0 && file_enemy == 0)
             open_files_near_king++;
+
+        // Detect pawn storm: enemy pawns advanced near king
+        U64 enemy_on_file = file_enemy;
+        while (enemy_on_file)
+        {
+            U8 esq = bit_scan_forward(enemy_on_file);
+            int erank = esq / 8;
+            if (side == WHITE && erank >= 3)  // rank 4+ (0-indexed rank 3+)
+                pawn_storm = true;
+            if (side == BLACK && erank <= 4)  // rank 5- (0-indexed rank 4-)
+                pawn_storm = true;
+            enemy_on_file &= enemy_on_file - 1;
+        }
 
         if (file_friendly == 0)
         {
@@ -710,29 +794,60 @@ KingSafety PositionAnalyzer::assess_king_safety(const Board& board, U8 side)
 
     // Score: each missing shield unit costs ~15cp
     int score = -15 * missing_shield;
-
-    // Additional penalty for open files near king
     score -= 20 * open_files_near_king;
 
-    // Generate description
-    std::string desc;
-    if (missing_shield == 0 && open_files_near_king == 0)
+    // --- Position-aware description ---
+
+    // 1. Determine castling status
+    std::string castling_status;
+    if (side == WHITE)
     {
-        desc = "king safe behind pawns";
-    }
-    else if (missing_shield >= 4 || open_files_near_king >= 2)
-    {
-        desc = "king exposed";
-        if (!missing_files.empty())
-            desc += ", missing " + missing_files + "-pawn shield";
-        if (open_files_near_king > 0)
-            desc += ", open file near king";
+        if (king_sq == G1)
+            castling_status = "kingside castled";
+        else if (king_sq == C1)
+            castling_status = "queenside castled";
+        else if (king_sq == E1)
+        {
+            if (board.castling_rights() & (WHITE_KING_SIDE | WHITE_QUEEN_SIDE))
+                castling_status = "king uncastled, still has castling rights";
+            else
+                castling_status = "king stuck in center, castling rights lost";
+        }
+        else
+            castling_status = "king displaced to " + Output::square(king_sq);
     }
     else
     {
-        desc = "king partially sheltered";
+        if (king_sq == G8)
+            castling_status = "kingside castled";
+        else if (king_sq == C8)
+            castling_status = "queenside castled";
+        else if (king_sq == E8)
+        {
+            if (board.castling_rights() & (BLACK_KING_SIDE | BLACK_QUEEN_SIDE))
+                castling_status = "king uncastled, still has castling rights";
+            else
+                castling_status = "king stuck in center, castling rights lost";
+        }
+        else
+            castling_status = "king displaced to " + Output::square(king_sq);
+    }
+
+    // 2. Build description
+    std::string desc = castling_status;
+
+    if (missing_shield == 0 && open_files_near_king == 0 && !pawn_storm)
+    {
+        desc += ", solid pawn shield";
+    }
+    else
+    {
         if (!missing_files.empty())
             desc += ", missing " + missing_files + "-pawn shield";
+        if (pawn_storm)
+            desc += ", pawn storm detected";
+        if (open_files_near_king > 0)
+            desc += ", open file near king";
     }
 
     return KingSafety { score, desc };
@@ -745,10 +860,16 @@ KingSafety PositionAnalyzer::assess_king_safety(const Board& board, U8 side)
 // a piece, computes white/black attacker counts and defender counts.
 // net_attacked is true when the piece on the square is attacked more by the
 // opponent than defended by its own side.
+//
+// Filtering: only include tactically interesting squares:
+//   (a) net_attacked is true (occupied piece attacked more than defended)
+//   (b) occupied and opponent attackers > own defenders
+//   (c) key central square (d4/d5/e4/e5) with ≥1 attacker from either side
+// Sorted by priority, capped at 16 entries.
 // ---------------------------------------------------------------------------
 std::vector<ThreatMapEntry> PositionAnalyzer::build_threat_map(const Board& board)
 {
-    std::vector<ThreatMapEntry> result;
+    std::vector<ThreatMapEntry> candidates;
 
     // Build occupied bitboard
     U64 occupied = BB_EMPTY;
@@ -764,6 +885,11 @@ std::vector<ThreatMapEntry> PositionAnalyzer::build_threat_map(const Board& boar
         | board.bitboard(BLACK_BISHOP) | board.bitboard(BLACK_ROOK) | board.bitboard(BLACK_QUEEN)
         | board.bitboard(BLACK_KING);
 
+    // Key central squares
+    auto is_key_central = [](int sq) {
+        return sq == D4 || sq == D5 || sq == E4 || sq == E5;
+    };
+
     for (int sq = 0; sq < NUM_SQUARES; sq++)
     {
         U8 piece_on_sq = board[sq];
@@ -778,39 +904,92 @@ std::vector<ThreatMapEntry> PositionAnalyzer::build_threat_map(const Board& boar
 
         ThreatMapEntry entry;
         entry.square = static_cast<U8>(sq);
-        entry.piece = piece_on_sq;  // EMPTY if no piece
+        entry.piece = piece_on_sq;
         entry.white_attackers = white_atk;
         entry.black_attackers = black_atk;
 
         // Compute defenders and attackers relative to the piece's color
         if (piece_on_sq != EMPTY)
         {
-            U8 piece_color = piece_on_sq & 1;  // 0 = WHITE, 1 = BLACK
+            U8 piece_color = piece_on_sq & 1;
             if (piece_color == WHITE)
             {
-                entry.white_defenders = white_atk;  // same-color attackers are defenders
+                entry.white_defenders = white_atk;
                 entry.black_defenders = 0;
-                entry.net_attacked = (black_atk > white_atk);  // opponent attacks > own defense
+                entry.net_attacked = (black_atk > white_atk);
             }
             else
             {
                 entry.white_defenders = 0;
-                entry.black_defenders = black_atk;             // same-color attackers are defenders
-                entry.net_attacked = (white_atk > black_atk);  // opponent attacks > own defense
+                entry.black_defenders = black_atk;
+                entry.net_attacked = (white_atk > black_atk);
             }
         }
         else
         {
-            // Empty square — no piece to defend, no net_attacked concept
             entry.white_defenders = 0;
             entry.black_defenders = 0;
             entry.net_attacked = false;
         }
 
-        result.push_back(entry);
+        // --- Filtering: only include tactically interesting squares ---
+        bool include = false;
+
+        // (a) net_attacked is true
+        if (entry.net_attacked)
+            include = true;
+
+        // (b) occupied and opponent attackers > own defenders
+        if (piece_on_sq != EMPTY)
+        {
+            U8 piece_color = piece_on_sq & 1;
+            int opp_atk = (piece_color == WHITE) ? black_atk : white_atk;
+            int own_def = (piece_color == WHITE) ? white_atk : black_atk;
+            if (opp_atk > own_def)
+                include = true;
+        }
+
+        // (c) key central square with ≥1 attacker
+        if (is_key_central(sq) && (white_atk > 0 || black_atk > 0))
+            include = true;
+
+        if (include)
+            candidates.push_back(entry);
     }
 
-    return result;
+    // Sort by priority: occupied net-attacked pieces (by piece value desc) first,
+    // then contested central squares
+    std::sort(candidates.begin(), candidates.end(),
+        [&](const ThreatMapEntry& a, const ThreatMapEntry& b) {
+            // Priority 1: occupied net-attacked pieces
+            bool a_occ_attacked = (a.piece != EMPTY && a.net_attacked);
+            bool b_occ_attacked = (b.piece != EMPTY && b.net_attacked);
+            if (a_occ_attacked != b_occ_attacked)
+                return a_occ_attacked > b_occ_attacked;
+
+            // Within occupied net-attacked: sort by piece value descending
+            if (a_occ_attacked && b_occ_attacked)
+            {
+                int a_val = piece_value(a.piece & ~1);
+                int b_val = piece_value(b.piece & ~1);
+                if (a_val != b_val)
+                    return a_val > b_val;
+            }
+
+            // Priority 2: key central squares
+            bool a_central = is_key_central(a.square);
+            bool b_central = is_key_central(b.square);
+            if (a_central != b_central)
+                return a_central > b_central;
+
+            return a.square < b.square;  // stable tie-break
+        });
+
+    // Truncate to 16 entries max
+    if (candidates.size() > 16)
+        candidates.resize(16);
+
+    return candidates;
 }
 
 // ---------------------------------------------------------------------------
@@ -1062,6 +1241,123 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
     }
 
     // -----------------------------------------------------------------------
+    // On-board: Discovered attack detection
+    // -----------------------------------------------------------------------
+    {
+        U64 sliders_da = board.bitboard(BISHOP | stm) | board.bitboard(ROOK | stm)
+                       | board.bitboard(QUEEN | stm);
+
+        while (sliders_da)
+        {
+            U8 slider_sq = bit_scan_forward(sliders_da);
+            U8 slider_piece = board[slider_sq];
+            U8 slider_pt = slider_piece & ~1;
+
+            // Get slider attack targets
+            U64 slider_atk = BB_EMPTY;
+            if (slider_pt == BISHOP || slider_pt == QUEEN)
+                slider_atk |= MoveGenerator::bishop_targets(1ULL << slider_sq, occupied);
+            if (slider_pt == ROOK || slider_pt == QUEEN)
+                slider_atk |= MoveGenerator::rook_targets(1ULL << slider_sq, occupied);
+
+            // Find own non-king pieces on the attack ray (potential blockers)
+            U64 own_on_ray = slider_atk & (own_pieces & ~board.bitboard(KING | stm));
+            while (own_on_ray)
+            {
+                U8 blocker_sq = bit_scan_forward(own_on_ray);
+                U8 blocker_piece = board[blocker_sq];
+
+                // Check the line from slider through blocker
+                U64 line = lines_along(slider_sq, blocker_sq);
+                if (line == 0)
+                {
+                    own_on_ray &= own_on_ray - 1;
+                    continue;
+                }
+
+                // Remove blocker from occupied and recompute slider attacks
+                U64 occ_without_blocker = occupied & ~(1ULL << blocker_sq);
+                U64 extended_atk = BB_EMPTY;
+                if (slider_pt == BISHOP || slider_pt == QUEEN)
+                    extended_atk |= MoveGenerator::bishop_targets(1ULL << slider_sq, occ_without_blocker);
+                if (slider_pt == ROOK || slider_pt == QUEEN)
+                    extended_atk |= MoveGenerator::rook_targets(1ULL << slider_sq, occ_without_blocker);
+
+                // Look for opponent higher-value pieces now attacked on the same line
+                U64 behind_blocker = line & ~(1ULL << slider_sq) & ~(1ULL << blocker_sq)
+                                   & ~squares_between(slider_sq, blocker_sq);
+                U64 targets_behind = extended_atk & behind_blocker & opp_pieces;
+
+                while (targets_behind)
+                {
+                    U8 target_sq = bit_scan_forward(targets_behind);
+                    U8 target_piece = board[target_sq];
+                    int blocker_val = piece_value(blocker_piece & ~1);
+                    int target_val = piece_value(target_piece & ~1);
+
+                    if (target_val > blocker_val)
+                    {
+                        // Check blocker has at least one move off the line
+                        U8 blocker_pt = blocker_piece & ~1;
+                        U64 blocker_moves = BB_EMPTY;
+                        switch (blocker_pt)
+                        {
+                            case KNIGHT:
+                                blocker_moves = MoveGenerator::knight_targets(1ULL << blocker_sq);
+                                break;
+                            case BISHOP:
+                                blocker_moves = MoveGenerator::bishop_targets(1ULL << blocker_sq, occupied);
+                                break;
+                            case ROOK:
+                                blocker_moves = MoveGenerator::rook_targets(1ULL << blocker_sq, occupied);
+                                break;
+                            case QUEEN:
+                                blocker_moves = MoveGenerator::rook_targets(1ULL << blocker_sq, occupied)
+                                    | MoveGenerator::bishop_targets(1ULL << blocker_sq, occupied);
+                                break;
+                            case PAWN:
+                                blocker_moves = MoveGenerator::pawn_targets(1ULL << blocker_sq, stm);
+                                // Also include pawn pushes
+                                if (stm == WHITE)
+                                    blocker_moves |= ((1ULL << blocker_sq) << 8) & ~occupied;
+                                else
+                                    blocker_moves |= ((1ULL << blocker_sq) >> 8) & ~occupied;
+                                break;
+                            default:
+                                break;
+                        }
+
+                        // Filter out moves that stay on the same line
+                        U64 off_line_moves = blocker_moves & ~line & ~own_pieces;
+                        if (off_line_moves)
+                        {
+                            Tactic t;
+                            t.type = "discovered_attack";
+                            t.squares = { slider_sq, blocker_sq, target_sq };
+                            t.pieces = { piece_on_square_str(slider_piece, slider_sq),
+                                         piece_on_square_str(blocker_piece, blocker_sq),
+                                         piece_on_square_str(target_piece, target_sq) };
+                            t.in_pv = false;
+                            t.description = "Discovered attack: "
+                                + piece_on_square_str(blocker_piece, blocker_sq)
+                                + " moves to reveal "
+                                + piece_on_square_str(slider_piece, slider_sq)
+                                + " attacking "
+                                + piece_on_square_str(target_piece, target_sq);
+                            result.push_back(t);
+                        }
+                    }
+                    targets_behind &= targets_behind - 1;
+                }
+
+                own_on_ray &= own_on_ray - 1;
+            }
+
+            sliders_da &= sliders_da - 1;
+        }
+    }
+
+    // -----------------------------------------------------------------------
     // In-PV: Walk each PV line (first 3-4 moves) and detect tactics
     // -----------------------------------------------------------------------
     for (const auto& pv : pv_lines)
@@ -1154,6 +1450,81 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                 }
                 t.description = desc;
                 result.push_back(t);
+            }
+
+            // Check for discovered attacks in PV
+            // The piece that just moved from from_sq — did it unblock a slider?
+            {
+                U64 pv_own_pieces_da = pv_board.bitboard(PAWN | moved_side)
+                    | pv_board.bitboard(KNIGHT | moved_side)
+                    | pv_board.bitboard(BISHOP | moved_side)
+                    | pv_board.bitboard(ROOK | moved_side)
+                    | pv_board.bitboard(QUEEN | moved_side)
+                    | pv_board.bitboard(KING | moved_side);
+
+                // Check own sliders that might have been blocked by the moved piece
+                U64 pv_sliders = pv_board.bitboard(BISHOP | moved_side)
+                    | pv_board.bitboard(ROOK | moved_side)
+                    | pv_board.bitboard(QUEEN | moved_side);
+
+                U64 pv_opp_da = pv_board.bitboard(PAWN | moved_opp)
+                    | pv_board.bitboard(KNIGHT | moved_opp)
+                    | pv_board.bitboard(BISHOP | moved_opp)
+                    | pv_board.bitboard(ROOK | moved_opp)
+                    | pv_board.bitboard(QUEEN | moved_opp)
+                    | pv_board.bitboard(KING | moved_opp);
+
+                while (pv_sliders)
+                {
+                    U8 s_sq = bit_scan_forward(pv_sliders);
+                    // Was from_sq on a line between this slider and some target?
+                    U64 line = lines_along(s_sq, from_sq);
+                    if (line != 0)
+                    {
+                        U8 s_piece = pv_board[s_sq];
+                        U8 s_pt = s_piece & ~1;
+
+                        // Compute slider attacks now (piece has moved away from from_sq)
+                        U64 s_atk = BB_EMPTY;
+                        if (s_pt == BISHOP || s_pt == QUEEN)
+                            s_atk |= MoveGenerator::bishop_targets(1ULL << s_sq, pv_occupied);
+                        if (s_pt == ROOK || s_pt == QUEEN)
+                            s_atk |= MoveGenerator::rook_targets(1ULL << s_sq, pv_occupied);
+
+                        // Check if slider now attacks opponent pieces on the line beyond from_sq
+                        U64 beyond_from = line & ~(1ULL << s_sq)
+                            & ~squares_between(s_sq, from_sq) & ~(1ULL << from_sq);
+                        U64 revealed_targets = s_atk & beyond_from & pv_opp_da;
+
+                        while (revealed_targets)
+                        {
+                            U8 rt_sq = bit_scan_forward(revealed_targets);
+                            U8 rt_piece = pv_board[rt_sq];
+                            int rt_val = piece_value(rt_piece & ~1);
+                            int moved_val_da = piece_value(moved_pt);
+
+                            if (rt_val > moved_val_da)
+                            {
+                                Tactic t;
+                                t.type = "discovered_attack";
+                                t.squares = { s_sq, to_sq, rt_sq };
+                                t.pieces = { piece_on_square_str(s_piece, s_sq),
+                                             piece_on_square_str(piece_moved, to_sq),
+                                             piece_on_square_str(rt_piece, rt_sq) };
+                                t.in_pv = true;
+                                t.description = "Discovered attack in PV: "
+                                    + piece_on_square_str(piece_moved, to_sq)
+                                    + " moves to reveal "
+                                    + piece_on_square_str(s_piece, s_sq)
+                                    + " attacking "
+                                    + piece_on_square_str(rt_piece, rt_sq);
+                                result.push_back(t);
+                            }
+                            revealed_targets &= revealed_targets - 1;
+                        }
+                    }
+                    pv_sliders &= pv_sliders - 1;
+                }
             }
 
             // Check for back-rank mate threat in PV
