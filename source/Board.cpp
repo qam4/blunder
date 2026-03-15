@@ -438,6 +438,12 @@ bool Board::is_draw(bool in_search)
     {
         start = 0;
     }
+    // Ensure start has the same parity as game_ply_ so we only compare
+    // positions where the same side was to move.
+    if ((game_ply_ & 1) != (start & 1))
+    {
+        start++;
+    }
     for (int i = start; i < game_ply_; i += 2)
     {
         if (irrev_.board_hash == hash_history_[i])

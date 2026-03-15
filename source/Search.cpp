@@ -24,14 +24,67 @@ using std::endl;
 using std::max;
 using std::min;
 
+// Reverse futility pruning margin per depth (centipawns)
+constexpr int RFP_MARGIN_PER_DEPTH = 120;
+
+// Futility pruning margins indexed by depth (centipawns)
+constexpr int FUTILITY_MARGIN[3] = { 0, 200, 500 };
+
+// Late move pruning threshold: skip quiet moves after this many have been searched
+constexpr int lmp_threshold(int depth)
+{
+    return 3 + depth * 4;
+}
+
+// Singular extension parameters
+constexpr int SE_MIN_DEPTH = 8;
+constexpr int SE_MARGIN = 50;
+
+// Static member definitions for LMR lookup table
+int Search::lmr_table_[MAX_SEARCH_PLY][64] = {};
+bool Search::lmr_initialized_ = false;
+
+void Search::init_lmr_table()
+{
+    if (lmr_initialized_)
+    {
+        return;
+    }
+    // Default: depth=0 or move_index=0 → reduction of 1
+    for (int d = 0; d < MAX_SEARCH_PLY; d++)
+    {
+        lmr_table_[d][0] = 1;
+    }
+    for (int i = 0; i < 64; i++)
+    {
+        lmr_table_[0][i] = 1;
+    }
+    // Logarithmic formula for d >= 1, i >= 1
+    for (int d = 1; d < MAX_SEARCH_PLY; d++)
+    {
+        for (int i = 1; i < 64; i++)
+        {
+            lmr_table_[d][i] = max(1, static_cast<int>(floor(log(d) * log(i) / 2.0)));
+        }
+    }
+    lmr_initialized_ = true;
+}
+
 Search::Search(Board& board)
     : board_(board)
 {
 }
 
-int Search::probe_hash(int depth, int alpha, int beta, Move_t& best_move)
+int Search::probe_hash(int depth,
+                       int alpha,
+                       int beta,
+                       Move_t& best_move,
+                       int* tt_depth_out,
+                       int* tt_flags_out,
+                       int* tt_value_out)
 {
-    return board_.get_tt().probe(board_.get_hash(), depth, alpha, beta, best_move);
+    return board_.get_tt().probe(
+        board_.get_hash(), depth, alpha, beta, best_move, tt_depth_out, tt_flags_out, tt_value_out);
 }
 
 void Search::record_hash(int depth, int val, int flags, Move_t best_move)
@@ -49,10 +102,19 @@ void Search::store_killer(int ply, Move_t move)
     }
 }
 
-void Search::score_killers(MoveList& list, int ply)
+void Search::score_quiet_moves(MoveList& list, int ply, Move_t prev_move)
 {
     int n = list.length();
     int side = board_.side_to_move();
+
+    // Look up the countermove for the previous move (if any)
+    Move_t countermove = 0U;
+    if (prev_move != 0U)
+    {
+        int prev_side = side ^ 1;  // side that made the previous move
+        countermove = countermoves_[prev_side][move_from(prev_move)][move_to(prev_move)];
+    }
+
     for (int i = 0; i < n; i++)
     {
         Move_t move = list[i];
@@ -66,14 +128,18 @@ void Search::score_killers(MoveList& list, int ply)
             {
                 list.set_score(i, 80);
             }
+            else if (countermove != 0U && move == countermove)
+            {
+                list.set_score(i, 70);
+            }
             else
             {
-                // History tiebreaker for quiet moves: scale into 6..79 range
+                // History tiebreaker for quiet moves: scale into 6..69 range
                 int h = history_[side][move_from(move)][move_to(move)];
                 if (h > 0)
                 {
-                    // Map history to 6..79 (above default quiet=5, below killer=80)
-                    int bonus = 6 + (h * 73) / (h + 1000);
+                    // Map history to 6..69 (above default quiet=5, below countermove=70)
+                    int bonus = 6 + (h * 63) / (h + 1000);
                     list.set_score(i, bonus);
                 }
             }
@@ -147,12 +213,20 @@ Move_t Search::search(int depth,
     {
         tm_.start(search_time, max_nodes_visited);
     }
+
+    // Initialize LMR lookup table once (static init guard)
+    init_lmr_table();
+
     board_.set_search_ply(0);
     pv_.reset();
     abort_ = false;
     std::memset(killers_, 0, sizeof(killers_));
     std::memset(history_, 0, sizeof(history_));
+    std::memset(countermoves_, 0, sizeof(countermoves_));
     stats_.reset();
+
+    // Advance TT generation so stale entries from previous searches can be replaced
+    board_.get_tt().new_generation();
 
     // Seed skill noise PRNG: deterministic per position + game, but varies
     // across games via game_seed_counter_.
@@ -414,7 +488,7 @@ std::vector<Move_t> Search::extract_pv_moves() const
 // ---------------------------------------------------------------------------
 // Alpha-Beta search
 // ---------------------------------------------------------------------------
-int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
+int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null, Move_t prev_move)
 {
     int search_ply = board_.get_search_ply();
     int mate_value = MATE_SCORE - search_ply;
@@ -451,9 +525,13 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
 
     int hash_flag = HASH_ALPHA;
     Move_t best_move = 0U;
+    int tt_depth = 0;
+    int tt_flags = 0;
+    int tt_value = 0;
     stats_.hash_probes++;
     int value;
-    if ((value = probe_hash(depth, alpha, beta, best_move)) != UNKNOWN_SCORE)
+    if ((value = probe_hash(depth, alpha, beta, best_move, &tt_depth, &tt_flags, &tt_value))
+        != UNKNOWN_SCORE)
     {
         stats_.hash_hits++;
         return value;
@@ -489,6 +567,9 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     // Are we in check?
     int in_check = MoveGenerator::in_check(board_, board_.side_to_move());
 
+    // Check extension: extend search by 1 ply when in check
+    int extension = in_check ? 1 : 0;
+
     // NULL move pruning
     U8 stm = board_.side_to_move();
     bool has_pieces = (board_.bitboard(KNIGHT + stm) | board_.bitboard(BISHOP + stm)
@@ -498,7 +579,7 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
     {
         int R = (depth > 6) ? 3 : 2;
         board_.do_null_move();
-        value = -alphabeta(-beta, -beta + 1, depth - 1 - R, NO_PV, NO_NULL);
+        value = -alphabeta(-beta, -beta + 1, depth - 1 - R, NO_PV, NO_NULL, 0U);
         board_.undo_null_move();
 
         if (value >= beta)
@@ -507,14 +588,51 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
         }
     }
 
+    // Static eval for pruning decisions (declared here so futility pruning in
+    // the move loop can reuse it without recomputing).
+    int static_eval = -MAX_SCORE;
+    bool static_eval_computed = false;
+
+    // Reverse futility pruning: if static eval is far above beta at low depth,
+    // return beta immediately (the position is so good we can skip searching).
+    if (depth >= 1 && depth <= 3 && !in_check && !is_pv)
+    {
+        static_eval = board_.get_evaluator().side_relative_eval(board_);
+        static_eval_computed = true;
+        if (static_eval - depth * RFP_MARGIN_PER_DEPTH >= beta)
+        {
+            return beta;
+        }
+    }
+
+    // Singular extensions: if the TT move is significantly better than all
+    // alternatives, extend it by 1 ply to resolve it more deeply.
+    Move_t singular_move = 0U;
+    if (depth >= SE_MIN_DEPTH && search_ply > 0 && !singular_excluded_[search_ply]
+        && best_move != 0U && (tt_flags == HASH_BETA || tt_flags == HASH_EXACT)
+        && tt_depth >= depth - 3)
+    {
+        singular_excluded_[search_ply] = true;
+        int se_beta = tt_value - SE_MARGIN;
+        int se_value = alphabeta(se_beta - 1, se_beta, depth / 2, NO_PV, DO_NULL, prev_move);
+        singular_excluded_[search_ply] = false;
+
+        if (se_value < se_beta)
+        {
+            singular_move = best_move;
+        }
+    }
+
     MoveList list;
     MoveGenerator::add_all_moves(list, board_, board_.side_to_move());
     MoveGenerator::score_moves(list, board_);
-    score_killers(list, search_ply);
+    score_quiet_moves(list, search_ply, prev_move);
     int n = list.length();
 
     // score PV move
     pv_.score_move(list, search_ply, best_move, follow_pv_);
+
+    int quiet_moves_searched = 0;
 
     for (int i = 0; i < n; i++)
     {
@@ -537,20 +655,72 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
                 continue;
         }
 
+        // Singular extension: skip the TT move during verification search
+        if (singular_excluded_[search_ply] && move == best_move)
+        {
+            continue;
+        }
+
         bool is_quiet = !is_capture(move) && !is_promotion(move);
         bool is_killer_move =
             (move == killers_[search_ply][0]) || (move == killers_[search_ply][1]);
 
+        // Futility pruning: skip quiet moves at low depths when static eval
+        // plus a margin is still below alpha (the move is unlikely to raise alpha).
+        // Exception: never prune moves that give check.
+        if (depth <= 2 && !in_check && !is_pv && is_quiet)
+        {
+            if (!static_eval_computed)
+            {
+                static_eval = board_.get_evaluator().side_relative_eval(board_);
+                static_eval_computed = true;
+            }
+            if (static_eval + FUTILITY_MARGIN[depth] <= alpha)
+            {
+                // Make the move to check if it gives check
+                board_.do_move(move);
+                bool gives_check = MoveGenerator::in_check(board_, board_.side_to_move());
+                board_.undo_move(move);
+                if (!gives_check)
+                {
+                    continue;
+                }
+            }
+        }
+
+        // Late move pruning: skip quiet moves after enough have been searched
+        // at low depths, since they are unlikely to improve alpha.
+        if (depth >= 1 && depth <= 3 && !in_check && !is_pv && is_quiet && !is_killer_move
+            && quiet_moves_searched > lmp_threshold(depth))
+        {
+            continue;
+        }
+
         board_.do_move(move);
+
+        // Per-move extension: check extension + singular extension for TT move
+        int move_extension = extension;
+        if (singular_move != 0U && move == singular_move)
+        {
+            move_extension += 1;
+        }
 
         // Late Move Reductions
         bool do_lmr = (i >= 3) && (depth >= 3) && is_quiet && !in_check && !is_killer_move;
+
+        // Compute logarithmic LMR reduced depth from lookup table
+        int lmr_reduced_depth = 1;  // default minimum
+        if (do_lmr)
+        {
+            int reduction = lmr_table_[min(depth, MAX_SEARCH_PLY - 1)][min(i, 63)];
+            lmr_reduced_depth = max(1, depth - 1 - reduction) + move_extension;
+        }
 
         if (found_pv)
         {
             if (do_lmr)
             {
-                value = -alphabeta(-alpha - 1, -alpha, depth - 2, NO_PV, DO_NULL);
+                value = -alphabeta(-alpha - 1, -alpha, lmr_reduced_depth, NO_PV, DO_NULL, move);
             }
             else
             {
@@ -558,10 +728,12 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
             }
             if (value > alpha)
             {
-                value = -alphabeta(-alpha - 1, -alpha, depth - 1, NO_PV, DO_NULL);
+                value = -alphabeta(
+                    -alpha - 1, -alpha, depth - 1 + move_extension, NO_PV, DO_NULL, move);
                 if ((value > alpha) && (value < beta))
                 {
-                    value = -alphabeta(-beta, -alpha, depth - 1, IS_PV, DO_NULL);
+                    value =
+                        -alphabeta(-beta, -alpha, depth - 1 + move_extension, IS_PV, DO_NULL, move);
                 }
             }
         }
@@ -569,20 +741,25 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
         {
             if (do_lmr)
             {
-                value = -alphabeta(-alpha - 1, -alpha, depth - 2, NO_PV, DO_NULL);
+                value = -alphabeta(-alpha - 1, -alpha, lmr_reduced_depth, NO_PV, DO_NULL, move);
                 if (value > alpha)
                 {
-                    value = -alphabeta(-beta, -alpha, depth - 1, is_pv, DO_NULL);
+                    value =
+                        -alphabeta(-beta, -alpha, depth - 1 + move_extension, is_pv, DO_NULL, move);
                 }
             }
             else
             {
-                value = -alphabeta(-beta, -alpha, depth - 1, is_pv, DO_NULL);
+                value = -alphabeta(-beta, -alpha, depth - 1 + move_extension, is_pv, DO_NULL, move);
             }
         }
         board_.undo_move(move);
         searched_moves_++;
         stats_.total_moves_searched++;
+        if (is_quiet)
+        {
+            quiet_moves_searched++;
+        }
         if (value > alpha)
         {
             found_pv = 1;
@@ -599,6 +776,13 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null)
                     store_killer(search_ply, move);
                     int side = board_.side_to_move();
                     history_[side][move_from(move)][move_to(move)] += depth * depth;
+
+                    // Record countermove: this quiet move refutes the previous move
+                    if (prev_move != 0U && !is_promotion(move))
+                    {
+                        int prev_side = side ^ 1;
+                        countermoves_[prev_side][move_from(prev_move)][move_to(prev_move)] = move;
+                    }
                 }
                 record_hash(depth, beta, HASH_BETA, best_move);
                 return beta;
@@ -689,6 +873,12 @@ int Search::quiesce(int alpha, int beta)
         Move_t move = list[i];
         if (is_capture(move))
         {
+            // SEE pruning: skip captures that lose material
+            if (MoveGenerator::see(board_, move) < 0)
+            {
+                continue;
+            }
+
             board_.do_move(move);
             int value = -quiesce(-beta, -alpha);
             board_.undo_move(move);

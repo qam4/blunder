@@ -15,63 +15,7 @@
 
 #include "Evaluator.h"
 #include "MoveGenerator.h"
-#include "MoveList.h"
 #include "Output.h"
-
-// ---------------------------------------------------------------------------
-// Phase and material constants — replicated from Evaluator.cpp so that
-// PositionAnalyzer can decompose the HCE score without modifying Evaluator.
-// ---------------------------------------------------------------------------
-static constexpr int PA_MIDGAME_LIMIT = 15258;
-static constexpr int PA_ENDGAME_LIMIT = 3915;
-static constexpr int PA_PHASE_MAX = 128;
-static constexpr int PA_MG = 0;
-static constexpr int PA_EG = 1;
-static constexpr int PA_NUM_PHASES = 2;
-
-// PIECE_VALUE_BONUS[phase][piece_type >> 1]
-// Index: 0=empty, 1=Pawn, 2=Knight, 3=Bishop, 4=Rook, 5=Queen, 6=King
-static const int PA_PIECE_VALUE[PA_NUM_PHASES][NUM_PIECES / 2] = {
-    { 0, 124, 781, 825, 1276, 2538, 0 },  // MG
-    { 0, 206, 854, 915, 1380, 2682, 0 }   // EG
-};
-
-// Pawn PSQT (same as Evaluator.cpp)
-static const int PA_PAWN_PSQT[PA_NUM_PHASES][NUM_SQUARES] = {
-    { 0,  0,   0,   0,   0,  0,   0,   0,   3,  3,   10, 19, 16, 19, 7,   -5,
-      -9, -15, 11,  15,  32, 22,  5,   -22, -4, -23, 6,  20, 40, 17, 4,   -8,
-      13, 0,   -13, 1,   11, -2,  -13, 5,   5,  -12, -7, 22, -8, -5, -15, -8,
-      -7, 7,   -3,  -13, 5,  -16, 10,  -8,  0,  0,   0,  0,  0,  0,  0,   0 },
-    { 0,  0,  0, 0,  0,  0,   0,   0,   -10, -6, 10, 0, 14, 7,  -5, -19, -10, -10, -10, 4,  4,  3,
-      -6, -4, 6, -2, -8, -4,  -13, -12, -10, -9, 10, 5, 4,  -5, -5, -5,  14,  9,   28,  20, 21, 28,
-      30, 7,  6, 13, 0,  -11, 12,  21,  25,  19, 4,  7, 0,  0,  0,  0,   0,   0,   0,   0 }
-};
-
-// ---------------------------------------------------------------------------
-// Helper: compute game phase (same formula as HandCraftedEvaluator::phase())
-// ---------------------------------------------------------------------------
-static int compute_phase(const Board& board)
-{
-    int npm = PA_PIECE_VALUE[PA_MG][QUEEN >> 1] * pop_count(board.bitboard(WHITE_QUEEN))
-        + PA_PIECE_VALUE[PA_MG][ROOK >> 1] * pop_count(board.bitboard(WHITE_ROOK))
-        + PA_PIECE_VALUE[PA_MG][BISHOP >> 1] * pop_count(board.bitboard(WHITE_BISHOP))
-        + PA_PIECE_VALUE[PA_MG][KNIGHT >> 1] * pop_count(board.bitboard(WHITE_KNIGHT))
-        + PA_PIECE_VALUE[PA_MG][QUEEN >> 1] * pop_count(board.bitboard(BLACK_QUEEN))
-        + PA_PIECE_VALUE[PA_MG][ROOK >> 1] * pop_count(board.bitboard(BLACK_ROOK))
-        + PA_PIECE_VALUE[PA_MG][BISHOP >> 1] * pop_count(board.bitboard(BLACK_BISHOP))
-        + PA_PIECE_VALUE[PA_MG][KNIGHT >> 1] * pop_count(board.bitboard(BLACK_KNIGHT));
-
-    npm = std::max(PA_ENDGAME_LIMIT, std::min(npm, PA_MIDGAME_LIMIT));
-    return ((npm - PA_ENDGAME_LIMIT) * PA_PHASE_MAX) / (PA_MIDGAME_LIMIT - PA_ENDGAME_LIMIT);
-}
-
-// ---------------------------------------------------------------------------
-// Helper: taper a (mg, eg) score pair by the game phase
-// ---------------------------------------------------------------------------
-static int taper(int mg, int eg, int phase)
-{
-    return (mg * phase + eg * (PA_PHASE_MAX - phase)) / PA_PHASE_MAX;
-}
 
 // ---------------------------------------------------------------------------
 // Helper: file bitboard constant for file index 0..7
@@ -86,142 +30,38 @@ static constexpr U64 FILE_BB[8] = {
 // compute_eval_breakdown()
 //
 // Decomposes the HCE evaluation into four components:
-//   material      — piece value sums, tapered
-//   mobility      — 20 * (white_moves - black_moves)
-//   king_safety   — pawn shield evaluation
-//   pawn_structure — pawn PSQT positional bonuses (tapered)
+//   material      — total eval minus sub-scores (PSQT + tempo residual)
+//   mobility      — from HCE eval_mobility()
+//   king_safety   — from HCE eval_king_safety()
+//   pawn_structure — from HCE eval_pawn_structure()
 //
-// The sum of these four approximately equals the full HCE eval (minus the
-// tempo bonus and non-pawn PSQT bonuses which don't cleanly decompose).
-// All values are from White's perspective; the caller can flip for side-to-move.
+// Calls evaluate() on the board's HCE to populate cached sub-scores, then
+// reads them via the public accessors. The material field captures the
+// remaining score (PSQT material + piece bonuses + tempo).
+// All values are from the side-to-move perspective (matching evaluate()).
 // ---------------------------------------------------------------------------
 EvalBreakdown PositionAnalyzer::compute_eval_breakdown(const Board& board)
 {
     EvalBreakdown bd {};
-    int phase = compute_phase(board);
 
-    // -----------------------------------------------------------------------
-    // 1. Material: sum piece values for each side, tapered
-    // -----------------------------------------------------------------------
-    int mat_mg = 0, mat_eg = 0;
-    for (int pt = PAWN; pt <= QUEEN; pt += 2)
-    {
-        int idx = pt >> 1;
-        int white_count = pop_count(board.bitboard(pt));          // white piece
-        int black_count = pop_count(board.bitboard(pt | BLACK));  // black piece
-        mat_mg += PA_PIECE_VALUE[PA_MG][idx] * (white_count - black_count);
-        mat_eg += PA_PIECE_VALUE[PA_EG][idx] * (white_count - black_count);
-    }
-    bd.material = taper(mat_mg, mat_eg, phase);
+    // evaluate() is non-const (it caches sub-scores), so we need a mutable copy
+    Board board_copy = board;
+    HandCraftedEvaluator& hce = board_copy.get_hce();
 
-    // -----------------------------------------------------------------------
-    // 2. Mobility: count legal moves for each side
-    // -----------------------------------------------------------------------
-    MoveList white_moves, black_moves;
-    MoveGenerator::add_all_moves(white_moves, board, WHITE);
-    MoveGenerator::add_all_moves(black_moves, board, BLACK);
-    bd.mobility = 20 * (white_moves.length() - black_moves.length());
+    // Run the full evaluation to populate all cached sub-scores
+    int total = hce.evaluate(board_copy);
 
-    // -----------------------------------------------------------------------
-    // 3. King Safety: evaluate pawn shield around each king
-    //    Count missing shield pawns on the king's file and adjacent files
-    //    within 1-2 ranks ahead of the king.
-    // -----------------------------------------------------------------------
-    auto eval_king_shield = [&](U8 side) -> int
-    {
-        // Find king square
-        U64 king_bb = board.bitboard(KING | side);
-        if (king_bb == 0)
-            return 0;
-        U8 king_sq = bit_scan_forward(king_bb);
-        int king_file = king_sq % 8;
-        int king_rank = king_sq / 8;
+    // Read cached sub-scores (white-relative, from evaluate())
+    bd.pawn_structure = hce.get_pawn_structure_score();
+    bd.king_safety = hce.get_king_safety_score();
+    bd.mobility = hce.get_mobility_score();
 
-        U64 friendly_pawns = board.bitboard(PAWN | side);
-        int missing_shield = 0;
+    // Material = total minus the known sub-scores
+    // This captures PSQT material, piece bonuses, and tempo
+    bd.material =
+        total - bd.pawn_structure - bd.king_safety - bd.mobility - hce.get_piece_bonuses_score();
 
-        // Check king's file and adjacent files
-        for (int f = std::max(0, king_file - 1); f <= std::min(7, king_file + 1); f++)
-        {
-            U64 file_pawns = FILE_BB[f] & friendly_pawns;
-            if (file_pawns == 0)
-            {
-                // No pawn on this file near the king at all
-                missing_shield += 2;
-                continue;
-            }
-
-            // Check if there's a pawn within 1-2 ranks ahead of the king
-            bool found_shield = false;
-            if (side == WHITE)
-            {
-                // White king: shield pawns are on ranks above the king
-                for (int r = king_rank + 1; r <= std::min(7, king_rank + 2); r++)
-                {
-                    if (file_pawns & (1ULL << (r * 8 + f)))
-                    {
-                        found_shield = true;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                // Black king: shield pawns are on ranks below the king
-                for (int r = king_rank - 1; r >= std::max(0, king_rank - 2); r--)
-                {
-                    if (file_pawns & (1ULL << (r * 8 + f)))
-                    {
-                        found_shield = true;
-                        break;
-                    }
-                }
-            }
-            if (!found_shield)
-            {
-                missing_shield += 1;
-            }
-        }
-        return missing_shield;
-    };
-
-    int white_missing = eval_king_shield(WHITE);
-    int black_missing = eval_king_shield(BLACK);
-    // Each missing shield pawn costs ~15cp; difference from white's perspective
-    bd.king_safety = -15 * (white_missing - black_missing);
-
-    // -----------------------------------------------------------------------
-    // 4. Pawn Structure: pawn PSQT positional bonuses (tapered)
-    //    This captures the positional component of pawn placement from the
-    //    piece-square tables, separate from the raw material value.
-    // -----------------------------------------------------------------------
-    int ps_mg = 0, ps_eg = 0;
-    U64 white_pawns = board.bitboard(WHITE_PAWN);
-    U64 black_pawns = board.bitboard(BLACK_PAWN);
-
-    U64 wp = white_pawns;
-    while (wp)
-    {
-        U8 sq = bit_scan_forward(wp);
-        ps_mg += PA_PAWN_PSQT[PA_MG][sq];
-        ps_eg += PA_PAWN_PSQT[PA_EG][sq];
-        wp &= wp - 1;  // clear LSB
-    }
-
-    U64 bp = black_pawns;
-    while (bp)
-    {
-        U8 sq = bit_scan_forward(bp);
-        // Black pawn PSQT uses flipped rank (sq ^ 56)
-        ps_mg -= PA_PAWN_PSQT[PA_MG][sq ^ 56];
-        ps_eg -= PA_PAWN_PSQT[PA_EG][sq ^ 56];
-        bp &= bp - 1;
-    }
-    bd.pawn_structure = taper(ps_mg, ps_eg, phase);
-
-    // -----------------------------------------------------------------------
-    // Convert from absolute (white-relative) to side-to-move perspective
-    // -----------------------------------------------------------------------
+    // evaluate() returns white-relative; convert to side-to-move perspective
     if (board.side_to_move() == BLACK)
     {
         bd.material = -bd.material;

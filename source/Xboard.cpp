@@ -50,7 +50,11 @@ int Xboard::setup(const std::string& fen)
 
 void Xboard::set_memory_size(int n)
 {
-    (void)n;
+    if (n < 1)
+        n = 1;
+    if (n > 4096)
+        n = 4096;
+    board_.get_tt().resize(n);
 }
 
 std::string Xboard::move_to_text(Move_t move)

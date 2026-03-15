@@ -275,8 +275,13 @@ void UCI::cmd_setoption(const std::string& args)
 
     if (name == "Hash")
     {
-        hash_size_mb_ = std::stoi(value);
-        // TODO: resize transposition table when TT supports dynamic sizing
+        int n = std::stoi(value);
+        if (n < 1)
+            n = 1;
+        if (n > 4096)
+            n = 4096;
+        hash_size_mb_ = n;
+        board_.get_tt().resize(n);
     }
     else if (name == "Book")
     {

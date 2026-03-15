@@ -447,3 +447,111 @@ Blunder uses bitboards — 64-bit integers where each bit represents a square.
 There is one bitboard per piece type per color, plus aggregate bitboards for
 all white and all black pieces. Move generation uses magic bitboards for
 sliding piece attacks (bishops, rooks, queens).
+
+## Performance Optimization Opportunities
+
+This section documents known optimization opportunities across the engine,
+categorized by type. Items are ordered roughly by expected impact.
+
+### Bitwise / Low-Level
+
+1. **Replace rank-mask loops with shift arithmetic** — `eval_pawn_structure()`
+   builds `front_mask` and `behind_mask` with `for (int r = ...)` loops.
+   Replace with: `front_mask = ~((1ULL << (8 * (rank + 1))) - 1)` for white
+   (single shift + complement), and the inverse for black. Same applies to
+   `behind_mask`. Eliminates up to 7 iterations per pawn per side.
+
+2. **Precompute front/behind span tables** — Build `FRONT_SPAN[side][sq]` and
+   `BEHIND_SPAN[side][sq]` lookup tables (128 × 8 bytes) at init time. Passed
+   pawn, backward pawn, and connected pawn detection become single AND
+   operations instead of computing masks per pawn.
+
+3. **Precompute pawn attack spans** — `friendly_pawn_attacks` and
+   `enemy_pawn_attacks` are recomputed inside the per-pawn loop in
+   `eval_pawn_structure()`. Hoist them outside the loop — they depend only on
+   the full pawn bitboard, not individual squares.
+
+4. **Precompute king shield masks** — `eval_king_safety()` builds
+   `shield_mask` with nested loops per file per side. Replace with a
+   `KING_SHIELD[side][king_sq]` lookup table (128 × 8 bytes) computed at init.
+
+5. **Use `sq & 7` instead of `sq % 8` for file extraction** — The compiler
+   likely optimizes this already, but explicit bitwise AND is clearer intent
+   and guaranteed branchless.
+
+6. **Use `sq >> 3` instead of `sq / 8` for rank extraction** — Same as above.
+
+### Redundant Computation
+
+7. **Compute `occupied` once in `evaluate()`** — Both `eval_king_safety()` and
+   `eval_mobility()` independently loop over all 12 piece bitboards to compute
+   the occupied bitboard. Compute it once in `evaluate()` and pass it as a
+   parameter. Better yet, add a `Board::occupied()` accessor that maintains
+   the aggregate bitboard incrementally in `do_move()`/`undo_move()`.
+
+8. **Compute pawn attack masks once** — `eval_mobility()` and
+   `eval_king_safety()` both need pawn attack masks. Compute once in
+   `evaluate()` and pass down.
+
+9. **PSQT loop iterates all 64 squares** — The main `evaluate()` loop checks
+   `board[square]` for all 64 squares. Replace with bitboard iteration: for
+   each piece type, iterate set bits of its bitboard. This visits only
+   occupied squares (~16 in middlegame vs 64).
+
+10. **`phase()` recomputes piece counts** — Called once per `evaluate()`, but
+    the piece counts could be maintained incrementally in `do_move()`.
+
+### Algorithmic
+
+11. **Incremental pawn Zobrist hash** — Currently iterates all pawn squares to
+    compute the pawn hash from scratch. Maintain it incrementally: XOR in/out
+    when pawns move or are captured. This makes pawn hash table probes nearly
+    free.
+
+12. **Doubled pawn detection without per-file loop** — The doubled pawn check
+    loops over all 8 files with `pop_count()`. Instead, detect doubled pawns
+    with: `pop_count(pawns) - pop_count(pawns & ~(pawns - FILE_BB_MASK))` or
+    similar bitwise tricks that count files with multiple pawns in one pass.
+
+13. **Pawn hash table sizing** — Current `PAWN_HASH_SIZE = 16384` with modulo
+    indexing. Use power-of-two size with bitmask indexing (`hash & (size - 1)`)
+    to avoid the expensive modulo operation.
+
+14. **TT probe in quiescence** — The quiescence search doesn't probe the TT.
+    Adding TT probing in qsearch can significantly reduce the number of nodes
+    evaluated, especially in tactical positions.
+
+### Profiling
+
+15. **`perf` profiling** — Run `perf record -g ./build/rel/blunder --test-positions ...`
+    then `perf report` to identify actual hotspots before optimizing. Previous
+    profiling sessions have been done this way. The `dev-prof` CMake preset
+    builds with `-O3 -g -fno-omit-frame-pointer` for accurate call stacks.
+    Focus optimization effort on functions that show up in the top 10 of
+    `perf report` — don't guess.
+
+16. **Cachegrind / callgrind** — `valgrind --tool=callgrind` gives
+    instruction-level profiling with cache miss analysis. Useful for spotting
+    TT and pawn hash table thrashing.
+
+### Structural
+
+17. **`Board::occupied()` accessor** — Add an aggregate occupied bitboard
+    maintained incrementally. Eliminates the 12-bitboard OR loop that appears
+    in multiple eval functions and in move generation.
+
+18. **`Board::side_pieces(side)` accessor** — Similarly, maintain per-side
+    aggregate bitboards. The `friendly` mask computation in `eval_mobility()`
+    loops over 6 piece types per side.
+
+19. **Eval caching** — For positions that differ by only one move, many eval
+    components (especially pawn structure, which is already cached) don't
+    change. Consider caching the full eval or sub-scores in the TT entry.
+
+20. **Profile-guided optimization (PGO)** — Build with `-fprofile-generate`,
+    run a benchmark, then rebuild with `-fprofile-use`. Typically yields 5-15%
+    NPS improvement for free.
+
+21. **Link-time optimization (LTO)** — Enable `-flto` in the release build.
+    Allows cross-translation-unit inlining of hot functions like
+    `pop_count()`, `bit_scan_forward()`, and magic bitboard lookups.

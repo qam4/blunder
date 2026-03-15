@@ -142,7 +142,8 @@ public:
                   int multipv_count = 1);
 
     // Algorithm implementations
-    int alphabeta(int alpha, int beta, int depth, int is_pv, int can_null);
+    int alphabeta(int alpha, int beta, int depth, int is_pv, int can_null,
+                  Move_t prev_move = 0U);
     int quiesce(int alpha, int beta);
     int negamax(int depth);
     Move_t negamax_root(int depth);
@@ -190,7 +191,9 @@ public:
 
 private:
     // Hash helpers (delegate to TT)
-    int probe_hash(int depth, int alpha, int beta, Move_t& best_move);
+    int probe_hash(int depth, int alpha, int beta, Move_t& best_move,
+                   int* tt_depth_out = nullptr, int* tt_flags_out = nullptr,
+                   int* tt_value_out = nullptr);
     void record_hash(int depth, int val, int flags, Move_t best_move);
 
     Board& board_;
@@ -216,11 +219,22 @@ private:
     // Killer move table: two killer slots per ply
     Move_t killers_[MAX_SEARCH_PLY][2] = {};
 
+    // Countermove table: [side][from_square][to_square]
+    Move_t countermoves_[2][64][64] = {};
+
     // History heuristic table: [side][from][to]
     int history_[2][64][64] = {};
 
+    // LMR reduction lookup table: [depth][move_index]
+    static int lmr_table_[MAX_SEARCH_PLY][64];
+    static bool lmr_initialized_;
+    static void init_lmr_table();
+
+    // Singular extension tracking
+    bool singular_excluded_[MAX_SEARCH_PLY] = {};
+
     void store_killer(int ply, Move_t move);
-    void score_killers(MoveList& list, int ply);
+    void score_quiet_moves(MoveList& list, int ply, Move_t prev_move);
 
     // MultiPV state
     std::vector<Move_t> excluded_root_moves_;

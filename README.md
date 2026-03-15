@@ -18,9 +18,7 @@ Measured via binary search against Stockfish 16.1 with `UCI_LimitStrength`
 
 | Evaluator | Estimated Elo | STS Score | WAC Score |
 |-----------|---------------|-----------|-----------|
-| HCE       | ~2212         | —         | 60.3% (181/300) |
-
-STS Elo estimate: 2443 (static positions, no time pressure).
+| HCE       | ~2375         | 68.5% (ELO 2808) | 69.3% (208/300) |
 
 # Contributing
 
