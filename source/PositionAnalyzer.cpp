@@ -725,6 +725,7 @@ KingSafety PositionAnalyzer::assess_king_safety(const Board& board, U8 side)
 
     int missing_shield = 0;
     int open_files_near_king = 0;
+    int storm_pawn_count = 0;
     bool pawn_storm = false;
     std::string missing_files;
 
@@ -740,16 +741,18 @@ KingSafety PositionAnalyzer::assess_king_safety(const Board& board, U8 side)
         if (file_friendly == 0 && file_enemy == 0)
             open_files_near_king++;
 
-        // Detect pawn storm: enemy pawns advanced near king
+        // Detect pawn storm: count enemy pawns advanced past the 4th rank near king
+        // For White's king: Black pawns storming down (rank 4 or below, erank <= 3)
+        // For Black's king: White pawns storming up (rank 5 or above, erank >= 4)
         U64 enemy_on_file = file_enemy;
         while (enemy_on_file)
         {
             U8 esq = bit_scan_forward(enemy_on_file);
             int erank = esq / 8;
-            if (side == WHITE && erank >= 3)  // rank 4+ (0-indexed rank 3+)
-                pawn_storm = true;
-            if (side == BLACK && erank <= 4)  // rank 5- (0-indexed rank 4-)
-                pawn_storm = true;
+            if (side == WHITE && erank <= 3)  // Black pawns on rank 1-4 (storming White's king)
+                storm_pawn_count++;
+            if (side == BLACK && erank >= 4)  // White pawns on rank 5-8 (storming Black's king)
+                storm_pawn_count++;
             enemy_on_file &= enemy_on_file - 1;
         }
 
@@ -800,6 +803,9 @@ KingSafety PositionAnalyzer::assess_king_safety(const Board& board, U8 side)
     // Score: each missing shield unit costs ~15cp
     int score = -15 * missing_shield;
     score -= 20 * open_files_near_king;
+
+    // Pawn storm requires 2+ advanced enemy pawns near the king
+    pawn_storm = (storm_pawn_count >= 2);
 
     // --- Position-aware description ---
 
