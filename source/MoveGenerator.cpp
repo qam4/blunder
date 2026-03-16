@@ -1060,8 +1060,44 @@ void add_all_moves(MoveList& list, const Board& board, const U8 side)
 /// Adds 'loud' legal moves to the move list.
 ///
 /// Loud moves are defined as:
+/// Generate pawn push-promotions (non-capture promotions to the 8th rank).
+/// Handles pinned pawns: only file-aligned pins allow forward pushes.
+void add_pawn_push_promotions(
+    MoveList& list, const Board& board, U64 pinned, U8 king_sq, const U8 side)
+{
+    const int diff = (side == WHITE) ? 8 : (64 - 8);
+    const U64 promo_rank = (side == WHITE) ? ROW_8 : ROW_1;
+    U64 empty = ~(board.bitboard(WHITE) | board.bitboard(BLACK));
+
+    // Non-pinned pawns
+    U64 pawns = board.bitboard(PAWN | side) & ~pinned;
+    U64 pushes = circular_left_shift(pawns, diff) & empty & promo_rank;
+    if (pushes)
+    {
+        add_promotions_with_diff(diff, pushes, list, board, side);
+    }
+
+    // Pinned pawns: can only push-promote if pinned along the file
+    U64 pinned_pawns = board.bitboard(PAWN | side) & pinned;
+    while (pinned_pawns)
+    {
+        U8 sq = bit_scan_forward(pinned_pawns);
+        if ((sq % 8) == (king_sq % 8))
+        {
+            U64 pawn_bb = 1ULL << sq;
+            U64 push = circular_left_shift(pawn_bb, diff) & empty & promo_rank;
+            if (push)
+            {
+                add_promotions_with_diff(diff, push, list, board, side);
+            }
+        }
+        pinned_pawns &= pinned_pawns - 1;
+    }
+}
+
 /// * Captures
 /// * Check evasions
+/// * Queen promotions (push-promotions, not just capture-promotions)
 void add_loud_moves(MoveList& list, const Board& board, const U8 side)
 {
     U64 kings = board.bitboard(KING | side);
@@ -1137,13 +1173,15 @@ void add_loud_moves(MoveList& list, const Board& board, const U8 side)
     else
     {
         // When not in check evaluate moves in this order
-        // 1. pawn captures
+        // 1. pawn captures (includes capture-promotions)
         // 2. pawn pin-ray captures
-        // 3. knight captures
-        // 4. sliding piece captures
-        // 5. king captures
+        // 3. pawn push-promotions (non-capture promotions)
+        // 4. knight captures
+        // 5. sliding piece captures
+        // 6. king captures
         add_pawn_legal_attacks(list, board, capture_mask, push_mask, ~pinned, side);
         add_pawn_pin_ray_attacks(list, board, capture_mask & pinners, pinned, king_sq, side);
+        add_pawn_push_promotions(list, board, pinned, king_sq, side);
         add_knight_legal_attacks(list, board, capture_mask, ~pinned, side);
         add_slider_legal_attacks(list, board, capture_mask, pinned, king_sq, side);
         add_king_legal_attacks(list, board, king_capture_mask, side);

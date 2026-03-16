@@ -41,6 +41,12 @@
       "protocol": "uci",
       "args": [],
       "options": {"Threads": "1", "Hash": "128", "UCI_LimitStrength": "true", "UCI_Elo": "2400"}
+    },
+    "blunder-v0.7.0": {
+      "cmd": "/local/home/fredmarc/src/fred/blunder/baselines/blunder-v0.7.0",
+      "protocol": "uci",
+      "args": ["--uci"],
+      "options": {}
     }
   },
   "defaults": {

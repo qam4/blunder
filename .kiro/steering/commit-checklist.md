@@ -10,6 +10,23 @@ description: Blunder-specific build commands and release rules
 3. Format: `cmake --build --preset=dev -t format-fix`
 4. Spell: `cmake --build --preset=dev -t spell-fix`
 
+# Gameplay-Affecting Changes
+
+If the commit touches search, evaluation, move ordering, move generation,
+or time management, run a regression gauntlet before committing:
+
+```bash
+# Save the current binary as baseline before building the change
+cp build/dev/blunder baselines/blunder-before
+
+# Build with the change, then run a quick SPRT regression test
+bench gauntlet --type sprt --baseline blunder-before --candidate blunder-hce --rounds 50 --tc 5+0.05
+```
+
+The baseline engine entry `blunder-before` must be added to bench-config.json
+pointing to the saved binary. If the candidate loses significantly (Elo < -20),
+investigate before committing.
+
 # CI Platforms
 
 Ubuntu 22.04 (gcc, clang-14), macOS-latest, Windows 2022 (MSVC).

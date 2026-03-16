@@ -920,12 +920,16 @@ by priority.
 
 ### Remaining high-impact items (non-NNUE)
 
-1. **SEE pruning in qsearch** — filter losing captures
-2. **Promotions in qsearch** — add_loud_moves doesn't generate queen promotions when not in check
+1. **SEE pruning in qsearch** — ✅ already done (missed in initial audit)
+2. **Promotions in qsearch** — ✅ done in v0.7.0
 3. **Easy move detection** — move instantly with one legal move or stable best move
 4. **is_draw optimization** — scan only since last irreversible move
 5. **Capture history** — track which captures cause cutoffs
 6. **main.cpp refactor** — extract shared CLI config parsing
+7. **MoveGenerator inlining** — helper functions (add_pawn_legal_attacks, etc.)
+   are separate functions called from one place each. The compiler likely inlines
+   them at -O3, but marking them `inline` or moving to a header could help if
+   profiling shows move generation overhead. Low priority until profiled.
 
 ### NNUE improvements (deferred — needs GPU training infrastructure)
 
