@@ -863,61 +863,79 @@ better data) are likely worth +200-400 Elo and should be the top priority.
 
 ## Priority Summary (by estimated impact)
 
-### Critical (highest NPS / Elo impact)
-1. NNUE incremental accumulator updates in `do_move` (~2x NPS)
-2. NNUE SIMD vectorization (~4-8x forward pass)
+**Status as of v0.7.0** — Most high-priority items from the original review
+have been implemented. Items marked ✅ are done; remaining items are listed
+by priority.
 
-### High — Engine Strength
-3. Check extensions (+30-50 Elo)
-4. Singular extensions (+20-40 Elo)
-5. Futility pruning (+20-30 Elo)
-6. SEE pruning in quiescence search
-7. Better NNUE training data (10M+ positions, depth 8+)
-8. TT depth-preferred replacement + configurable size (+15-25 Elo)
-9. Tapered eval for handcrafted evaluator (+50-100 Elo)
-10. Pawn structure evaluation (+30-50 Elo)
-11. King safety evaluation (+20-40 Elo)
-12. History table aging/decay
+### Implemented since original review
 
-### High — Code Quality
-13. Refactor `main.cpp` — extract shared CLI config parsing
-14. Board dependency injection (TT, evaluator)
+| # | Item | Status |
+|---|------|--------|
+| 1 | NNUE incremental accumulator updates | ❌ Not done (HCE focus) |
+| 2 | NNUE SIMD vectorization | ❌ Not done (HCE focus) |
+| 3 | Check extensions | ✅ Done |
+| 4 | Singular extensions | ✅ Done (depth ≥ 8, margin 50cp) |
+| 5 | Futility pruning | ✅ Done (depth 1-2, margins 200/500cp) |
+| 6 | SEE pruning in qsearch | ❌ Not done |
+| 7 | Better NNUE training data | ❌ Not done (HCE focus) |
+| 8 | TT depth-preferred replacement + configurable size | ✅ Done (depth+generation replacement, UCI Hash resize) |
+| 9 | Tapered eval (MG/EG PSQTs) | ✅ Done (Stockfish-style phase interpolation) |
+| 10 | Pawn structure evaluation | ✅ Done (passed, isolated, doubled, backward, connected + pawn hash) |
+| 11 | King safety evaluation | ✅ Done (pawn shield, open files, king zone attacks) |
+| 12 | History table aging/decay | ✅ Done (halved between iterations) |
+| 13 | Refactor main.cpp | ❌ Not done |
+| 14 | Board dependency injection | ❌ Not done |
+| 15 | Reverse futility pruning | ✅ Done (depth 1-3, 120cp/depth margin) |
+| 16 | Late Move Pruning (LMP) | ✅ Done (depth 1-3, threshold 3+depth*4) |
+| 17 | Countermove heuristic | ✅ Done (scored at 70, between killers and history) |
+| 18 | Logarithmic LMR | ✅ Done (log(depth)*log(move_index)/2.0 table) |
+| 19 | Mobility evaluation | ✅ Done (UCI option, togglable) |
+| 20 | Bishop pair bonus | ✅ Done (+30 MG, +50 EG) |
+| 21 | Capture history / continuation history | ❌ Not done |
+| 22 | Promotions in qsearch loud moves | ❌ Not done |
+| 23 | HalfKA NNUE architecture | ❌ Not done |
+| 24 | Easy move detection | ❌ Not done |
+| 25 | is_draw optimization | ❌ Not done |
+| 26 | adjust_for_score repeated application fix | ✅ Done (score_adjusted_ flag) |
+| 27 | pop_count intrinsic | ✅ Done (__builtin_popcountll / __popcnt64) |
+| 28 | Pre-reserve NNUE accumulator stack | ❌ Not checked |
+| 29 | TT index via bitmask | ✅ Done (hash & mask_) |
+| 30 | Replace #define with constexpr | ✅ Done |
+| 31 | Remove redundant #ifndef NDEBUG | ❌ Not checked |
+| 32 | C-style declarations → declare at point of use | ❌ Partial |
+| 38 | clock() → steady_clock | ✅ Done (TimeManager + SearchStats) |
+| 41 | Rook on open/semi-open file | ✅ Done (+20/+25 MG/EG open, +10/+15 semi-open) |
+| 42 | Rook/queen on 7th rank | ✅ Done (+20/+30 MG/EG) |
 
-### Medium — Engine Strength
-15. Reverse futility pruning / static null move pruning
-16. Late Move Pruning (LMP)
-17. Countermove heuristic
-18. Logarithmic LMR
-19. Mobility evaluation
-20. Bishop pair bonus
-21. Capture history / continuation history
-22. Promotions in qsearch loud moves
-23. HalfKA NNUE architecture
-24. Easy move detection
-25. `is_draw` optimization (scan only since last irreversible move)
-26. `adjust_for_score` repeated application fix
+### Additional fixes in v0.7.0 (not in original review)
 
-### Medium — Code Quality
-27. `pop_count` intrinsic
-28. Pre-reserve NNUE accumulator stack
-29. TT index via bitmask instead of modulo
-30. Replace `#define` with `constexpr` in Search.h
-31. Remove redundant `#ifndef NDEBUG` guards
-32. C-style declarations → declare at point of use
-33. `Constants.h` → `constexpr`
-34. `Common.h` → `<cassert>`, remove `<iostream>`
-35. Move `TestPositions.cpp` to test/
-36. UCI `go ponder` support
-37. UCI thread safety (mutex on board_)
+- UCI bestmove 0000 bug: race condition in cmd_position + multipv override
+- Time management abort flag: search continued past hard limit (~900 Elo fix)
+- Skill UCI option (1-20) with eval noise for weakened play
+- UCI_LimitStrength / UCI_Elo options
+- Book usage scales with skill level
+- Coach commands always run at full strength
+- NPS reporting in test_positions()
+- Bench tooling: elo search, fast-chess 1.8 compat, streaming output
 
-### Low
-38. `clock()` → `std::chrono::steady_clock`
-39. Zobrist singleton
-40. TT prefetch
-41. Rook on open file / 7th rank bonuses
-42. `analyze-sts.py` structured output
-43. `ScoredMove.score` → signed type
-44. `MoveGenerator` → namespace
-45. Aspiration window progressive widening
-46. IID / IIR
-47. Quantization-aware NNUE training
+### Remaining high-impact items (non-NNUE)
+
+1. **SEE pruning in qsearch** — filter losing captures
+2. **Promotions in qsearch** — add_loud_moves doesn't generate queen promotions when not in check
+3. **Easy move detection** — move instantly with one legal move or stable best move
+4. **is_draw optimization** — scan only since last irreversible move
+5. **Capture history** — track which captures cause cutoffs
+6. **main.cpp refactor** — extract shared CLI config parsing
+
+### NNUE improvements (deferred — needs GPU training infrastructure)
+
+1. Incremental accumulator updates (~2x NPS)
+2. SIMD vectorization (~4-8x forward pass)
+3. Better training data (10M+ positions)
+4. HalfKA architecture
+
+### Current measured strength
+
+| Evaluator | Elo (vs SF UCI_LimitStrength) | STS Score | WAC Score |
+|-----------|-------------------------------|-----------|-----------|
+| HCE       | ~2212                         | —         | 60.3% (181/300) |
