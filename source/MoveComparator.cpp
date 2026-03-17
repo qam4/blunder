@@ -76,10 +76,8 @@ static std::string move_to_uci(Move_t move, U8 side)
 // 6. Detect missed tactics (tactics in best line but not after user's move).
 // 7. Populate top_lines, critical_moment, critical_reason from MultiPV results.
 // ---------------------------------------------------------------------------
-ComparisonReport MoveComparator::compare(Board& board,
-                                         Search& search,
-                                         Move_t user_move,
-                                         int multipv_count)
+ComparisonReport MoveComparator::compare(
+    Board& board, Search& search, Move_t user_move, int multipv_count, int depth, int movetime)
 {
     ComparisonReport report;
     U8 side = board.side_to_move();
@@ -91,8 +89,15 @@ ComparisonReport MoveComparator::compare(Board& board,
     search.set_verbose(false);
     search.set_output_mode(Search::OutputMode::NORMAL);
     search.set_abort(false);
-    search.get_tm().start(1000000);  // 1-second time limit
-    search.search(12, -1, -1, false, multipv_count);
+    if (movetime > 0)
+    {
+        search.get_tm().start(movetime * 1000);  // ms → µs
+    }
+    else
+    {
+        search.get_tm().start(-1, -1);  // no time limit, depth-limited
+    }
+    search.search(depth, -1, -1, false, multipv_count);
 
     const auto& multipv_results = search.get_multipv_results();
     if (multipv_results.empty())
@@ -131,8 +136,15 @@ ComparisonReport MoveComparator::compare(Board& board,
         search.set_verbose(false);
         search.set_output_mode(Search::OutputMode::NORMAL);
         search.set_abort(false);
-        search.get_tm().start(1000000);       // 1-second time limit
-        search.search(12, -1, -1, false, 1);  // single-PV for user's move
+        if (movetime > 0)
+        {
+            search.get_tm().start(movetime * 1000);
+        }
+        else
+        {
+            search.get_tm().start(-1, -1);
+        }
+        search.search(depth, -1, -1, false, 1);  // single-PV for user's move
 
         const auto& user_results = search.get_multipv_results();
         int user_eval_raw = user_results.empty() ? 0 : user_results[0].score;

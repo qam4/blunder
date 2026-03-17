@@ -80,6 +80,8 @@ void CoachDispatcher::cmd_eval(const std::string& args)
     std::string token;
     std::string fen;
     int multipv = 3;
+    int depth = 12;
+    int movetime = -1;  // milliseconds, -1 = not specified
 
     // Expect "fen" keyword
     iss >> token;
@@ -89,17 +91,27 @@ void CoachDispatcher::cmd_eval(const std::string& args)
         return;
     }
 
-    // Collect FEN parts (up to 6 tokens before "multipv" or end)
+    // Collect FEN parts and optional parameters
     while (iss >> token)
     {
         if (token == "multipv")
         {
             iss >> multipv;
-            break;
         }
-        if (!fen.empty())
-            fen += " ";
-        fen += token;
+        else if (token == "depth")
+        {
+            iss >> depth;
+        }
+        else if (token == "movetime")
+        {
+            iss >> movetime;
+        }
+        else
+        {
+            if (!fen.empty())
+                fen += " ";
+            fen += token;
+        }
     }
 
     if (fen.empty())
@@ -132,13 +144,19 @@ void CoachDispatcher::cmd_eval(const std::string& args)
         nnue_->refresh(board_);
     }
 
-    // Run MultiPV search — scale time budget by number of PV lines requested,
-    // since each line requires a separate search at each depth.
+    // Run MultiPV search with caller-specified limits
     search_.set_verbose(false);
     search_.set_output_mode(Search::OutputMode::NORMAL);
     search_.set_abort(false);
-    search_.get_tm().start(10000000);  // 10 seconds for analysis
-    search_.search(12, -1, -1, false, multipv);
+    if (movetime > 0)
+    {
+        search_.get_tm().start(movetime * 1000);  // ms → µs
+    }
+    else
+    {
+        search_.get_tm().start(-1, -1);  // no time limit, depth-limited
+    }
+    search_.search(depth, -1, -1, false, multipv);
 
     const auto& raw_lines = search_.get_multipv_results();
     std::vector<PVLine> pv_lines;
@@ -168,6 +186,8 @@ void CoachDispatcher::cmd_compare(const std::string& args)
     std::string token;
     std::string fen;
     std::string move_str;
+    int depth = 12;
+    int movetime = -1;  // milliseconds, -1 = not specified
 
     // Expect "fen" keyword
     iss >> token;
@@ -177,17 +197,27 @@ void CoachDispatcher::cmd_compare(const std::string& args)
         return;
     }
 
-    // Collect FEN parts (up to "move" keyword)
+    // Collect FEN parts and optional parameters
     while (iss >> token)
     {
         if (token == "move")
         {
             iss >> move_str;
-            break;
         }
-        if (!fen.empty())
-            fen += " ";
-        fen += token;
+        else if (token == "depth")
+        {
+            iss >> depth;
+        }
+        else if (token == "movetime")
+        {
+            iss >> movetime;
+        }
+        else
+        {
+            if (!fen.empty())
+                fen += " ";
+            fen += token;
+        }
     }
 
     if (fen.empty())
@@ -237,7 +267,8 @@ void CoachDispatcher::cmd_compare(const std::string& args)
     Move_t user_move = *opt_move;
 
     // Run comparison
-    ComparisonReport report = MoveComparator::compare(board_, search_, user_move);
+    ComparisonReport report =
+        MoveComparator::compare(board_, search_, user_move, 3, depth, movetime);
 
     // Override FEN with the input FEN
     report.fen = fen;

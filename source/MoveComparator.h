@@ -38,7 +38,8 @@ class MoveComparator {
 public:
     /// Full comparison flow (stub — implemented in task 4.2)
     static ComparisonReport compare(Board& board, Search& search,
-                                     Move_t user_move, int multipv_count = 3);
+                                     Move_t user_move, int multipv_count = 3,
+                                     int depth = 12, int movetime = -1);
 
     /// Classification helpers (testable in isolation)
     static std::string classify(int eval_drop_cp);
