@@ -920,10 +920,10 @@ by priority.
 
 ### Remaining high-impact items (non-NNUE)
 
-1. **SEE pruning in qsearch** — ✅ already done (missed in initial audit)
-2. **Promotions in qsearch** — ✅ done in v0.7.0
-3. **Easy move detection** — move instantly with one legal move or stable best move
-4. **is_draw optimization** — scan only since last irreversible move
+1. ~~**SEE pruning in qsearch**~~ — ✅ already done
+2. ~~**Promotions in qsearch**~~ — ✅ done (WAC 60.3% → 69.7%)
+3. ~~**Easy move detection**~~ — ✅ done (single legal move + stable best move)
+4. ~~**is_draw optimization**~~ — ✅ already done (scans only since last irreversible move, steps by 2)
 5. **Capture history** — track which captures cause cutoffs
 6. **main.cpp refactor** — extract shared CLI config parsing
 7. **MoveGenerator inlining** — helper functions (add_pawn_legal_attacks, etc.)

@@ -225,6 +225,11 @@ private:
     // History heuristic table: [side][from][to]
     int history_[2][64][64] = {};
 
+    // Capture history table: [piece_type][to_square][captured_type]
+    // Tracks which captures cause beta cutoffs for better capture ordering.
+    // piece_type and captured_type are indexed by piece >> 1 (0..6).
+    int capture_history_[7][64][7] = {};
+
     // LMR reduction lookup table: [depth][move_index]
     static int lmr_table_[MAX_SEARCH_PLY][64];
     static bool lmr_initialized_;
@@ -235,6 +240,7 @@ private:
 
     void store_killer(int ply, Move_t move);
     void score_quiet_moves(MoveList& list, int ply, Move_t prev_move);
+    void score_captures_with_history(MoveList& list);
 
     // MultiPV state
     std::vector<Move_t> excluded_root_moves_;

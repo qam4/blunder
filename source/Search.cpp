@@ -147,6 +147,32 @@ void Search::score_quiet_moves(MoveList& list, int ply, Move_t prev_move)
     }
 }
 
+void Search::score_captures_with_history(MoveList& list)
+{
+    int n = list.length();
+    for (int i = 0; i < n; i++)
+    {
+        Move_t move = list[i];
+        if (is_capture(move))
+        {
+            U8 piece = board_[move_from(move)] >> 1;
+            U8 captured = board_[move_to(move)] >> 1;
+            if (is_ep_capture(move))
+            {
+                captured = PAWN >> 1;
+            }
+            int h = capture_history_[piece][move_to(move)][captured];
+            if (h > 0)
+            {
+                // Add a small bonus (1..9) on top of the existing MVV-LVA score
+                int bonus = 1 + (h * 8) / (h + 1000);
+                int current = list.get_score(i);
+                list.set_score(i, current + bonus);
+            }
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Iterative deepening search
 // ---------------------------------------------------------------------------
@@ -222,6 +248,7 @@ Move_t Search::search(int depth,
     abort_ = false;
     std::memset(killers_, 0, sizeof(killers_));
     std::memset(history_, 0, sizeof(history_));
+    std::memset(capture_history_, 0, sizeof(capture_history_));
     std::memset(countermoves_, 0, sizeof(countermoves_));
     stats_.reset();
 
@@ -265,7 +292,7 @@ Move_t Search::search(int depth,
 
     for (int current_depth = 1; current_depth <= depth; current_depth++)
     {
-        // Age history table to prevent unbounded growth
+        // Age history tables to prevent unbounded growth
         if (current_depth > 1)
         {
             for (int s = 0; s < 2; ++s)
@@ -275,6 +302,16 @@ Move_t Search::search(int depth,
                     for (int t = 0; t < 64; ++t)
                     {
                         history_[s][f][t] /= 2;
+                    }
+                }
+            }
+            for (int p = 0; p < 7; ++p)
+            {
+                for (int t = 0; t < 64; ++t)
+                {
+                    for (int c = 0; c < 7; ++c)
+                    {
+                        capture_history_[p][t][c] /= 2;
                     }
                 }
             }
@@ -667,6 +704,7 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null, M
     MoveGenerator::add_all_moves(list, board_, board_.side_to_move());
     MoveGenerator::score_moves(list, board_);
     score_quiet_moves(list, search_ply, prev_move);
+    score_captures_with_history(list);
     int n = list.length();
 
     // score PV move
@@ -823,6 +861,17 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null, M
                         int prev_side = side ^ 1;
                         countermoves_[prev_side][move_from(prev_move)][move_to(prev_move)] = move;
                     }
+                }
+                else
+                {
+                    // Update capture history for captures that cause cutoffs
+                    U8 piece = board_[move_from(move)] >> 1;
+                    U8 captured = board_[move_to(move)] >> 1;
+                    if (is_ep_capture(move))
+                    {
+                        captured = PAWN >> 1;
+                    }
+                    capture_history_[piece][move_to(move)][captured] += depth * depth;
                 }
                 record_hash(depth, beta, HASH_BETA, best_move);
                 return beta;
