@@ -70,7 +70,7 @@ void CoachDispatcher::dispatch(const std::string& args)
 
 void CoachDispatcher::cmd_ping()
 {
-    std::string data = CoachJson::serialize_pong("Blunder", "0.7.0");
+    std::string data = CoachJson::serialize_pong("Blunder", "0.8.0");
     send_response(wrap_envelope("pong", data));
 }
 

@@ -4,7 +4,7 @@ include(cmake/prelude.cmake)
 
 project(
     blunder
-    VERSION 0.7.0
+    VERSION 0.8.0
     DESCRIPTION "Chess engine"
     HOMEPAGE_URL "https://example.com/"
     LANGUAGES CXX
