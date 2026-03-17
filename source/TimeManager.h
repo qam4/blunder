@@ -82,6 +82,7 @@ public:
         start_ = Clock::now();
         max_nodes_ = -1;
         score_adjusted_ = false;
+        easy_move_applied_ = false;
     }
 
     /// Legacy start method for non-clock-based searches (fixed time, node limit).
@@ -93,6 +94,7 @@ public:
         max_nodes_ = max_nodes;
         start_ = Clock::now();
         score_adjusted_ = false;
+        easy_move_applied_ = false;
     }
 
     /// Extend soft limit when best move is unstable between iterations.
@@ -113,6 +115,18 @@ public:
         {
             soft_limit_ = soft_limit_ * 3 / 5;
             score_adjusted_ = true;
+        }
+    }
+
+    /// Reduce soft limit when best move is stable (easy move detection).
+    /// Called once when the best move hasn't changed for several iterations.
+    /// Only applies when a real time limit is set (soft_limit_ > 0).
+    void reduce_for_easy_move()
+    {
+        if (!easy_move_applied_ && soft_limit_ > 0)
+        {
+            soft_limit_ = soft_limit_ / 2;
+            easy_move_applied_ = true;
         }
     }
 
@@ -171,6 +185,7 @@ private:
     int hard_limit_ = DEFAULT_SEARCH_TIME;
     int max_nodes_ = -1;
     bool score_adjusted_ = false;
+    bool easy_move_applied_ = false;
 };
 
 #endif /* TIMEMANAGER_H */

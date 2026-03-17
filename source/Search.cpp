@@ -248,8 +248,20 @@ Move_t Search::search(int depth,
     multipv_results_.clear();
     multipv_results_.resize(effective_multipv);
 
+    // Easy move: if only one legal move, return it immediately (no search needed).
+    // Skip for fixed-node/depth benchmarks where the search output matters.
+    if (num_legal_moves == 1 && tm_.soft_limit() > 0)
+    {
+        search_best_move_ = legal_moves[0];
+        search_best_score_ = 0;
+        multipv_results_[0].score = 0;
+        multipv_results_[0].moves = { legal_moves[0] };
+        return legal_moves[0];
+    }
+
     int alpha = -MAX_SCORE;
     int beta = MAX_SCORE;
+    int best_move_stability = 0;  // consecutive iterations with same best move
 
     for (int current_depth = 1; current_depth <= depth; current_depth++)
     {
@@ -437,6 +449,11 @@ Move_t Search::search(int depth,
         if (last_best_move != 0U && search_best_move_ != last_best_move && current_depth >= 4)
         {
             tm_.extend_for_instability();
+            best_move_stability = 0;
+        }
+        else if (last_best_move != 0U && search_best_move_ == last_best_move)
+        {
+            best_move_stability++;
         }
 
         last_best_move = search_best_move_;
@@ -450,6 +467,14 @@ Move_t Search::search(int depth,
         if (abs(search_best_score_) >= MATE_SCORE - MAX_SEARCH_PLY)
         {
             break;
+        }
+
+        // Easy move: if best move has been stable for 5+ iterations at depth >= 8,
+        // reduce the soft time limit to move faster. This saves time for harder
+        // positions later. Only applies in single-PV mode.
+        if (effective_multipv == 1 && best_move_stability >= 5 && current_depth >= 8)
+        {
+            tm_.reduce_for_easy_move();
         }
 
         if (tm_.should_stop(nodes_visited_))
