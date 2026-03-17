@@ -100,6 +100,10 @@
               <span class="m-doc-wrap-bumper">void <a href="#a5fc2b6a29e34ef6641a6e4b9e71aca92" class="m-doc">adjust_for_score</a>(</span><span class="m-doc-wrap">int score_cp)</span>
             </dt>
             <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a10ba9dc80dd293f1c771159fd3dd0a26" class="m-doc">reduce_for_easy_move</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd></dd>
             <dt id="a48f55ed41b0cdca272fbfc6f5f0f267f">
               <span class="m-doc-wrap-bumper">auto <a href="#a48f55ed41b0cdca272fbfc6f5f0f267f" class="m-doc-self">elapsed_us</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
             </dt>
@@ -175,6 +179,12 @@
               </tbody>
             </table>
 <p>Reduce soft limit when position is clearly won or lost.</p>
+          </div></section>
+          <section class="m-doc-details" id="a10ba9dc80dd293f1c771159fd3dd0a26"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void TimeManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a10ba9dc80dd293f1c771159fd3dd0a26" class="m-doc-self">reduce_for_easy_move</a>(</span><span class="m-doc-wrap">)</span></span>
+            </h3>
+<p>Reduce soft limit when best move is stable (easy move detection). Called once when the best move hasn&#x27;t changed for several iterations. Only applies when a real time limit is set (soft_limit_ &gt; 0).</p>
           </div></section>
           <section class="m-doc-details" id="a585c92b4139890745897732eec8e7021"><div>
             <h3>
