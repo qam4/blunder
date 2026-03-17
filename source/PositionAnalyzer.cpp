@@ -184,13 +184,13 @@ PositionReport PositionAnalyzer::analyze(const Board& board, const std::vector<P
     // 1. FEN
     report.fen = Output::board_to_fen(board);
 
-    // 2-3. Overall eval — board is const but get_evaluator() is non-const,
-    //       so make a mutable copy to call side_relative_eval().
-    Board board_copy = board;
-    report.eval_cp = board_copy.get_evaluator().side_relative_eval(board_copy);
-
-    // 4. Eval breakdown
+    // 2-3. Eval breakdown (always from HCE, even if NNUE is loaded)
     report.breakdown = compute_eval_breakdown(board);
+
+    // eval_cp = sum of breakdown components (ensures consistency)
+    report.eval_cp = report.breakdown.material + report.breakdown.pawn_structure
+        + report.breakdown.king_safety + report.breakdown.mobility + report.breakdown.piece_bonuses
+        + report.breakdown.tempo;
 
     // 5-6. Hanging pieces
     report.hanging_white = find_hanging_pieces(board, WHITE);

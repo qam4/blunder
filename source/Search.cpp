@@ -280,6 +280,11 @@ Move_t Search::search(int depth,
             int pv_alpha = (pv_index == 0) ? alpha : -MAX_SCORE;
             int pv_beta = (pv_index == 0) ? beta : MAX_SCORE;
 
+            // Reset abort flag before each PV iteration — a previous PV line
+            // may have hit the hard time limit inside alphabeta, setting abort_.
+            // Without this reset, subsequent PV lines return immediately with 0.
+            abort_ = false;
+
             follow_pv_ = 1;
             max_search_ply_ = 0;
 
@@ -329,10 +334,14 @@ Move_t Search::search(int depth,
                 excluded_root_moves_.push_back(root_move);
             }
 
-            // Check time limit between PV iterations (not after the last one)
-            if (pv_index < effective_multipv - 1)
+            // Check time limit between PV iterations (not after the last one).
+            // Skip this check entirely for MultiPV > 1 so all requested lines
+            // complete at each depth. Time is still checked between depths
+            // (via should_stop after the MultiPV loop) and inside alphabeta
+            // (via is_time_over every 2048 nodes).
+            if (effective_multipv == 1 && pv_index < effective_multipv - 1)
             {
-                if (tm_.should_stop(nodes_visited_) || tm_.is_time_over(nodes_visited_))
+                if (tm_.should_stop(nodes_visited_))
                 {
                     depth_completed = false;
                     break;
@@ -533,8 +542,14 @@ int Search::alphabeta(int alpha, int beta, int depth, int is_pv, int can_null, M
     if ((value = probe_hash(depth, alpha, beta, best_move, &tt_depth, &tt_flags, &tt_value))
         != UNKNOWN_SCORE)
     {
-        stats_.hash_hits++;
-        return value;
+        // Don't use TT cutoff at the root when MultiPV is active — we need
+        // to run the move loop so excluded_root_moves_ can filter out moves
+        // that were already chosen as better PV lines.
+        if (search_ply != 0 || excluded_root_moves_.empty())
+        {
+            stats_.hash_hits++;
+            return value;
+        }
     }
 
     // Leaf node

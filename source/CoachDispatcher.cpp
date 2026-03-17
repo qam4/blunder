@@ -132,11 +132,12 @@ void CoachDispatcher::cmd_eval(const std::string& args)
         nnue_->refresh(board_);
     }
 
-    // Run MultiPV search
+    // Run MultiPV search — scale time budget by number of PV lines requested,
+    // since each line requires a separate search at each depth.
     search_.set_verbose(false);
     search_.set_output_mode(Search::OutputMode::NORMAL);
     search_.set_abort(false);
-    search_.get_tm().start(1000000);  // 1 second
+    search_.get_tm().start(10000000);  // 10 seconds for analysis
     search_.search(12, -1, -1, false, multipv);
 
     const auto& raw_lines = search_.get_multipv_results();
