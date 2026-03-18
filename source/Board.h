@@ -19,7 +19,23 @@
 
 // Forward declaration no longer needed — NNUEEvaluator.h is included above.
 
-int pop_count(U64 x);
+inline int pop_count(U64 x)
+{
+#if defined(__GNUC__) || defined(__clang__)
+    return __builtin_popcountll(static_cast<unsigned long long>(x));
+#elif defined(_MSC_VER)
+    return static_cast<int>(__popcnt64(x));
+#else
+    int count = 0;
+    while (x)
+    {
+        count++;
+        x &= x - 1;
+    }
+    return count;
+#endif
+}
+
 bool inline is_valid_piece(U8 piece) { return (piece >= WHITE_PAWN) && (piece <= BLACK_KING); }
 bool inline is_valid_square(int square) { return (square >= 0) && (square <= 64); }
 bool inline is_piece_slider(U8 piece) { return (piece >= WHITE_BISHOP) && (piece <= BLACK_QUEEN); }
@@ -69,8 +85,16 @@ public:
     bool is_game_over();
     bool is_draw(bool in_search = false);
 
-    U8 operator[](const int square) const; // return piece on that square
-    U64 bitboard(const int type) const;
+    inline U8 operator[](const int square) const
+    {
+        assert(is_valid_square(square));
+        return board_array_[square];
+    }
+    inline U64 bitboard(const int type) const
+    {
+        assert(type >= 0 && type <= BLACK_KING);
+        return bitboards_[type];
+    }
     int half_move_count() const { return irrev_.half_move_count; };
     int full_move_count() const { return irrev_.full_move_count; };
     U8 castling_rights() const { return irrev_.castling_rights; };

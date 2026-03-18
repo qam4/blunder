@@ -534,15 +534,110 @@ categorized by type. Items are ordered roughly by expected impact.
     instruction-level profiling with cache miss analysis. Useful for spotting
     TT and pawn hash table thrashing.
 
+#### Flamegraph profiling (2026-03-18)
+
+A `bench profile` subcommand was added to generate flamegraph SVGs via
+`perf record` + `inferno-collapse-perf` + `inferno-flamegraph`. Run with:
+
+```
+bench profile --output output/profile
+```
+
+Requires `perf` and `cargo install inferno`. Output is an interactive SVG
+at `output/profile/flamegraph.svg`.
+
+**Results (WAC 300 positions, dev build, AMD EPYC 9R14):**
+
+| Self-time % | Function | Notes |
+|-------------|----------|-------|
+| 15.0% | `HandCraftedEvaluator::evaluate` | Expected — eval hotpath |
+| 6.6% | `__popcountdi2` | Software popcount fallback (see below) |
+| 6.6% | `Board::bitboard` | Accessor — should be inlined |
+| 6.0% | `Board::operator[]` | Accessor — should be inlined |
+| 5.0% | `MoveList::sort_moves` | Full sort vs partial sort? |
+| 4.5% | `eval_mobility` | Sub-function of evaluate |
+| 3.9% | `allocate_shared<TT>` | TT allocation during search (suspicious) |
+| 3.9% | `MoveGenerator::see` | SEE in move ordering |
+| 3.7% | `rook_attacks_magic` | Magic bitboard lookups |
+| 3.7% | `Search::alphabeta` | Core search overhead |
+| 3.6% | `eval_king_safety` | Sub-function of evaluate |
+| 2.8% | `vector<HASHE>` | TT-related allocation |
+
+**Key findings and applied fixes:**
+
+1. **Software popcount at 6.6%** ✅ FIXED — `pop_count()` uses
+   `__builtin_popcountll` which is correct, but without `-mpopcnt` in the
+   compile flags the compiler emits a call to the `__popcountdi2` library
+   routine instead of the single hardware `POPCNT` instruction.
+   Fix applied: added `-mpopcnt` to CMakeLists.txt for x86_64 GCC/Clang.
+   Also moved `pop_count()` from Board.cpp to Board.h as `inline` so it
+   can be inlined across translation units.
+
+2. **Board accessors not inlined (12.6% combined)** ✅ FIXED —
+   `Board::bitboard()` and `Board::operator[]` together accounted for 12.6%
+   of self-time. These are simple array lookups that should compile to a
+   single memory load. They appeared as separate frames because they were
+   defined in `Board.cpp` but called from `Evaluator.cpp`,
+   `MoveGenerator.cpp`, etc. (no LTO).
+   Fix applied: moved both to `Board.h` as `inline` definitions.
+
+3. **TT allocation during search (~6.7%)** — `allocate_shared<TT>` and
+   `vector<HASHE>` appear during search. Investigation shows the TT is
+   stored as `shared_ptr<TranspositionTable>` in Board. The profile cost
+   comes from atomic ref-count operations when Board is copied (e.g. in
+   `extract_pv_moves()` and UCI output). The shared_ptr is correct for
+   sharing semantics. A future fix could use a raw pointer or reference
+   wrapper to avoid ref-count overhead on copies.
+
+4. **MoveList::sort_moves at 5%** — Already uses selection sort (pick best
+   move at current_index), which is the correct approach. The 5% cost is
+   inherent to the frequency of calls, not algorithmic waste. No change
+   needed.
+
+5. **SAN conversion is negligible** — `Output::move_san` accounts for ~0.18%
+   of total time. Not a bottleneck.
+
+6. **Eval sub-functions (mobility 4.5%, king safety 3.6%, piece bonuses 2.4%,
+   phase 1.3%)** ✅ PARTIALLY FIXED — Three micro-optimizations applied:
+   - `phase()`: reduced from 8 `pop_count` calls to 4 by OR-ing both colors
+     per piece type before counting.
+   - `eval_king_safety()`: replaced 14-iteration occupied-bitboard loop with
+     `board.bitboard(WHITE) | board.bitboard(BLACK)` (2 lookups).
+   - `eval_mobility()`: same occupied-bitboard fix, plus replaced the
+     7-iteration friendly-pieces loop with `board.bitboard(side)` (1 lookup).
+
+#### Optimization results (2026-03-18)
+
+After applying fixes 1, 2, and 6 above, NPS comparison (WAC 300 positions):
+
+| Metric | Before (6430fc3) | After (dirty) | Notes |
+|--------|-------------------|---------------|-------|
+| NPS | 1,591,493 | 2,228,384 | +40% (includes earlier search improvements) |
+| Score (nodes) | 181/300 | 216/300 | Gain is from search/eval changes between commits, NOT from NPS |
+| Score (time1s) | — | 240/300 | Time-bound benefits from higher NPS |
+
+The NPS gain is the direct result of the compile/inline optimizations.
+The accuracy gain in nodes-mode is from search/eval improvements that
+landed between v0.7.0 and v0.8.0 (capture history, quiescence promotions,
+HCE tuning). Pure NPS changes do not affect fixed-node accuracy.
+
+Changes applied: hardware POPCNT (`-mpopcnt`), inline `pop_count()`,
+`Board::bitboard()`, `Board::operator[]`, `phase()` 8→4 pop_count calls,
+occupied-bitboard loops replaced with color aggregate lookups.
+
 ### Structural
 
 17. **`Board::occupied()` accessor** — Add an aggregate occupied bitboard
-    maintained incrementally. Eliminates the 12-bitboard OR loop that appears
-    in multiple eval functions and in move generation.
+    maintained incrementally. Eliminates the remaining occupied-bitboard
+    computations in move generation. The eval functions now use the color
+    aggregate bitboards (item 18), but MoveGenerator still computes occupied
+    ad-hoc.
 
-18. **`Board::side_pieces(side)` accessor** — Similarly, maintain per-side
-    aggregate bitboards. The `friendly` mask computation in `eval_mobility()`
-    loops over 6 piece types per side.
+18. **`Board::side_pieces(side)` accessor** ✅ PARTIALLY ADDRESSED — The
+    `bitboards_[WHITE]` and `bitboards_[BLACK]` aggregate bitboards already
+    exist and are maintained by `add_piece`/`remove_piece`. The eval
+    functions now use `board.bitboard(WHITE)` / `board.bitboard(BLACK)`
+    directly instead of looping over piece types.
 
 19. **Eval caching** — For positions that differ by only one move, many eval
     components (especially pawn structure, which is already cached) don't

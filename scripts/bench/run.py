@@ -23,6 +23,7 @@ from pathlib import Path
 from bench.config import Config
 from bench.csv_store import append_category_results, append_main_result, get_previous_result
 from bench.git_meta import get_git_info
+from bench.machine_info import get_machine_info
 from bench.parsers import BenchmarkResult, parse_benchmark_output
 
 # ---------------------------------------------------------------------------
@@ -418,6 +419,7 @@ def _log_main_result(
     git_commit: str,
     git_branch: str,
     timestamp: str,
+    cpu_model: str = "",
 ) -> None:
     """Append a main result row to benchmarks.csv."""
     row = {
@@ -435,6 +437,7 @@ def _log_main_result(
         "nodes": str(result.nodes),
         "time_secs": f"{result.time_secs:.1f}",
         "passed": "True",
+        "cpu_model": cpu_model,
     }
     append_main_result(output_dir, row)
 
@@ -603,6 +606,7 @@ def cmd_run(config: Config, args: argparse.Namespace) -> int:
 
     # Collect git metadata once
     git_info = get_git_info(config.project_root)
+    machine = get_machine_info()
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     total = len(pairs)
@@ -659,8 +663,8 @@ def cmd_run(config: Config, args: argparse.Namespace) -> int:
                 _run_single_step(
                     idx, total, suite, mode, test_binary, evaluator,
                     verbose, show_cmd, timeout_map, output_dir,
-                    git_info, timestamp, summary_rows, category_results,
-                    regression_warnings, progress, task_id,
+                    git_info, timestamp, machine.cpu_model, summary_rows,
+                    category_results, regression_warnings, progress, task_id,
                 )
                 if summary_rows and summary_rows[-1].get("_ok"):
                     any_success = True
@@ -672,8 +676,8 @@ def cmd_run(config: Config, args: argparse.Namespace) -> int:
             _run_single_step(
                 idx, total, suite, mode, test_binary, evaluator,
                 verbose, show_cmd, timeout_map, output_dir,
-                git_info, timestamp, summary_rows, category_results,
-                regression_warnings, None, None,
+                git_info, timestamp, machine.cpu_model, summary_rows,
+                category_results, regression_warnings, None, None,
             )
             if summary_rows and summary_rows[-1].get("_ok"):
                 any_success = True
@@ -729,6 +733,7 @@ def _run_single_step(
     output_dir: Path,
     git_info: object,
     timestamp: str,
+    cpu_model: str,
     summary_rows: list[dict],
     category_results: list[tuple[str, str, BenchmarkResult]],
     regression_warnings: list[str],
@@ -784,6 +789,7 @@ def _run_single_step(
     _log_main_result(
         output_dir, suite, mode, evaluator, result,
         git_info.commit, git_info.branch, timestamp,  # type: ignore[attr-defined]
+        cpu_model=cpu_model,  # type: ignore[attr-defined]
     )
 
     if suite == "sts":

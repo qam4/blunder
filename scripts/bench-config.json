@@ -4,7 +4,7 @@
       "engine_binary": "build/${preset}/blunder",
       "test_binary": "build/${preset}/test/blunder_test",
       "fast_chess": "~/fast-chess/fast-chess",
-      "opening_book": "books/i-gm1950.bin",
+      "opening_book": "books/openings.epd",
       "wac_epd": "test/data/test-positions/WAC.epd",
       "sts_epd": "test/data/test-positions/STS1-STS15_LAN_v6.epd"
     },
@@ -12,7 +12,7 @@
       "engine_binary": "build/${preset}/blunder.exe",
       "test_binary": "build/${preset}/test/blunder_test.exe",
       "fast_chess": "C:/tools/fast-chess/fast-chess.exe",
-      "opening_book": "books/i-gm1950.bin",
+      "opening_book": "books/openings.epd",
       "wac_epd": "test/data/test-positions/WAC.epd",
       "sts_epd": "test/data/test-positions/STS1-STS15_LAN_v6.epd"
     }
@@ -47,10 +47,22 @@
       "protocol": "uci",
       "args": ["--uci"],
       "options": {}
+    },
+    "blunder-dev": {
+      "cmd": "build/dev/blunder",
+      "protocol": "uci",
+      "args": ["--uci"],
+      "options": {}
+    },
+    "blunder-rel": {
+      "cmd": "build/rel/blunder",
+      "protocol": "uci",
+      "args": ["--uci"],
+      "options": {}
     }
   },
   "defaults": {
-    "preset": "dev",
+    "preset": "rel",
     "evaluator": "hce",
     "mode": "all",
     "tc": "10+0.1",

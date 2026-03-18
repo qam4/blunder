@@ -163,14 +163,17 @@ void HandCraftedEvaluator::psqt_init()
 
 int HandCraftedEvaluator::phase(const Board& board) const
 {
-    int npm = PIECE_VALUE_BONUS[MG][QUEEN >> 1] * pop_count(board.bitboard(WHITE_QUEEN))
-        + PIECE_VALUE_BONUS[MG][ROOK >> 1] * pop_count(board.bitboard(WHITE_ROOK))
-        + PIECE_VALUE_BONUS[MG][BISHOP >> 1] * pop_count(board.bitboard(WHITE_BISHOP))
-        + PIECE_VALUE_BONUS[MG][KNIGHT >> 1] * pop_count(board.bitboard(WHITE_KNIGHT))
-        + PIECE_VALUE_BONUS[MG][QUEEN >> 1] * pop_count(board.bitboard(BLACK_QUEEN))
-        + PIECE_VALUE_BONUS[MG][ROOK >> 1] * pop_count(board.bitboard(BLACK_ROOK))
-        + PIECE_VALUE_BONUS[MG][BISHOP >> 1] * pop_count(board.bitboard(BLACK_BISHOP))
-        + PIECE_VALUE_BONUS[MG][KNIGHT >> 1] * pop_count(board.bitboard(BLACK_KNIGHT));
+    // Combine both colors per piece type so we need only 4 pop_count calls
+    // instead of 8.  With hardware POPCNT each call is a single instruction,
+    // but halving the count still helps in the inner eval loop.
+    int npm = PIECE_VALUE_BONUS[MG][QUEEN >> 1]
+            * pop_count(board.bitboard(WHITE_QUEEN) | board.bitboard(BLACK_QUEEN))
+        + PIECE_VALUE_BONUS[MG][ROOK >> 1]
+            * pop_count(board.bitboard(WHITE_ROOK) | board.bitboard(BLACK_ROOK))
+        + PIECE_VALUE_BONUS[MG][BISHOP >> 1]
+            * pop_count(board.bitboard(WHITE_BISHOP) | board.bitboard(BLACK_BISHOP))
+        + PIECE_VALUE_BONUS[MG][KNIGHT >> 1]
+            * pop_count(board.bitboard(WHITE_KNIGHT) | board.bitboard(BLACK_KNIGHT));
 
     npm = std::max(ENDGAME_LIMIT, std::min(npm, MIDGAME_LIMIT));
     return ((npm - ENDGAME_LIMIT) * PHASE_MAX) / (MIDGAME_LIMIT - ENDGAME_LIMIT);
@@ -382,9 +385,8 @@ int HandCraftedEvaluator::eval_king_safety(const Board& board, int p)
     int mg_score = 0;
     U64 all_pawns_w = board.bitboard(WHITE_PAWN);
     U64 all_pawns_b = board.bitboard(BLACK_PAWN);
-    U64 occupied = 0;
-    for (int i = 0; i < NUM_PIECES; i++)
-        occupied |= board.bitboard(i);
+    // Occupied = white pieces | black pieces (2 lookups instead of 14)
+    U64 occupied = board.bitboard(WHITE) | board.bitboard(BLACK);
 
     for (int side = 0; side <= 1; side++)
     {
@@ -514,10 +516,8 @@ int HandCraftedEvaluator::eval_mobility(const Board& board, int p)
     int mg_score = 0;
     int eg_score = 0;
 
-    // Compute occupied bitboard
-    U64 occupied = 0;
-    for (int i = 0; i < NUM_PIECES; i++)
-        occupied |= board.bitboard(i);
+    // Occupied = white pieces | black pieces (2 lookups instead of 14)
+    U64 occupied = board.bitboard(WHITE) | board.bitboard(BLACK);
 
     // Compute enemy pawn attack masks
     U64 wp = board.bitboard(WHITE_PAWN);
@@ -532,9 +532,8 @@ int HandCraftedEvaluator::eval_mobility(const Board& board, int p)
         int sign = (side == WHITE) ? 1 : -1;
 
         // Friendly pieces mask — exclude from mobility squares
-        U64 friendly = 0;
-        for (int pc = side; pc < NUM_PIECES; pc += 2)
-            friendly |= board.bitboard(pc);
+        // Friendly pieces = color aggregate bitboard (1 lookup instead of 7)
+        U64 friendly = board.bitboard(side);
 
         // Enemy pawn control — exclude from mobility squares
         U64 enemy_pawn_ctrl = (side == WHITE) ? b_pawn_attacks : w_pawn_attacks;

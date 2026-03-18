@@ -7,6 +7,9 @@ prefix/
 **/.DS_Store
 output/
 scripts/output/
+!scripts/output/benchmarks.csv
+!scripts/output/benchmarks_categories.csv
+!scripts/output/elo_results.csv
 scripts/__pycache__/
 baselines/
 CMakeLists.txt.user

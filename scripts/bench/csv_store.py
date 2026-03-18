@@ -31,6 +31,7 @@ MAIN_COLUMNS = [
     "nodes",
     "time_secs",
     "passed",
+    "cpu_model",
 ]
 
 # Column order for the per-category results file.

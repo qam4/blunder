@@ -15,23 +15,6 @@
 #include "NNUEEvaluator.h"
 
 // Count number of bits set to 1 in 64 bit word
-int pop_count(U64 x)
-{
-#if defined(__GNUC__) || defined(__clang__)
-    return __builtin_popcountll(static_cast<unsigned long long>(x));
-#elif defined(_MSC_VER)
-    return static_cast<int>(__popcnt64(x));
-#else
-    int count = 0;
-    while (x)
-    {
-        count++;
-        x &= x - 1;
-    }
-    return count;
-#endif
-}
-
 Board::Board()
 {
     reset();
@@ -93,17 +76,8 @@ void Board::reset()
     update_hash();
 }
 
-U8 Board::operator[](const int square) const
-{
-    assert(is_valid_square(square));
-    return board_array_[square];
-}
-
-U64 Board::bitboard(const int type) const
-{
-    assert(type >= 0 && type <= BLACK_KING);
-    return bitboards_[type];
-}
+// Board::operator[] and Board::bitboard() are now inline in Board.h
+// to eliminate cross-TU call overhead (12.6% of profile self-time).
 
 void Board::do_move(Move_t move)
 {

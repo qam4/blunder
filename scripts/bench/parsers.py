@@ -115,11 +115,17 @@ def parse_benchmark_output(stdout: str) -> BenchmarkResult:
 def parse_fastchess_output(stdout: str) -> GauntletResult:
     """Parse fast-chess stdout for W/L/D, Elo diff, SPRT result.
 
+    Uses the *last* match for score and Elo lines, since fast-chess prints
+    cumulative updates after every N games and we want the final totals.
+
     Raises ``ValueError`` if the score line is not found.
     """
-    score_m = _RE_FC_SCORE.search(stdout)
-    if not score_m:
+    # Find all score lines and take the last one
+    score_matches = list(_RE_FC_SCORE.finditer(stdout))
+    if not score_matches:
         raise ValueError("Could not parse score from fast-chess output")
+
+    score_m = score_matches[-1]
 
     # Groups 1-3 for old format, 4-6 for new format
     if score_m.group(1) is not None:
@@ -131,16 +137,19 @@ def parse_fastchess_output(stdout: str) -> GauntletResult:
         losses = int(score_m.group(5))
         draws = int(score_m.group(6))
 
-    elo_m = _RE_FC_ELO.search(stdout)
-    if elo_m:
+    # Find all Elo lines and take the last one
+    elo_matches = list(_RE_FC_ELO.finditer(stdout))
+    if elo_matches:
+        elo_m = elo_matches[-1]
         elo_diff = float(elo_m.group(1))
         elo_error = float(elo_m.group(2))
     else:
         elo_diff = 0.0
         elo_error = 0.0
 
-    sprt_m = _RE_FC_SPRT.search(stdout)
-    sprt_conclusion = sprt_m.group(1) if sprt_m else None
+    # SPRT conclusion (last match)
+    sprt_matches = list(_RE_FC_SPRT.finditer(stdout))
+    sprt_conclusion = sprt_matches[-1].group(1) if sprt_matches else None
 
     return GauntletResult(
         wins=wins,

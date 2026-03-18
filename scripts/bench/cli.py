@@ -10,6 +10,7 @@ from bench.compare import cmd_compare
 from bench.config import load_config
 from bench.elo_search import cmd_elo
 from bench.gauntlet import cmd_gauntlet
+from bench.profile import cmd_profile
 from bench.run import cmd_run
 from bench.run_all import cmd_run_all
 
@@ -199,18 +200,46 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Upper bound of Elo search range (default: 3000)",
     )
     elo_parser.add_argument(
-        "--rounds", type=int, default=20,
-        help="Games per binary search step (default: 20)",
+        "--search-rounds", type=int, default=10,
+        help="Rounds per search iteration (default: 10, = 20 games)",
+    )
+    elo_parser.add_argument(
+        "--precision-rounds", type=int, default=125,
+        help="Rounds for final precision match (default: 125, = 250 games, ≈±50 Elo)",
     )
     elo_parser.add_argument(
         "--tc", metavar="TC", default=None,
         help="Time control string (default: 5+0.05)",
     )
     elo_parser.add_argument(
-        "--threshold", type=int, default=50,
-        help="Stop when Elo range narrows to this (default: 50)",
+        "--max-iterations", type=int, default=8,
+        help="Maximum search iterations (default: 8)",
     )
     elo_parser.set_defaults(func=cmd_elo)
+
+    # --- profile ---
+    profile_parser = subparsers.add_parser(
+        "profile", help="Profile engine with perf and generate a flamegraph SVG"
+    )
+    profile_parser.add_argument(
+        "--output",
+        metavar="DIR",
+        default=None,
+        help="Output directory for perf data and flamegraph (default: output/profile)",
+    )
+    profile_parser.add_argument(
+        "--freq",
+        type=int,
+        default=997,
+        help="Sampling frequency in Hz (default: 997)",
+    )
+    profile_parser.add_argument(
+        "--title",
+        metavar="TEXT",
+        default="Blunder Engine Profile",
+        help="Flamegraph title (default: 'Blunder Engine Profile')",
+    )
+    profile_parser.set_defaults(func=cmd_profile)
 
     return parser
 

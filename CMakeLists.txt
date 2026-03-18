@@ -60,6 +60,16 @@ target_include_directories(
 
 target_compile_features(blunder_lib PUBLIC cxx_std_17)
 
+# Enable hardware POPCNT on x86_64 (GCC/Clang).  Without this flag
+# __builtin_popcountll compiles to a library call (__popcountdi2) instead
+# of the single-instruction POPCNT.  Profiling shows this costs ~6.6% of
+# total search time.
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(blunder_lib PRIVATE -mpopcnt)
+  endif()
+endif()
+
 find_package(Threads REQUIRED)
 target_link_libraries(blunder_lib PUBLIC Threads::Threads)
 

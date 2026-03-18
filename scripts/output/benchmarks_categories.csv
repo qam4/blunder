@@ -1,0 +1,49 @@
+timestamp,commit,branch,evaluator,mode,category,score_pct,score,max_score,positions
+2026-03-07 07:51:24,b19057f-dirty,main,nnue,depth8,7th Rank,3.5,279,7900,79
+2026-03-07 07:51:24,b19057f-dirty,main,nnue,depth8,AKPC,2.5,200,8000,80
+2026-03-07 07:51:24,b19057f-dirty,main,nnue,depth8,AT,8.8,645,7300,73
+2026-03-07 07:51:24,b19057f-dirty,main,nnue,depth8,Advancement of a/b/c pawns,5.9,418,7100,71
+2026-03-07 07:51:24,b19057f-dirty,main,nnue,depth8,Bishop vs Knight,10.3,877,8500,85
+2026-03-07 07:51:24,b19057f-dirty,main,nnue,depth8,Center Control,7.5,553,7400,74
+2026-03-07 07:51:24,b19057f-dirty,main,nnue,depth8,King Activity,8.3,578,7000,70
+2026-03-07 07:51:24,b19057f-dirty,main,nnue,depth8,Knight Outposts/Centralization/Repositioning,0.0,0,100,1
+2026-03-07 07:51:24,b19057f-dirty,main,nnue,depth8,Knight Outposts/Repositioning/Centralization,1.8,154,8500,85
+2026-03-07 07:51:24,b19057f-dirty,main,nnue,depth8,Offer of Simplification,6.9,567,8200,82
+2026-03-07 07:51:24,b19057f-dirty,main,nnue,depth8,Open Files and Diagonals,4.9,388,8000,80
+2026-03-07 07:51:24,b19057f-dirty,main,nnue,depth8,Pawn Play in the Center,3.0,226,7500,75
+2026-03-07 07:51:24,b19057f-dirty,main,nnue,depth8,Recapturing,24.6,1972,8000,80
+2026-03-07 07:51:24,b19057f-dirty,main,nnue,depth8,Simplification,20.3,1604,7900,79
+2026-03-07 07:51:24,b19057f-dirty,main,nnue,depth8,Square Vacancy,6.7,598,8900,89
+2026-03-07 07:51:24,b19057f-dirty,main,nnue,depth8,Undermine,4.0,337,8500,85
+2026-03-07 08:37:26,b19057f-dirty,main,hce,depth8,7th Rank,3.5,279,7900,79
+2026-03-07 08:37:26,b19057f-dirty,main,hce,depth8,AKPC,2.5,200,8000,80
+2026-03-07 08:37:26,b19057f-dirty,main,hce,depth8,AT,8.8,645,7300,73
+2026-03-07 08:37:26,b19057f-dirty,main,hce,depth8,Advancement of a/b/c pawns,5.9,418,7100,71
+2026-03-07 08:37:26,b19057f-dirty,main,hce,depth8,Bishop vs Knight,10.3,877,8500,85
+2026-03-07 08:37:26,b19057f-dirty,main,hce,depth8,Center Control,7.5,553,7400,74
+2026-03-07 08:37:26,b19057f-dirty,main,hce,depth8,King Activity,8.3,578,7000,70
+2026-03-07 08:37:26,b19057f-dirty,main,hce,depth8,Knight Outposts/Centralization/Repositioning,0.0,0,100,1
+2026-03-07 08:37:26,b19057f-dirty,main,hce,depth8,Knight Outposts/Repositioning/Centralization,1.8,154,8500,85
+2026-03-07 08:37:26,b19057f-dirty,main,hce,depth8,Offer of Simplification,6.9,567,8200,82
+2026-03-07 08:37:26,b19057f-dirty,main,hce,depth8,Open Files and Diagonals,4.9,388,8000,80
+2026-03-07 08:37:26,b19057f-dirty,main,hce,depth8,Pawn Play in the Center,3.0,226,7500,75
+2026-03-07 08:37:26,b19057f-dirty,main,hce,depth8,Recapturing,24.6,1972,8000,80
+2026-03-07 08:37:26,b19057f-dirty,main,hce,depth8,Simplification,20.3,1604,7900,79
+2026-03-07 08:37:26,b19057f-dirty,main,hce,depth8,Square Vacancy,6.7,598,8900,89
+2026-03-07 08:37:26,b19057f-dirty,main,hce,depth8,Undermine,4.0,337,8500,85
+2026-03-07 08:37:26,b19057f-dirty,main,hce,time1s,7th Rank,67.1,5298,7900,79
+2026-03-07 08:37:26,b19057f-dirty,main,hce,time1s,AKPC,43.3,3467,8000,80
+2026-03-07 08:37:26,b19057f-dirty,main,hce,time1s,AT,61.1,4457,7300,73
+2026-03-07 08:37:26,b19057f-dirty,main,hce,time1s,Advancement of a/b/c pawns,43.9,3114,7100,71
+2026-03-07 08:37:26,b19057f-dirty,main,hce,time1s,Bishop vs Knight,64.5,5484,8500,85
+2026-03-07 08:37:26,b19057f-dirty,main,hce,time1s,Center Control,73.2,5414,7400,74
+2026-03-07 08:37:26,b19057f-dirty,main,hce,time1s,King Activity,65.8,4605,7000,70
+2026-03-07 08:37:26,b19057f-dirty,main,hce,time1s,Knight Outposts/Centralization/Repositioning,24.0,24,100,1
+2026-03-07 08:37:26,b19057f-dirty,main,hce,time1s,Knight Outposts/Repositioning/Centralization,59.2,5035,8500,85
+2026-03-07 08:37:26,b19057f-dirty,main,hce,time1s,Offer of Simplification,60.4,4949,8200,82
+2026-03-07 08:37:26,b19057f-dirty,main,hce,time1s,Open Files and Diagonals,78.0,6241,8000,80
+2026-03-07 08:37:26,b19057f-dirty,main,hce,time1s,Pawn Play in the Center,67.1,5031,7500,75
+2026-03-07 08:37:26,b19057f-dirty,main,hce,time1s,Recapturing,83.2,6653,8000,80
+2026-03-07 08:37:26,b19057f-dirty,main,hce,time1s,Simplification,74.9,5917,7900,79
+2026-03-07 08:37:26,b19057f-dirty,main,hce,time1s,Square Vacancy,61.7,5491,8900,89
+2026-03-07 08:37:26,b19057f-dirty,main,hce,time1s,Undermine,45.3,3852,8500,85
