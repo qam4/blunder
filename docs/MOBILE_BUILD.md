@@ -26,11 +26,24 @@ if you don't have one:
 
 Output goes to `build/mobile-dist/`:
 ```
-build/mobile-dist/blunder-android-arm64.zip    # lib/libblunder.a + include/*.h
+build/mobile-dist/blunder-android-arm64.zip    # engine/blunder + books/*.bin
 build/mobile-dist/blunder-android-x86_64.zip
-build/mobile-dist/blunder-ios-arm64.zip        # macOS only
+build/mobile-dist/blunder-ios-arm64.zip        # lib/libblunder.a + include/*.h (macOS only)
 build/mobile-dist/blunder-ios-simulator.zip    # macOS only
 ```
+
+Android zip contents (what chess-coach expects):
+```
+engine/blunder          # ARM64 ELF executable (~1MB stripped)
+books/i-gm1950.bin      # Opening book (19MB)
+books/k-stfish.bin      # Opening book (5.5MB)
+books/n-larsen.bin      # Opening book (991KB)
+books/openings.epd      # Opening positions (23KB)
+weights/                # NNUE weights (if present)
+```
+
+The chess-coach Android wrapper extracts these to `{APP_DATA}/engine/` and
+spawns `blunder --uci` as a subprocess.
 
 The script downloads the NDK to `prefix/ndk/` (gitignored) on first run.
 Set `ANDROID_NDK_HOME` to skip the download if you already have one.

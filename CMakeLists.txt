@@ -76,10 +76,19 @@ option(BLUNDER_BUILD_EXE "Build the blunder executable" ON)
 option(BLUNDER_BUILD_STATIC_LIB
   "Build blunder as a static library (for mobile app embedding)" OFF)
 
-# When cross-compiling for Android or iOS, default to static lib only.
-if(CMAKE_SYSTEM_NAME MATCHES "Android|iOS")
+# When cross-compiling for iOS, default to static lib only.
+# Android builds produce an executable (spawned via subprocess).
+if(CMAKE_SYSTEM_NAME STREQUAL "iOS")
   set(BLUNDER_BUILD_EXE OFF CACHE BOOL "" FORCE)
   set(BLUNDER_BUILD_STATIC_LIB ON CACHE BOOL "" FORCE)
+endif()
+
+# Android: build executable, link statically so it has no runtime deps.
+if(CMAKE_SYSTEM_NAME STREQUAL "Android")
+  set(BLUNDER_BUILD_EXE ON CACHE BOOL "" FORCE)
+  set(BLUNDER_BUILD_STATIC_LIB OFF CACHE BOOL "" FORCE)
+  # Static link libc++ and libm so the binary runs standalone on any device.
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++" CACHE STRING "" FORCE)
 endif()
 
 find_package(Threads REQUIRED)

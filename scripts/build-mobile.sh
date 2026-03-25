@@ -99,15 +99,32 @@ build_target() {
 
     # Verify output
     local lib
-    lib="$(find "build/${preset}" -name 'libblunder.a' | head -1)"
-    if [ -z "$lib" ]; then
-        error "Build failed: libblunder.a not found for ${name}"
-        return 1
+    if [[ "$name" == Android* ]]; then
+        # Android: expect executable
+        local exe="build/${preset}/blunder"
+        if [ ! -f "$exe" ]; then
+            error "Build failed: blunder executable not found for ${name}"
+            return 1
+        fi
+        # Strip debug symbols for smaller binary
+        local strip_tool="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/$(uname -s | tr '[:upper:]' '[:lower:]')-x86_64/bin/llvm-strip"
+        if [ -x "$strip_tool" ]; then
+            "$strip_tool" "$exe"
+            info "Stripped: $exe"
+        fi
+        local size
+        size="$(du -h "$exe" | cut -f1)"
+        info "${name}: ${exe} (${size})"
+    else
+        lib="$(find "build/${preset}" -name 'libblunder.a' | head -1)"
+        if [ -z "$lib" ]; then
+            error "Build failed: libblunder.a not found for ${name}"
+            return 1
+        fi
+        local size
+        size="$(du -h "$lib" | cut -f1)"
+        info "${name}: ${lib} (${size})"
     fi
-
-    local size
-    size="$(du -h "$lib" | cut -f1)"
-    info "${name}: ${lib} (${size})"
 }
 
 # --- Package a target ---
@@ -120,10 +137,23 @@ package_target() {
 
     local staging
     staging="$(mktemp -d)"
-    mkdir -p "${staging}/lib" "${staging}/include"
 
-    cp "$(find "build/${preset}" -name 'libblunder.a' | head -1)" "${staging}/lib/"
-    cp source/*.h "${staging}/include/"
+    if [[ "$name" == android-* ]]; then
+        # Bundle executable + opening books + weights
+        mkdir -p "${staging}/engine" "${staging}/books"
+        cp "build/${preset}/blunder" "${staging}/engine/"
+        cp books/*.bin "${staging}/books/" 2>/dev/null || true
+        cp books/*.epd "${staging}/books/" 2>/dev/null || true
+        if ls weights/*.bin 1>/dev/null 2>&1; then
+            mkdir -p "${staging}/weights"
+            cp weights/*.bin "${staging}/weights/"
+        fi
+    else
+        # iOS: bundle library + headers
+        mkdir -p "${staging}/lib" "${staging}/include"
+        cp "$(find "build/${preset}" -name 'libblunder.a' | head -1)" "${staging}/lib/"
+        cp source/*.h "${staging}/include/"
+    fi
 
     local zip_path="${out_dir}/blunder-${name}.zip"
     (cd "$staging" && zip -qr "$zip_path" .)

@@ -216,22 +216,59 @@ jobs:
     - name: Build
       run: cmake --build build/${{ matrix.target.build-dir }} -j 3
 
-    - name: Verify library exists
+    - name: Strip Android binary
+      if: startsWith(matrix.target.name, 'android')
       run: |
-        LIB=$(find build/${{ matrix.target.build-dir }} -name 'libblunder.a' | head -1)
-        if [ -z "$LIB" ]; then
-          echo "ERROR: libblunder.a not found"
-          exit 1
+        STRIP="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip"
+        $STRIP build/${{ matrix.target.build-dir }}/blunder
+      env:
+        ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+
+    - name: Verify output exists
+      run: |
+        if [[ "${{ matrix.target.name }}" == android-* ]]; then
+          # Android: expect executable
+          BIN="build/${{ matrix.target.build-dir }}/blunder"
+          if [ ! -f "$BIN" ]; then
+            echo "ERROR: blunder executable not found at $BIN"
+            find build/${{ matrix.target.build-dir }} -type f -name 'blunder*' || true
+            exit 1
+          fi
+          echo "Found: $BIN"
+          file "$BIN"
+          ls -lh "$BIN"
+        else
+          # iOS: expect static library
+          LIB=$(find build/${{ matrix.target.build-dir }} -name 'libblunder.a' | head -1)
+          if [ -z "$LIB" ]; then
+            echo "ERROR: libblunder.a not found"
+            exit 1
+          fi
+          echo "Found: $LIB"
+          ls -lh "$LIB"
         fi
-        echo "Found: $LIB"
-        ls -lh "$LIB"
 
     - name: Package artifact
       run: |
-        mkdir -p staging/lib staging/include
-        cp $(find build/${{ matrix.target.build-dir }} -name 'libblunder.a' | head -1) staging/lib/
-        cp source/*.h staging/include/
-        cd staging && zip -r ../blunder-${{ matrix.target.name }}.zip .
+        mkdir -p staging
+        if [[ "${{ matrix.target.name }}" == android-* ]]; then
+          # Bundle executable + opening books + weights
+          mkdir -p staging/engine staging/books
+          cp build/${{ matrix.target.build-dir }}/blunder staging/engine/
+          cp books/*.bin staging/books/ 2>/dev/null || true
+          cp books/*.epd staging/books/ 2>/dev/null || true
+          # Bundle NNUE weights if present
+          if ls weights/*.bin 1>/dev/null 2>&1; then
+            mkdir -p staging/weights
+            cp weights/*.bin staging/weights/
+          fi
+        else
+          # iOS: bundle library + headers
+          mkdir -p staging/lib staging/include
+          cp $(find build/${{ matrix.target.build-dir }} -name 'libblunder.a' | head -1) staging/lib/
+          cp source/*.h staging/include/
+        fi
+        cd staging && zip -qr ../blunder-${{ matrix.target.name }}.zip .
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
