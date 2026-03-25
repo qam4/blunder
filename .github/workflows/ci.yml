@@ -166,6 +166,75 @@ jobs:
         name: release-artifacts-${{ matrix.target.arch }}
         path: blunder-${{ matrix.target.arch }}.zip
 
+  mobile:
+    needs: [lint]
+
+    strategy:
+      matrix:
+        target:
+          - name: android-arm64
+            os: ubuntu-22.04
+            preset: android-arm64
+            ndk-version: 27.0.12077973
+          - name: android-x86_64
+            os: ubuntu-22.04
+            preset: android-x86_64
+            ndk-version: 27.0.12077973
+          - name: ios-arm64
+            os: macos-latest
+            preset: ios
+          - name: ios-simulator
+            os: macos-latest
+            preset: ios-simulator
+
+    runs-on: ${{ matrix.target.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Android NDK
+      if: startsWith(matrix.target.name, 'android')
+      uses: nttld/setup-ndk@v1
+      id: setup-ndk
+      with:
+        ndk-version: r27
+
+    - name: Configure (Android)
+      if: startsWith(matrix.target.name, 'android')
+      env:
+        ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+      run: cmake --preset=${{ matrix.target.preset }}
+
+    - name: Configure (iOS)
+      if: startsWith(matrix.target.name, 'ios')
+      run: cmake --preset=${{ matrix.target.preset }}
+
+    - name: Build
+      run: cmake --build build/${{ matrix.target.preset }} -j 3
+
+    - name: Verify library exists
+      run: |
+        LIB=$(find build/${{ matrix.target.preset }} -name 'libblunder.a' | head -1)
+        if [ -z "$LIB" ]; then
+          echo "ERROR: libblunder.a not found"
+          exit 1
+        fi
+        echo "Found: $LIB"
+        ls -lh "$LIB"
+
+    - name: Package artifact
+      run: |
+        mkdir -p staging/lib staging/include
+        cp $(find build/${{ matrix.target.preset }} -name 'libblunder.a' | head -1) staging/lib/
+        cp source/*.h staging/include/
+        cd staging && zip -r ../blunder-${{ matrix.target.name }}.zip .
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-artifacts-${{ matrix.target.name }}
+        path: blunder-${{ matrix.target.name }}.zip
+
   docs:
     # Deploy docs only when builds succeed
     needs: [sanitize, test]

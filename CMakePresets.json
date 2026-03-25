@@ -1,8 +1,8 @@
 {
-  "version": 2,
+  "version": 3,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 14,
+    "minor": 21,
     "patch": 0
   },
   "configurePresets": [
@@ -180,6 +180,70 @@
     {
       "name": "ci-mingw",
       "inherits": ["ci-build", "ci-mingw-base", "clang-tidy", "cppcheck", "dev-mode"]
+    },
+    {
+      "name": "flags-android",
+      "description": "Common flags for Android NDK builds",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-O2 -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -DNDEBUG"
+      }
+    },
+    {
+      "name": "android-arm64",
+      "displayName": "Android arm64-v8a (Release)",
+      "description": "Cross-compile for Android arm64 devices",
+      "binaryDir": "${sourceDir}/build/android-arm64",
+      "inherits": ["flags-android", "ci-std"],
+      "toolchainFile": "${sourceDir}/cmake/toolchain-android.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_ANDROID_ARCH_ABI": "arm64-v8a"
+      }
+    },
+    {
+      "name": "android-x86_64",
+      "displayName": "Android x86_64 (Release, emulator)",
+      "description": "Cross-compile for Android x86_64 emulator",
+      "binaryDir": "${sourceDir}/build/android-x86_64",
+      "inherits": ["flags-android", "ci-std"],
+      "toolchainFile": "${sourceDir}/cmake/toolchain-android.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_ANDROID_ARCH_ABI": "x86_64"
+      }
+    },
+    {
+      "name": "flags-ios",
+      "description": "Common flags for iOS builds",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-O2 -Wall -Wextra -Wpedantic -Wconversion -Wsign-conversion -DNDEBUG"
+      }
+    },
+    {
+      "name": "ios",
+      "displayName": "iOS arm64 (Release)",
+      "description": "Cross-compile for iOS devices",
+      "binaryDir": "${sourceDir}/build/ios",
+      "inherits": ["flags-ios", "ci-std"],
+      "toolchainFile": "${sourceDir}/cmake/toolchain-ios.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "ios-simulator",
+      "displayName": "iOS Simulator (Release)",
+      "description": "Cross-compile for iOS Simulator (arm64 + x86_64)",
+      "binaryDir": "${sourceDir}/build/ios-sim",
+      "inherits": ["flags-ios", "ci-std"],
+      "toolchainFile": "${sourceDir}/cmake/toolchain-ios.cmake",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_OSX_SYSROOT": "iphonesimulator",
+        "CMAKE_OSX_ARCHITECTURES": "arm64;x86_64"
+      }
     }
   ]
 }

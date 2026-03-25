@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.21)
 
 include(cmake/prelude.cmake)
 
@@ -70,6 +70,18 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|AMD64")
   endif()
 endif()
 
+# ---- Mobile / embedded build options ----
+
+option(BLUNDER_BUILD_EXE "Build the blunder executable" ON)
+option(BLUNDER_BUILD_STATIC_LIB
+  "Build blunder as a static library (for mobile app embedding)" OFF)
+
+# When cross-compiling for Android or iOS, default to static lib only.
+if(CMAKE_SYSTEM_NAME MATCHES "Android|iOS")
+  set(BLUNDER_BUILD_EXE OFF CACHE BOOL "" FORCE)
+  set(BLUNDER_BUILD_STATIC_LIB ON CACHE BOOL "" FORCE)
+endif()
+
 find_package(Threads REQUIRED)
 target_link_libraries(blunder_lib PUBLIC Threads::Threads)
 
@@ -79,26 +91,46 @@ target_compile_definitions(
     $<$<CONFIG:Debug>:DEBUG>
 )
 
+# ---- Declare static library (for mobile embedding) ----
+
+if(BLUNDER_BUILD_STATIC_LIB)
+  add_library(blunder_static STATIC $<TARGET_OBJECTS:blunder_lib>)
+  target_include_directories(blunder_static PUBLIC
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/source>")
+  target_compile_features(blunder_static PUBLIC cxx_std_17)
+  target_link_libraries(blunder_static PUBLIC Threads::Threads)
+  set_property(TARGET blunder_static PROPERTY OUTPUT_NAME blunder)
+
+  install(TARGETS blunder_static
+    ARCHIVE DESTINATION lib COMPONENT blunder_Runtime)
+  install(DIRECTORY source/
+    DESTINATION include/blunder
+    COMPONENT blunder_Development
+    FILES_MATCHING PATTERN "*.h")
+endif()
+
 # ---- Declare executable ----
 
-add_executable(blunder_exe source/main.cpp)
-add_executable(blunder::exe ALIAS blunder_exe)
+if(BLUNDER_BUILD_EXE)
+  add_executable(blunder_exe source/main.cpp)
+  add_executable(blunder::exe ALIAS blunder_exe)
 
-set_property(TARGET blunder_exe PROPERTY OUTPUT_NAME blunder)
+  set_property(TARGET blunder_exe PROPERTY OUTPUT_NAME blunder)
 
-target_compile_features(blunder_exe PRIVATE cxx_std_17)
+  target_compile_features(blunder_exe PRIVATE cxx_std_17)
 
-target_link_libraries(blunder_exe PRIVATE blunder_lib)
+  target_link_libraries(blunder_exe PRIVATE blunder_lib)
+endif()
 
 # ---- Install rules ----
 
-if(NOT CMAKE_SKIP_INSTALL_RULES)
+if(NOT CMAKE_SKIP_INSTALL_RULES AND BLUNDER_BUILD_EXE)
   include(cmake/install-rules.cmake)
 endif()
 
 # ---- Developer mode ----
 
-if(NOT blunder_DEVELOPER_MODE)
+if(NOT blunder_DEVELOPER_MODE OR NOT BLUNDER_BUILD_EXE)
   return()
 elseif(NOT PROJECT_IS_TOP_LEVEL)
   message(
