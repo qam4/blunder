@@ -2,15 +2,14 @@
  * File:   TestPositionAnalyzer.cpp
  *
  * Regression tests for the coaching position analyzer: threat legality,
- * discovered-attack self-reference, back-rank labelling, the discovered-attack
+ * discovered-attack self-reference, back-rank labeling, the discovered-attack
  * squares contract, and the pin/skewer quality filter.
  */
-
-#include "Tests.h"
 
 #include <catch2/catch_test_macros.hpp>
 
 #include "PositionAnalyzer.h"
+#include "Tests.h"
 
 namespace
 {
@@ -103,7 +102,7 @@ TEST_CASE("no self-referencing discovered attack in PV", "[position analyzer]")
     auto tactics = PositionAnalyzer::detect_tactics(board, { pv });
 
     REQUIRE(count_type(tactics, "discovered_attack") == 0);
-    // A diagonal check must not be labelled a back-rank threat.
+    // A diagonal check must not be labeled a back-rank threat.
     REQUIRE(count_type(tactics, "back_rank_threat") == 0);
 }
 

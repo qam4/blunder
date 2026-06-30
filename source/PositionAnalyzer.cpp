@@ -415,7 +415,7 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
     // Legality lookup. Capture/check threats assert a concrete move, so they
     // must be *legal* for `side`. add_all_moves() computes relative to `side`'s
     // king (respecting pins, and restricting to check evasions when `side` is
-    // in check), and works for either colour regardless of whose turn it is —
+    // in check), and works for either color regardless of whose turn it is —
     // so for the opponent it yields their genuine "if it were your move" set.
     // Without this, pseudo-legal threats leak (e.g. a pinned knight "capturing"
     // the checking queen, or a capture that ignores an existing check).
