@@ -412,6 +412,24 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
     U8 opp_king_sq = (opp_king_bb != 0) ? bit_scan_forward(opp_king_bb) : 64;
 
     // -----------------------------------------------------------------------
+    // Legality lookup. Capture/check threats assert a concrete move, so they
+    // must be *legal* for `side`. add_all_moves() computes relative to `side`'s
+    // king (respecting pins, and restricting to check evasions when `side` is
+    // in check), and works for either colour regardless of whose turn it is —
+    // so for the opponent it yields their genuine "if it were your move" set.
+    // Without this, pseudo-legal threats leak (e.g. a pinned knight "capturing"
+    // the checking queen, or a capture that ignores an existing check).
+    // -----------------------------------------------------------------------
+    MoveList legal_moves;
+    MoveGenerator::add_all_moves(legal_moves, board, side);
+    U64 legal_dest[NUM_SQUARES] = { BB_EMPTY };
+    for (int i = 0; i < legal_moves.length(); i++)
+    {
+        Move m = legal_moves[i];
+        legal_dest[m.from()] |= (1ULL << m.to());
+    }
+
+    // -----------------------------------------------------------------------
     // 1. Check threats: pieces that can give check
     // -----------------------------------------------------------------------
     if (opp_king_sq < 64)
@@ -427,6 +445,7 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
             // Can this knight move to a square that attacks the opp king?
             U64 knight_check_sqs = MoveGenerator::knight_targets(1ULL << opp_king_sq);
             U64 check_moves = targets & knight_check_sqs & ~own_pieces;
+            check_moves &= legal_dest[sq];  // only legal checks
             if (check_moves)
             {
                 U8 check_sq = bit_scan_forward(check_moves);
@@ -450,6 +469,7 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
             U64 targets = MoveGenerator::rook_targets(1ULL << sq, occupied);
             U64 king_rook_atk = MoveGenerator::rook_targets(1ULL << opp_king_sq, occupied);
             U64 check_moves = targets & king_rook_atk & ~own_pieces;
+            check_moves &= legal_dest[sq];  // only legal checks
             if (check_moves)
             {
                 U8 check_sq = bit_scan_forward(check_moves);
@@ -473,6 +493,7 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
             U64 targets = MoveGenerator::bishop_targets(1ULL << sq, occupied);
             U64 king_bishop_atk = MoveGenerator::bishop_targets(1ULL << opp_king_sq, occupied);
             U64 check_moves = targets & king_bishop_atk & ~own_pieces;
+            check_moves &= legal_dest[sq];  // only legal checks
             if (check_moves)
             {
                 // Avoid duplicate if already reported as rook-like check (queen)
@@ -514,6 +535,14 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
             U8 atk_sq = bit_scan_forward(attackers);
             U8 atk_piece = board[atk_sq];
             int atk_val = piece_value(atk_piece & ~1);
+
+            // Skip illegal captures: a pinned attacker, or any capture that
+            // fails to address an existing check, is not a real threat.
+            if (!(legal_dest[atk_sq] & (1ULL << target_sq)))
+            {
+                attackers &= attackers - 1;
+                continue;
+            }
 
             // Report if target is undefended or attacker is less valuable
             if (undefended || atk_val < target_val)
@@ -666,7 +695,15 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
                 // Only report if the back piece is an opponent piece or king
                 bool back_is_opp = (back_piece & 1) == opp;
 
-                if (back_is_opp && front_val < back_val)
+                // Quality filter: a pawn pinned to a non-king piece is rarely a
+                // real restraint (it can often push/advance with tempo), and a
+                // skewer that only wins a pawn behind is noise. Absolute pawn
+                // pins (back == king) are kept.
+                bool front_is_pawn = (front_piece & ~1) == PAWN;
+                bool back_is_king = (back_piece & ~1) == KING;
+                bool back_is_pawn = (back_piece & ~1) == PAWN;
+
+                if (back_is_opp && front_val < back_val && !(front_is_pawn && !back_is_king))
                 {
                     // Pin: less valuable piece in front, more valuable behind
                     Threat t;
@@ -678,7 +715,7 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
                         + piece_on_square_str(back_piece, back_sq);
                     result.push_back(t);
                 }
-                else if (back_is_opp && front_val > back_val)
+                else if (back_is_opp && front_val > back_val && !back_is_pawn)
                 {
                     // Skewer: more valuable piece in front, less valuable behind
                     Threat t;
@@ -1214,7 +1251,13 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                         int front_val = piece_value(front_piece & ~1);
                         int back_val = piece_value(back_piece & ~1);
 
-                        if (front_val < back_val)
+                        // Quality filter (mirrors find_threats): drop pawn pins
+                        // to a non-king piece and skewers that only win a pawn.
+                        bool front_is_pawn = (front_piece & ~1) == PAWN;
+                        bool back_is_king = (back_piece & ~1) == KING;
+                        bool back_is_pawn = (back_piece & ~1) == PAWN;
+
+                        if (front_val < back_val && !(front_is_pawn && !back_is_king))
                         {
                             Tactic t;
                             t.type = "pin";
@@ -1228,7 +1271,7 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                                 + piece_on_square_str(back_piece, back_sq);
                             result.push_back(t);
                         }
-                        else if (front_val > back_val)
+                        else if (front_val > back_val && !back_is_pawn)
                         {
                             Tactic t;
                             t.type = "skewer";
@@ -1350,10 +1393,11 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                         {
                             Tactic t;
                             t.type = "discovered_attack";
-                            t.squares = { slider_sq, blocker_sq, target_sq };
+                            // Contract: squares = [revealed_attacker, target, mover]
+                            t.squares = { slider_sq, target_sq, blocker_sq };
                             t.pieces = { piece_on_square_str(slider_piece, slider_sq),
-                                         piece_on_square_str(blocker_piece, blocker_sq),
-                                         piece_on_square_str(target_piece, target_sq) };
+                                         piece_on_square_str(target_piece, target_sq),
+                                         piece_on_square_str(blocker_piece, blocker_sq) };
                             t.in_pv = false;
                             t.description = "Discovered attack: "
                                 + piece_on_square_str(blocker_piece, blocker_sq)
@@ -1482,6 +1526,16 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                 while (pv_sliders)
                 {
                     U8 s_sq = bit_scan_forward(pv_sliders);
+                    // The piece that just moved is not its own discovered
+                    // attacker. Without this guard, when the moved piece is
+                    // itself a slider (e.g. ...Bxc3), s_sq == to_sq and we
+                    // describe one piece as both mover and revealed slider
+                    // ("Bc3 moves to reveal Bc3 attacking Ke1").
+                    if (s_sq == to_sq)
+                    {
+                        pv_sliders &= pv_sliders - 1;
+                        continue;
+                    }
                     // Was from_sq on a line between this slider and some target?
                     U64 line = lines_along(s_sq, from_sq);
                     if (line != 0)
@@ -1512,10 +1566,11 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                             {
                                 Tactic t;
                                 t.type = "discovered_attack";
-                                t.squares = { s_sq, to_sq, rt_sq };
+                                // Contract: squares = [revealed_attacker, target, mover]
+                                t.squares = { s_sq, rt_sq, to_sq };
                                 t.pieces = { piece_on_square_str(s_piece, s_sq),
-                                             piece_on_square_str(piece_moved, to_sq),
-                                             piece_on_square_str(rt_piece, rt_sq) };
+                                             piece_on_square_str(rt_piece, rt_sq),
+                                             piece_on_square_str(piece_moved, to_sq) };
                                 t.in_pv = true;
                                 t.description = "Discovered attack in PV: "
                                     + piece_on_square_str(piece_moved, to_sq) + " moves to reveal "
@@ -1539,7 +1594,13 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                     U8 ksq = bit_scan_forward(checked_king);
                     int krank = ksq / 8;
                     int back = (pv_board.side_to_move() == WHITE) ? 0 : 7;
-                    if (krank == back)
+                    // Only a genuine back-rank check: the checking (moved) piece
+                    // must be a rook/queen sitting on the king's back rank.
+                    // Excludes diagonal checks (e.g. a bishop on c3 giving check
+                    // to a king on e1, which is not a back-rank threat).
+                    bool checker_is_heavy = (moved_pt == ROOK || moved_pt == QUEEN);
+                    bool checker_on_back_rank = (to_sq / 8) == back;
+                    if (krank == back && checker_is_heavy && checker_on_back_rank)
                     {
                         Tactic t;
                         t.type = "back_rank_threat";
