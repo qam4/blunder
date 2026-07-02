@@ -920,8 +920,8 @@ KingSafety PositionAnalyzer::assess_king_safety(const Board& board, U8 side)
         else if (king_sq == c_castle)
             castling_status_code = "queenside_castled";
         else if (king_sq == home)
-            castling_status_code =
-                (board.castling_rights() & rights_mask) ? "uncastled_with_rights" : "stuck_in_center";
+            castling_status_code = (board.castling_rights() & rights_mask) ? "uncastled_with_rights"
+                                                                           : "stuck_in_center";
         else
             castling_status_code = "displaced";
     }

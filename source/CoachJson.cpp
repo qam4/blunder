@@ -352,19 +352,19 @@ std::string serialize_position_report(const PositionReport& r)
                                           { "black", serialize_pawn_features(r.pawns_black) } });
 
     // king_safety
-    auto serialize_ks = [](const KingSafety& ks) {
+    auto serialize_ks = [](const KingSafety& ks)
+    {
         std::vector<std::string> shield_files;
         shield_files.reserve(ks.missing_shield_files.size());
         for (const auto& f : ks.missing_shield_files)
             shield_files.push_back(to_json(f));
-        return object(
-            { { "score", to_json(ks.score) },
-              { "description", to_json(ks.description) },
-              { "king_square", to_json(ks.king_square) },
-              { "castling_status", to_json(ks.castling_status) },
-              { "missing_shield_files", array(shield_files) },
-              { "open_file_near_king", to_json(ks.open_file_near_king) },
-              { "pawn_storm", to_json(ks.pawn_storm) } });
+        return object({ { "score", to_json(ks.score) },
+                        { "description", to_json(ks.description) },
+                        { "king_square", to_json(ks.king_square) },
+                        { "castling_status", to_json(ks.castling_status) },
+                        { "missing_shield_files", array(shield_files) },
+                        { "open_file_near_king", to_json(ks.open_file_near_king) },
+                        { "pawn_storm", to_json(ks.pawn_storm) } });
     };
 
     std::string king_safety = object({ { "white", serialize_ks(r.king_safety_white) },
