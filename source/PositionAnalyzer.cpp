@@ -365,6 +365,12 @@ static std::string piece_on_square_str(U8 piece, U8 sq)
     return piece_char(piece) + Output::square(sq);
 }
 
+// Helper: side name for coaching descriptions ("White" / "Black")
+static std::string side_name(U8 side)
+{
+    return (side == WHITE) ? "White" : "Black";
+}
+
 // Helper: build a 4-char UCI move string from source and destination squares
 static std::string uci_from_squares(U8 from, U8 to)
 {
@@ -765,6 +771,7 @@ KingSafety PositionAnalyzer::assess_king_safety(const Board& board, U8 side)
     int storm_pawn_count = 0;
     bool pawn_storm = false;
     std::string missing_files;
+    std::vector<std::string> missing_files_vec;
 
     const char file_chars[] = "abcdefgh";
 
@@ -800,6 +807,7 @@ KingSafety PositionAnalyzer::assess_king_safety(const Board& board, U8 side)
             if (!missing_files.empty())
                 missing_files += ",";
             missing_files += file_chars[f];
+            missing_files_vec.push_back(std::string(1, file_chars[f]));
             continue;
         }
 
@@ -834,6 +842,7 @@ KingSafety PositionAnalyzer::assess_king_safety(const Board& board, U8 side)
             if (!missing_files.empty())
                 missing_files += ",";
             missing_files += file_chars[f];
+            missing_files_vec.push_back(std::string(1, file_chars[f]));
         }
     }
 
@@ -898,7 +907,34 @@ KingSafety PositionAnalyzer::assess_king_safety(const Board& board, U8 side)
             desc += ", open file near king";
     }
 
-    return KingSafety { score, desc };
+    // Structured castling status (enum) for the client to phrase.
+    std::string castling_status_code;
+    {
+        U8 g_castle = (side == WHITE) ? G1 : G8;
+        U8 c_castle = (side == WHITE) ? C1 : C8;
+        U8 home = (side == WHITE) ? E1 : E8;
+        int rights_mask = (side == WHITE) ? (WHITE_KING_SIDE | WHITE_QUEEN_SIDE)
+                                          : (BLACK_KING_SIDE | BLACK_QUEEN_SIDE);
+        if (king_sq == g_castle)
+            castling_status_code = "kingside_castled";
+        else if (king_sq == c_castle)
+            castling_status_code = "queenside_castled";
+        else if (king_sq == home)
+            castling_status_code =
+                (board.castling_rights() & rights_mask) ? "uncastled_with_rights" : "stuck_in_center";
+        else
+            castling_status_code = "displaced";
+    }
+
+    KingSafety ks;
+    ks.score = score;
+    ks.description = desc;
+    ks.king_square = Output::square(king_sq);
+    ks.castling_status = castling_status_code;
+    ks.missing_shield_files = missing_files_vec;
+    ks.open_file_near_king = (open_files_near_king > 0);
+    ks.pawn_storm = pawn_storm;
+    return ks;
 }
 
 // ---------------------------------------------------------------------------
@@ -1117,8 +1153,8 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                             t.pieces = { piece_on_square_str(board[sq], sq),
                                          piece_on_square_str(KING | opp, opp_king_sq) };
                             t.in_pv = false;
-                            t.description =
-                                "Back rank threat: " + piece_on_square_str(board[sq], sq)
+                            t.description = "Back rank threat (" + side_name(stm)
+                                + "): " + piece_on_square_str(board[sq], sq)
                                 + " targets back rank with king trapped";
                             result.push_back(t);
                             break;  // one back-rank threat is enough
@@ -1188,7 +1224,8 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                 for (U8 ts : fork_targets)
                     t.pieces.push_back(piece_on_square_str(board[ts], ts));
                 t.in_pv = false;
-                std::string desc = "Fork: " + piece_on_square_str(piece, sq) + " attacks ";
+                std::string desc = "Fork (" + side_name(stm)
+                    + "): " + piece_on_square_str(piece, sq) + " attacks ";
                 for (size_t i = 0; i < fork_targets.size(); i++)
                 {
                     if (i > 0)
@@ -1266,7 +1303,8 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                                          piece_on_square_str(front_piece, front_sq),
                                          piece_on_square_str(back_piece, back_sq) };
                             t.in_pv = false;
-                            t.description = "Pin: " + piece_on_square_str(piece, sq) + " pins "
+                            t.description = "Pin (" + side_name(stm)
+                                + "): " + piece_on_square_str(piece, sq) + " pins "
                                 + piece_on_square_str(front_piece, front_sq) + " to "
                                 + piece_on_square_str(back_piece, back_sq);
                             result.push_back(t);
@@ -1280,8 +1318,9 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                                          piece_on_square_str(front_piece, front_sq),
                                          piece_on_square_str(back_piece, back_sq) };
                             t.in_pv = false;
-                            t.description = "Skewer: " + piece_on_square_str(piece, sq)
-                                + " skewers " + piece_on_square_str(front_piece, front_sq) + " and "
+                            t.description = "Skewer (" + side_name(stm)
+                                + "): " + piece_on_square_str(piece, sq) + " skewers "
+                                + piece_on_square_str(front_piece, front_sq) + " and "
                                 + piece_on_square_str(back_piece, back_sq);
                             result.push_back(t);
                         }
@@ -1399,8 +1438,8 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                                          piece_on_square_str(target_piece, target_sq),
                                          piece_on_square_str(blocker_piece, blocker_sq) };
                             t.in_pv = false;
-                            t.description = "Discovered attack: "
-                                + piece_on_square_str(blocker_piece, blocker_sq)
+                            t.description = "Discovered attack (" + side_name(stm)
+                                + "): " + piece_on_square_str(blocker_piece, blocker_sq)
                                 + " moves to reveal " + piece_on_square_str(slider_piece, slider_sq)
                                 + " attacking " + piece_on_square_str(target_piece, target_sq);
                             result.push_back(t);
@@ -1499,8 +1538,8 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                 for (U8 ts : fork_targets_pv)
                     t.pieces.push_back(piece_on_square_str(pv_board[ts], ts));
                 t.in_pv = true;
-                std::string desc =
-                    "Fork in PV: " + piece_on_square_str(piece_moved, to_sq) + " attacks ";
+                std::string desc = "Fork (" + side_name(moved_side)
+                    + "): " + piece_on_square_str(piece_moved, to_sq) + " attacks ";
                 for (size_t j = 0; j < fork_targets_pv.size(); j++)
                 {
                     if (j > 0)
@@ -1572,10 +1611,10 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                                              piece_on_square_str(rt_piece, rt_sq),
                                              piece_on_square_str(piece_moved, to_sq) };
                                 t.in_pv = true;
-                                t.description = "Discovered attack in PV: "
-                                    + piece_on_square_str(piece_moved, to_sq) + " moves to reveal "
-                                    + piece_on_square_str(s_piece, s_sq) + " attacking "
-                                    + piece_on_square_str(rt_piece, rt_sq);
+                                t.description = "Discovered attack (" + side_name(moved_side)
+                                    + "): " + Output::square(from_sq) + "-" + Output::square(to_sq)
+                                    + " reveals " + piece_on_square_str(s_piece, s_sq)
+                                    + " attacking " + piece_on_square_str(rt_piece, rt_sq);
                                 result.push_back(t);
                             }
                             revealed_targets &= revealed_targets - 1;
@@ -1608,8 +1647,8 @@ std::vector<Tactic> PositionAnalyzer::detect_tactics(const Board& board,
                         t.pieces = { piece_on_square_str(piece_moved, to_sq),
                                      piece_on_square_str(KING | pv_board.side_to_move(), ksq) };
                         t.in_pv = true;
-                        t.description =
-                            "Back rank check in PV by " + piece_on_square_str(piece_moved, to_sq);
+                        t.description = "Back rank threat (" + side_name(moved_side) + "): "
+                            + piece_on_square_str(piece_moved, to_sq) + " gives back-rank check";
                         result.push_back(t);
                     }
                 }

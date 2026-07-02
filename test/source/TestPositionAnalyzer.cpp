@@ -69,6 +69,24 @@ TEST_CASE("threats are legal moves for the side", "[position analyzer]")
     }
 }
 
+TEST_CASE("king safety exposes structured fields for coaching", "[position analyzer]")
+{
+    // Starting position: both kings home with castling rights and a solid shield.
+    Board start = Parser::parse_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+    KingSafety ks = PositionAnalyzer::assess_king_safety(start, WHITE);
+    REQUIRE(ks.king_square == "e1");
+    REQUIRE(ks.castling_status == "uncastled_with_rights");
+    REQUIRE(ks.missing_shield_files.empty());
+    REQUIRE_FALSE(ks.open_file_near_king);
+
+    // Bare K+R vs K: the king is displaced onto an open file with no shield.
+    Board endgame = Parser::parse_fen("8/8/8/4k3/8/8/4K3/4R3 w - - 0 1");
+    KingSafety eks = PositionAnalyzer::assess_king_safety(endgame, WHITE);
+    REQUIRE(eks.king_square == "e2");
+    REQUIRE(eks.castling_status == "displaced");
+    REQUIRE_FALSE(eks.missing_shield_files.empty());
+    REQUIRE(eks.open_file_near_king);
+}
 TEST_CASE("discovered attack uses [slider, target, mover] squares", "[position analyzer]")
 {
     Board board = Parser::parse_fen(QG5_FEN);
@@ -86,7 +104,7 @@ TEST_CASE("discovered attack uses [slider, target, mover] squares", "[position a
     REQUIRE(da->squares[2] == D2);  // moving piece (pawn)
     // The mover and the revealed slider must be different pieces.
     REQUIRE(da->squares[0] != da->squares[2]);
-    REQUIRE(da->description == "Discovered attack: d2 moves to reveal Bc1 attacking Qg5");
+    REQUIRE(da->description == "Discovered attack (White): d2 moves to reveal Bc1 attacking Qg5");
 }
 
 TEST_CASE("no self-referencing discovered attack in PV", "[position analyzer]")

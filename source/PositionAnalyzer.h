@@ -48,6 +48,13 @@ struct PawnFeatures {
 struct KingSafety {
     int score;
     std::string description;
+    // Structured fields for client-side coaching-sentence composition; the
+    // client authors the human sentence from these. description is debug only.
+    std::string king_square;
+    std::string castling_status;
+    std::vector<std::string> missing_shield_files;
+    bool open_file_near_king = false;
+    bool pawn_storm = false;
 };
 
 struct ThreatMapEntry {
