@@ -12,6 +12,7 @@
 #include "Move.h"
 #include "MoveComparator.h"
 #include "Output.h"
+#include "Parser.h"
 #include "PositionAnalyzer.h"
 
 namespace CoachJson
@@ -205,8 +206,11 @@ static std::string move_to_uci(Move_t move, U8 side)
 
 /// Serialize a vector of PVLine to a JSON array of top_line objects.
 /// `side` is the side to move at the root position.
-static std::string serialize_top_lines(const std::vector<PVLine>& lines, U8 side)
+static std::string serialize_top_lines(const std::vector<PVLine>& lines,
+                                       U8 side,
+                                       const std::string& fen)
 {
+    Board root = Parser::parse_fen(fen);
     std::vector<std::string> elems;
     elems.reserve(lines.size());
     for (const auto& pv : lines)
@@ -221,11 +225,12 @@ static std::string serialize_top_lines(const std::vector<PVLine>& lines, U8 side
             current_side ^= 1;  // alternate sides
         }
 
-        std::string line_obj =
-            CoachJson::object({ { "depth", CoachJson::to_json(static_cast<int>(pv.moves.size())) },
-                                { "eval_cp", CoachJson::to_json(pv.score) },
-                                { "moves", CoachJson::array(move_strs) },
-                                { "theme", CoachJson::to_json(std::string("")) } });
+        std::string line_obj = CoachJson::object(
+            { { "depth", CoachJson::to_json(static_cast<int>(pv.moves.size())) },
+              { "eval_cp", CoachJson::to_json(pv.score) },
+              { "moves", CoachJson::array(move_strs) },
+              { "theme",
+                CoachJson::to_json(PositionAnalyzer::label_line_theme(root, pv.moves)) } });
         elems.push_back(line_obj);
     }
     return CoachJson::array(elems);
@@ -381,7 +386,7 @@ std::string serialize_position_report(const PositionReport& r)
     }
 
     // top_lines
-    std::string top_lines = serialize_top_lines(r.top_lines, side);
+    std::string top_lines = serialize_top_lines(r.top_lines, side, r.fen);
 
     // tactics
     std::string tactics = serialize_tactics(r.tactics);
@@ -455,7 +460,7 @@ std::string serialize_comparison_report(const ComparisonReport& r)
     std::string missed = serialize_tactics(r.missed_tactics);
 
     // top_lines
-    std::string top_lines = serialize_top_lines(r.top_lines, side);
+    std::string top_lines = serialize_top_lines(r.top_lines, side, r.fen);
 
     // critical_reason
     std::string critical_reason_json =
