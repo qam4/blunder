@@ -112,8 +112,9 @@
             </dt>
             <dd></dd>
             <dt>
-              <span class="m-doc-wrap-bumper">static auto <a href="#aa0bbe99385c9ce8c1341edd23d771c52" class="m-doc">serialize_top_lines</a>(</span><span class="m-doc-wrap">const std::vector&lt;<a href="structPVLine.html" class="m-doc">PVLine</a>&gt;&amp; lines,
-              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> side) -&gt; std::string</span>
+              <span class="m-doc-wrap-bumper">static auto <a href="#a1bde1318342c8f888656473fe853e414" class="m-doc">serialize_top_lines</a>(</span><span class="m-doc-wrap">const std::vector&lt;<a href="structPVLine.html" class="m-doc">PVLine</a>&gt;&amp; lines,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> side,
+              const std::string&amp; fen) -&gt; std::string</span>
             </dt>
             <dd></dd>
             <dt>
@@ -220,10 +221,11 @@
             </h3>
 <p>Convert a Move_t to <a href="classUCI.html" class="m-doc">UCI</a> notation string. <code>side</code> is the side to move when this move is played (needed for castling).</p>
           </div></section>
-          <section class="m-doc-details" id="aa0bbe99385c9ce8c1341edd23d771c52"><div>
+          <section class="m-doc-details" id="a1bde1318342c8f888656473fe853e414"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">static std::string CoachJson::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa0bbe99385c9ce8c1341edd23d771c52" class="m-doc-self">serialize_top_lines</a>(</span><span class="m-doc-wrap">const std::vector&lt;<a href="structPVLine.html" class="m-doc">PVLine</a>&gt;&amp; lines,
-              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> side)</span></span>
+              <span class="m-doc-wrap-bumper">static std::string CoachJson::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1bde1318342c8f888656473fe853e414" class="m-doc-self">serialize_top_lines</a>(</span><span class="m-doc-wrap">const std::vector&lt;<a href="structPVLine.html" class="m-doc">PVLine</a>&gt;&amp; lines,
+              <a href="Types_8h.html#a2cc9201f987f0f50b8dda949b8d50b9a" class="m-doc">U8</a> side,
+              const std::string&amp; fen)</span></span>
               <div class="m-doc-include m-code m-inverted m-text-right"><span class="cp">#include</span> <a class="cpf" href="CoachJson_8cpp.html">&lt;source/CoachJson.cpp&gt;</a></div>
             </h3>
 <p>Serialize a vector of <a href="structPVLine.html" class="m-doc">PVLine</a> to a JSON array of top_line objects. <code>side</code> is the side to move at the root position.</p>
