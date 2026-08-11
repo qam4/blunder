@@ -83,6 +83,7 @@ struct SearchStats
 struct PVLine {
     int score = -MAX_SCORE;
     std::vector<Move_t> moves;  // PV move sequence
+    int depth = 0;              // iterative-deepening depth this line comes from
 
     Move_t best_move() const { return moves.empty() ? Move_t(0U) : moves[0]; }
     Move_t ponder_move() const { return moves.size() >= 2 ? moves[1] : Move_t(0U); }

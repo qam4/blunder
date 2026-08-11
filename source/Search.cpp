@@ -283,6 +283,7 @@ Move_t Search::search(int depth,
         search_best_score_ = 0;
         multipv_results_[0].score = 0;
         multipv_results_[0].moves = { legal_moves[0] };
+        multipv_results_[0].depth = 0;  // forced move, no search performed
         return legal_moves[0];
     }
 
@@ -375,6 +376,7 @@ Move_t Search::search(int depth,
             // Store score + PV for this iteration
             depth_results[pv_index].score = value;
             depth_results[pv_index].moves = extract_pv_moves();
+            depth_results[pv_index].depth = current_depth;
 
             // Add root move to exclusion set for subsequent PV iterations
             Move_t root_move = depth_results[pv_index].best_move();

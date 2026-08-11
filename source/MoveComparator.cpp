@@ -99,7 +99,18 @@ ComparisonReport MoveComparator::compare(
     }
     search.search(depth, -1, -1, false, multipv_count);
 
-    const auto& multipv_results = search.get_multipv_results();
+    // COPY, not a reference. The post-user-move search further down calls
+    // search.search() again, and Search clears and reassigns multipv_results_ on
+    // every search (Search.cpp: clear()/resize(), then
+    // `multipv_results_ = depth_results`). A reference here therefore starts
+    // pointing at the SECOND search's single-PV result partway through this
+    // function, which silently corrupted, for every move that was not the
+    // engine's best: report.top_lines (the post-move line instead of the pre-move
+    // MultiPV lines, then serialized with the wrong side attribution, so a white
+    // castle came out as "e8g8"), critical_moment (always false, since the check
+    // needs >= 2 lines and the second search runs with multipv 1) and
+    // missed_tactics (both sides of the diff became the same vector).
+    const auto multipv_results = search.get_multipv_results();
     if (multipv_results.empty())
     {
         // No legal moves / search produced nothing — return a default report
@@ -130,6 +141,13 @@ ComparisonReport MoveComparator::compare(
     }
     else
     {
+        // Tactics in the best line MUST be detected on the PRE-move board:
+        // detect_tactics() reads side_to_move and the piece bitboards from the
+        // board it is handed, so computing this after do_move() below analysed
+        // the best line against the position that follows the user's move.
+        std::vector<Tactic> best_tactics
+            = PositionAnalyzer::detect_tactics(board, multipv_results);
+
         // Apply user's move, search the resulting position, negate the score
         board.do_move(user_move);
 
@@ -172,8 +190,7 @@ ComparisonReport MoveComparator::compare(
         }
 
         // --- Step 6: Detect missed tactics ---------------------------------
-        // Tactics in the best line (from the original position search)
-        std::vector<Tactic> best_tactics = PositionAnalyzer::detect_tactics(board, multipv_results);
+        // best_tactics was computed above, on the pre-move board.
 
         // Tactics after user's move (from the post-user-move search)
         std::vector<Tactic> user_tactics = PositionAnalyzer::detect_tactics(board, user_results);

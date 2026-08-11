@@ -226,7 +226,7 @@ static std::string serialize_top_lines(const std::vector<PVLine>& lines,
         }
 
         std::string line_obj = CoachJson::object(
-            { { "depth", CoachJson::to_json(static_cast<int>(pv.moves.size())) },
+            { { "depth", CoachJson::to_json(pv.depth) },
               { "eval_cp", CoachJson::to_json(pv.score) },
               { "moves", CoachJson::array(move_strs) },
               { "theme",
