@@ -17,6 +17,66 @@ constexpr int ASPIRATION_WINDOW = 50;
 constexpr int DRAW_SCORE = 0;
 constexpr int MAX_SEARCH_PLY = 64;
 
+// ---------------------------------------------------------------------------
+// UCI / coaching-protocol score normalization (OUTPUT BOUNDARY ONLY)
+//
+// Internal evaluation units are NOT conventional centipawns: the pawn value in
+// PIECE_VALUE_BONUS is 124 (middlegame) / 206 (endgame) and the final score is
+// a phase blend of the two, so raw internal scores are inflated by ~1.2x-2x.
+// Consumers (e.g. chess-coach) read "score cp" and the coaching JSON *_cp
+// fields as true centipawns where 100 ~= one pawn.
+//
+// We therefore rescale ONLY at the points where a score leaves the engine.
+// This is deliberately behaviour-neutral for search: nothing internal (search
+// margins, aspiration windows, pruning constants, the eval table) is touched.
+//
+// Design: a single fixed divisor (like Stockfish's UCI_NormalizeToPawnValue),
+// NOT a phase-dependent one. Rationale:
+//   * eval_drop_cp = best_eval - user_eval subtracts scores from two DIFFERENT
+//     positions that may be in different phases; a phase divisor would divide
+//     each operand by a different pawn value and the difference would mix
+//     units. A single constant keeps subtraction and the additive breakdown
+//     coherent.
+//   * It matches consumer expectations (fixed normalization at output).
+//
+// NORMALIZE_TO_PAWN is the number of internal units that equals one
+// conventional pawn (= 100 cp). 200 sits between the MG (124) and EG (206)
+// pawn values, weighted toward material-heavy / endgame positions, and matches
+// the calibration anchors: a clean extra pawn -> ~100, and the KPK probe that
+// reads ~+407 internally -> ~+200.
+constexpr int NORMALIZE_TO_PAWN = 200;
+
+/// Convert an internal evaluation score to conventional centipawns for output.
+///
+/// Mate scores (encoded as values near +/-MATE_SCORE) and the out-of-band
+/// sentinels are passed through UNCHANGED and never divided. Zero/draw stays
+/// zero. Rounding is symmetric so sign is preserved.
+inline int normalize_score_cp(int score)
+{
+    // Mate and mate-adjacent scores: pass through untouched. This engine
+    // signals mate by printing a near-MATE_SCORE magnitude on the "score cp"
+    // line (it does not emit "score mate"), so these must not be rescaled.
+    if (score >= MATE_SCORE - MAX_SEARCH_PLY || score <= -(MATE_SCORE - MAX_SEARCH_PLY))
+    {
+        return score;
+    }
+    // Defensive: never rescale out-of-band sentinels.
+    if (score == UNKNOWN_SCORE || score == -UNKNOWN_SCORE || score == MAX_SCORE
+        || score == -MAX_SCORE)
+    {
+        return score;
+    }
+
+    // score * 100 / NORMALIZE_TO_PAWN, with round-half-away-from-zero so that
+    // 0 maps to 0 and the sign is preserved.
+    int scaled = score * 100;
+    if (scaled >= 0)
+    {
+        return (scaled + NORMALIZE_TO_PAWN / 2) / NORMALIZE_TO_PAWN;
+    }
+    return -((-scaled + NORMALIZE_TO_PAWN / 2) / NORMALIZE_TO_PAWN);
+}
+
 constexpr int DEFAULT_SEARCH_TIME = 1000000;  // default search time in usec
 constexpr int MAX_GAME_PLY = 1024;  // max number of moves in a chess game (theoretically 5949)
 

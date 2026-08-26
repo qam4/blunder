@@ -143,10 +143,9 @@ ComparisonReport MoveComparator::compare(
     {
         // Tactics in the best line MUST be detected on the PRE-move board:
         // detect_tactics() reads side_to_move and the piece bitboards from the
-        // board it is handed, so computing this after do_move() below analysed
+        // board it is handed, so computing this after do_move() below analyzed
         // the best line against the position that follows the user's move.
-        std::vector<Tactic> best_tactics
-            = PositionAnalyzer::detect_tactics(board, multipv_results);
+        std::vector<Tactic> best_tactics = PositionAnalyzer::detect_tactics(board, multipv_results);
 
         // Apply user's move, search the resulting position, negate the score
         board.do_move(user_move);
@@ -175,7 +174,12 @@ ComparisonReport MoveComparator::compare(
         // --- Step 5: Extract refutation line if blunder --------------------
         // The PV from the post-user-move search IS the opponent's best
         // continuation (the refutation).
-        std::string classification_preview = classify(report.eval_drop_cp);
+        // classify()/compute_nag() operate in conventional centipawns (the
+        // same unit the coaching JSON exposes eval_drop_cp in), so normalize
+        // the raw internal-unit drop at this boundary. Behavior is identical
+        // in chess terms because the thresholds were converted by the same
+        // factor.
+        std::string classification_preview = classify(normalize_score_cp(report.eval_drop_cp));
         if (classification_preview == "blunder" && !user_results.empty())
         {
             const auto& refutation_pv = user_results[0].moves;
@@ -217,8 +221,11 @@ ComparisonReport MoveComparator::compare(
     }
 
     // --- Step 4: Classify and assign NAG -----------------------------------
-    report.classification = classify(report.eval_drop_cp);
-    report.nag = compute_nag(report.eval_drop_cp, is_best);
+    // eval_drop_cp is stored in raw internal units; classify()/compute_nag()
+    // expect conventional centipawns, so normalize here (see Constants.h).
+    int eval_drop_norm = normalize_score_cp(report.eval_drop_cp);
+    report.classification = classify(eval_drop_norm);
+    report.nag = compute_nag(eval_drop_norm, is_best);
 
     // --- Best move idea ----------------------------------------------------
     std::vector<Move_t> best_pv_moves;
@@ -239,30 +246,39 @@ ComparisonReport MoveComparator::compare(
 }
 
 // ---------------------------------------------------------------------------
-// classify() — map eval_drop_cp to a classification string
-//   good:       eval_drop_cp <= 30
-//   inaccuracy: 31 <= eval_drop_cp <= 100
-//   mistake:    101 <= eval_drop_cp <= 300
-//   blunder:    eval_drop_cp > 300
+// classify() — map eval_drop_cp to a classification string.
+//
+// The argument is in CONVENTIONAL centipawns (post-normalization, ~100 = one
+// pawn). Thresholds were converted from the original internal-unit boundaries
+// (<=30 / <=100 / <=300, where one internal pawn ~= 124-206) by the same
+// output-boundary factor (NORMALIZE_TO_PAWN = 200 units per pawn), so the
+// chess-term behavior is unchanged:
+//   good:       eval_drop_cp <= 15
+//   inaccuracy: 16 <= eval_drop_cp <= 50
+//   mistake:    51 <= eval_drop_cp <= 150
+//   blunder:    eval_drop_cp > 150
 // ---------------------------------------------------------------------------
 std::string MoveComparator::classify(int eval_drop_cp)
 {
-    if (eval_drop_cp <= 30)
+    if (eval_drop_cp <= 15)
         return "good";
-    if (eval_drop_cp <= 100)
+    if (eval_drop_cp <= 50)
         return "inaccuracy";
-    if (eval_drop_cp <= 300)
+    if (eval_drop_cp <= 150)
         return "mistake";
     return "blunder";
 }
 
 // ---------------------------------------------------------------------------
-// compute_nag() — map eval_drop_cp to a NAG symbol
-//   !   eval_drop_cp <= 10
-//   !?  11 <= eval_drop_cp <= 30
-//   ?!  31 <= eval_drop_cp <= 100
-//   ?   101 <= eval_drop_cp <= 300
-//   ??  eval_drop_cp > 300
+// compute_nag() — map eval_drop_cp to a NAG symbol.
+//
+// Argument is in CONVENTIONAL centipawns; thresholds converted from the
+// original internal-unit boundaries by the same factor as classify():
+//   !   eval_drop_cp <= 5
+//   !?  6 <= eval_drop_cp <= 15
+//   ?!  16 <= eval_drop_cp <= 50
+//   ?   51 <= eval_drop_cp <= 150
+//   ??  eval_drop_cp > 150
 // Special: is_best_move == true → always "!"
 // ---------------------------------------------------------------------------
 std::string MoveComparator::compute_nag(int eval_drop_cp, bool is_best_move)
@@ -270,13 +286,13 @@ std::string MoveComparator::compute_nag(int eval_drop_cp, bool is_best_move)
     if (is_best_move)
         return "!";
 
-    if (eval_drop_cp <= 10)
+    if (eval_drop_cp <= 5)
         return "!";
-    if (eval_drop_cp <= 30)
+    if (eval_drop_cp <= 15)
         return "!?";
-    if (eval_drop_cp <= 100)
+    if (eval_drop_cp <= 50)
         return "?!";
-    if (eval_drop_cp <= 300)
+    if (eval_drop_cp <= 150)
         return "?";
     return "??";
 }

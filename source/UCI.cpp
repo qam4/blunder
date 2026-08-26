@@ -519,8 +519,8 @@ void UCI::send_bestmove(Move_t move, Move_t ponder_move)
 void UCI::send_info(
     int depth, int score_cp, int nodes_count, int nps, int time_ms, const std::string& pv)
 {
-    std::cout << "info depth " << depth << " score cp " << score_cp << " nodes " << nodes_count
-              << " nps " << nps << " time " << time_ms << " pv " << pv << std::endl;
+    std::cout << "info depth " << depth << " score cp " << normalize_score_cp(score_cp) << " nodes "
+              << nodes_count << " nps " << nps << " time " << time_ms << " pv " << pv << std::endl;
 }
 
 std::string UCI::move_to_uci(Move_t move) const

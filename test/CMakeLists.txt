@@ -65,6 +65,7 @@ add_executable(blunder_test
     source/TestTaperedEval.cpp
     source/TestMultiPV.cpp
     source/TestPositionAnalyzer.cpp
+    source/TestScoreNormalization.cpp
     source/TestsRunner.cpp
     )
 target_link_libraries(blunder_test PRIVATE blunder_lib)

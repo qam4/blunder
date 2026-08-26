@@ -438,8 +438,9 @@ Move_t Search::search(int depth,
             for (int pv_idx = 0; pv_idx < effective_multipv; pv_idx++)
             {
                 const PVLine& pvline = multipv_results_[pv_idx];
-                cout << "info depth " << current_depth << " score cp " << pvline.score << " nodes "
-                     << nodes_visited_ << " nps " << stats_.nps() << " time " << elapsed_ms;
+                cout << "info depth " << current_depth << " score cp "
+                     << normalize_score_cp(pvline.score) << " nodes " << nodes_visited_ << " nps "
+                     << stats_.nps() << " time " << elapsed_ms;
 
                 // Include multipv field only when multipv_count > 1
                 if (multipv_count > 1)

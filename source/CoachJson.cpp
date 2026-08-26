@@ -227,7 +227,7 @@ static std::string serialize_top_lines(const std::vector<PVLine>& lines,
 
         std::string line_obj = CoachJson::object(
             { { "depth", CoachJson::to_json(pv.depth) },
-              { "eval_cp", CoachJson::to_json(pv.score) },
+              { "eval_cp", CoachJson::to_json(normalize_score_cp(pv.score)) },
               { "moves", CoachJson::array(move_strs) },
               { "theme",
                 CoachJson::to_json(PositionAnalyzer::label_line_theme(root, pv.moves)) } });
@@ -287,12 +287,16 @@ std::string serialize_error(const std::string& code, const std::string& message)
 std::string serialize_position_report(const PositionReport& r)
 {
     // eval_breakdown
-    std::string breakdown = object({ { "material", to_json(r.breakdown.material) },
-                                     { "mobility", to_json(r.breakdown.mobility) },
-                                     { "king_safety", to_json(r.breakdown.king_safety) },
-                                     { "pawn_structure", to_json(r.breakdown.pawn_structure) },
-                                     { "tempo", to_json(r.breakdown.tempo) },
-                                     { "piece_bonuses", to_json(r.breakdown.piece_bonuses) } });
+    // All *_cp fields are normalized to conventional centipawns at this output
+    // boundary (see Constants.h normalize_score_cp). The components still sum
+    // to eval_cp up to rounding because a single fixed divisor is applied.
+    std::string breakdown =
+        object({ { "material", to_json(normalize_score_cp(r.breakdown.material)) },
+                 { "mobility", to_json(normalize_score_cp(r.breakdown.mobility)) },
+                 { "king_safety", to_json(normalize_score_cp(r.breakdown.king_safety)) },
+                 { "pawn_structure", to_json(normalize_score_cp(r.breakdown.pawn_structure)) },
+                 { "tempo", to_json(normalize_score_cp(r.breakdown.tempo)) },
+                 { "piece_bonuses", to_json(normalize_score_cp(r.breakdown.piece_bonuses)) } });
 
     // hanging_pieces helper lambda
     auto serialize_hanging = [](const std::vector<HangingPiece>& pieces)
@@ -363,7 +367,7 @@ std::string serialize_position_report(const PositionReport& r)
         shield_files.reserve(ks.missing_shield_files.size());
         for (const auto& f : ks.missing_shield_files)
             shield_files.push_back(to_json(f));
-        return object({ { "score", to_json(ks.score) },
+        return object({ { "score", to_json(normalize_score_cp(ks.score)) },
                         { "description", to_json(ks.description) },
                         { "king_square", to_json(ks.king_square) },
                         { "castling_status", to_json(ks.castling_status) },
@@ -413,7 +417,7 @@ std::string serialize_position_report(const PositionReport& r)
         r.critical_moment ? to_json(r.critical_reason) : to_json_null();
 
     return object({ { "fen", to_json(r.fen) },
-                    { "eval_cp", to_json(r.eval_cp) },
+                    { "eval_cp", to_json(normalize_score_cp(r.eval_cp)) },
                     { "eval_breakdown", breakdown },
                     { "hanging_pieces", hanging },
                     { "threats", threats },
@@ -468,10 +472,10 @@ std::string serialize_comparison_report(const ComparisonReport& r)
 
     return object({ { "fen", to_json(r.fen) },
                     { "user_move", to_json(r.user_move) },
-                    { "user_eval_cp", to_json(r.user_eval_cp) },
+                    { "user_eval_cp", to_json(normalize_score_cp(r.user_eval_cp)) },
                     { "best_move", to_json(r.best_move) },
-                    { "best_eval_cp", to_json(r.best_eval_cp) },
-                    { "eval_drop_cp", to_json(r.eval_drop_cp) },
+                    { "best_eval_cp", to_json(normalize_score_cp(r.best_eval_cp)) },
+                    { "eval_drop_cp", to_json(normalize_score_cp(r.eval_drop_cp)) },
                     { "classification", to_json(r.classification) },
                     { "nag", to_json(r.nag) },
                     { "best_move_idea", to_json(r.best_move_idea) },
