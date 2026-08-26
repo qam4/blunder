@@ -96,7 +96,7 @@ Incremental code quality improvements for the Blunder chess engine across seven 
   - Ensure all existing tests pass, ask the user if questions arise.
 
 - [-] 5. Performance micro-optimizations
-  - [-] 5.1 Replace `pop_count` with compiler intrinsic — use `__builtin_popcountll` on GCC/Clang, `__popcnt64` on MSVC, with manual fallback
+  - [x] 5.1 Replace `pop_count` with compiler intrinsic — use `__builtin_popcountll` on GCC/Clang, `__popcnt64` on MSVC, with manual fallback
     - Implement the conditional intrinsic in the appropriate header
     - _Requirements: 12.1, 12.2, 12.3_
 
@@ -105,7 +105,7 @@ Incremental code quality improvements for the Blunder chess engine across seven 
     - Generate random U64 values, verify intrinsic matches manual bit-counting loop
     - **Validates: Requirements 12.3**
 
-  - [ ] 5.3 TT bitmask indexing — enforce power-of-two size, replace `hash % size` with `hash & (size - 1)`
+  - [x] 5.3 TT bitmask indexing — enforce power-of-two size, replace `hash % size` with `hash & (size - 1)`
     - Add `mask_` member to TranspositionTable
     - Round requested sizes down to nearest power of two
     - Replace modulo with bitmask in `probe()` and `record()`
@@ -118,11 +118,11 @@ Incremental code quality improvements for the Blunder chess engine across seven 
     - Generate random requested sizes in [1, 4096], verify actual size is power of two
     - **Validates: Requirements 14.1, 14.2**
 
-  - [ ] 5.5 Pre-reserve NNUE accumulator stack — reserve `acc_stack_` capacity for `MAX_SEARCH_PLY` entries in NNUEEvaluator constructor
+  - [x] 5.5 Pre-reserve NNUE accumulator stack — reserve `acc_stack_` capacity for `MAX_SEARCH_PLY` entries in NNUEEvaluator constructor
     - Add `acc_stack_.reserve(MAX_SEARCH_PLY)` in constructor
     - _Requirements: 13.1, 13.2_
 
-  - [ ] 5.6 Optimize `is_draw` to scan only since last irreversible move — limit hash-history scan to `game_ply_ - half_move_count` to `game_ply_`, stepping by 2
+  - [x] 5.6 Optimize `is_draw` to scan only since last irreversible move — limit hash-history scan to `game_ply_ - half_move_count` to `game_ply_`, stepping by 2
     - Modify `is_draw()` in Board to use the narrower scan window
     - Verify identical results to full-history scan
     - _Requirements: 17.1, 17.2_
@@ -137,7 +137,7 @@ Incremental code quality improvements for the Blunder chess engine across seven 
   - Ensure all existing tests pass, ask the user if questions arise.
 
 - [ ] 7. Bug fixes: History aging and TimeManager
-  - [ ] 7.1 Implement history table aging — add `age_history()` method to Search that halves all `history_[2][64][64]` entries between iterative deepening iterations
+  - [x] 7.1 Implement history table aging — add `age_history()` method to Search that halves all `history_[2][64][64]` entries between iterative deepening iterations
     - Add the method and call it at the start of each new ID iteration
     - _Requirements: 15.1, 15.2, 15.3_
 
@@ -146,7 +146,7 @@ Incremental code quality improvements for the Blunder chess engine across seven 
     - Generate random history table values, verify each entry equals `prev / 2` after aging, and relative ordering is preserved
     - **Validates: Requirements 15.1, 15.2**
 
-  - [ ] 7.3 Fix `adjust_for_score` repeated application — add `score_adjusted_` flag to TimeManager, reset in `allocate()`/`start()`, check in `adjust_for_score()`
+  - [x] 7.3 Fix `adjust_for_score` repeated application — add `score_adjusted_` flag to TimeManager, reset in `allocate()`/`start()`, check in `adjust_for_score()`
     - Add `bool score_adjusted_ = false` member
     - Guard `adjust_for_score` to apply reduction at most once per cycle
     - Reset flag in `allocate()` and `start()`
