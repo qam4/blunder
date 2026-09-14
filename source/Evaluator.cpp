@@ -161,7 +161,7 @@ void HandCraftedEvaluator::psqt_init()
     }
 }
 
-int HandCraftedEvaluator::phase(const Board& board) const
+int game_phase(const Board& board)
 {
     // Combine both colors per piece type so we need only 4 pop_count calls
     // instead of 8.  With hardware POPCNT each call is a single instruction,
@@ -177,6 +177,16 @@ int HandCraftedEvaluator::phase(const Board& board) const
 
     npm = std::max(ENDGAME_LIMIT, std::min(npm, MIDGAME_LIMIT));
     return ((npm - ENDGAME_LIMIT) * PHASE_MAX) / (MIDGAME_LIMIT - ENDGAME_LIMIT);
+}
+
+bool is_endgame_phase(const Board& board)
+{
+    return game_phase(board) <= KING_SAFETY_PHASE_THRESHOLD;
+}
+
+int HandCraftedEvaluator::phase(const Board& board) const
+{
+    return game_phase(board);
 }
 
 int HandCraftedEvaluator::eval_pawn_structure(const Board& board, int p)

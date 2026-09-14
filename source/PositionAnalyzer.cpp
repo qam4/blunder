@@ -27,6 +27,92 @@ static constexpr U64 FILE_BB[8] = {
 };
 
 // ---------------------------------------------------------------------------
+// Geometry helpers shared by the endgame themes and the endgame king-safety
+// prose. Rules-level only: no piece values, no evaluation terms.
+// ---------------------------------------------------------------------------
+
+// Chebyshev (king-move) distance between two squares.
+static int square_distance(U8 a, U8 b)
+{
+    int fa = a % 8;
+    int ra = a / 8;
+    int fb = b % 8;
+    int rb = b / 8;
+    return std::max(std::abs(fa - fb), std::abs(ra - rb));
+}
+
+// Manhattan distance to the center four squares, doubled to stay integral:
+// 2 on d4/d5/e4/e5, 14 in a corner. Doubling avoids halves and keeps
+// single-file / single-rank steps toward the center visible (a Chebyshev
+// center distance is too coarse: f1->e1 and f3->e3 both score as "no change").
+static int center_distance(U8 sq)
+{
+    int f = sq % 8;
+    int r = sq / 8;
+    return std::abs(2 * f - 7) + std::abs(2 * r - 7);
+}
+
+// Passed-pawn test for a single pawn: no enemy pawn on its own file or either
+// adjacent file anywhere ahead of it.
+static bool pawn_is_passed(const Board& board, U8 sq, U8 side)
+{
+    int f = sq % 8;
+    int rank = sq / 8;
+
+    U64 relevant_files = FILE_BB[f];
+    if (f > 0)
+        relevant_files |= FILE_BB[f - 1];
+    if (f < 7)
+        relevant_files |= FILE_BB[f + 1];
+
+    U64 front_mask = BB_EMPTY;
+    if (side == WHITE)
+    {
+        for (int r = rank + 1; r <= 7; r++)
+            front_mask |= (0xFFULL << (r * 8));
+    }
+    else
+    {
+        for (int r = rank - 1; r >= 0; r--)
+            front_mask |= (0xFFULL << (r * 8));
+    }
+
+    U64 enemy_pawns = board.bitboard(PAWN | (side ^ 1));
+    return (enemy_pawns & relevant_files & front_mask) == 0;
+}
+
+// Does `side` have at least one passed pawn?
+static bool has_passed_pawn(const Board& board, U8 side)
+{
+    U64 pawns = board.bitboard(PAWN | side);
+    while (pawns)
+    {
+        U8 sq = bit_scan_forward(pawns);
+        if (pawn_is_passed(board, sq, side))
+            return true;
+        pawns &= pawns - 1;
+    }
+    return false;
+}
+
+// Chebyshev distance from `sq` to the nearest pawn of `side`; -1 if that side
+// has no pawns left.
+static int distance_to_nearest_pawn(const Board& board, U8 sq, U8 side)
+{
+    U64 pawns = board.bitboard(PAWN | side);
+    int best = -1;
+    while (pawns)
+    {
+        U8 psq = bit_scan_forward(pawns);
+        int d = square_distance(sq, psq);
+        if (best < 0 || d < best)
+            best = d;
+        pawns &= pawns - 1;
+    }
+    return best;
+}
+
+// ---------------------------------------------------------------------------
 // compute_eval_breakdown()
 //
 // Decomposes the HCE evaluation into six components:
@@ -89,7 +175,6 @@ PawnFeatures PositionAnalyzer::analyze_pawns(const Board& board, U8 side)
     PawnFeatures features;
 
     U64 friendly_pawns = board.bitboard(PAWN | side);
-    U64 enemy_pawns = board.bitboard(PAWN | (side ^ 1));
 
     // Iterate over each file
     for (int f = 0; f < 8; f++)
@@ -124,32 +209,8 @@ PawnFeatures PositionAnalyzer::analyze_pawns(const Board& board, U8 side)
         while (pawns_iter)
         {
             U8 sq = bit_scan_forward(pawns_iter);
-            int rank = sq / 8;
 
-            // Build a mask of the file and adjacent files ahead of this pawn
-            U64 front_mask = BB_EMPTY;
-            U64 relevant_files = file_bb | adjacent_files;
-
-            if (side == WHITE)
-            {
-                // "Ahead" for white means higher ranks (rank+1 .. 7)
-                for (int r = rank + 1; r <= 7; r++)
-                {
-                    front_mask |= (0xFFULL << (r * 8));
-                }
-            }
-            else
-            {
-                // "Ahead" for black means lower ranks (rank-1 .. 0)
-                for (int r = rank - 1; r >= 0; r--)
-                {
-                    front_mask |= (0xFFULL << (r * 8));
-                }
-            }
-
-            U64 blocking_zone = relevant_files & front_mask;
-
-            if ((enemy_pawns & blocking_zone) == 0)
+            if (pawn_is_passed(board, sq, side))
             {
                 // This pawn is passed — add the file if not already added
                 if (features.passed.empty() || features.passed.back() != f)
@@ -745,6 +806,42 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
 }
 
 // ---------------------------------------------------------------------------
+// endgame_king_description()
+//
+// In an endgame the shield/open-file/storm clauses are not just unhelpful, they
+// are inverted: a centralized, advanced king is correct play and there is
+// usually nothing left to attack it with. Describe the king's ACTIVITY instead,
+// from data already on the board (no new evaluation term).
+// ---------------------------------------------------------------------------
+static std::string endgame_king_description(const Board& board, U8 side, U8 king_sq)
+{
+    std::string desc = "endgame king on " + Output::square(king_sq);
+
+    int cd = center_distance(king_sq);
+    if (cd <= 4)
+        desc += ", centralized";
+    else if (cd >= 10)
+        desc += ", far from the center";
+    else
+        desc += ", off center";
+
+    int king_rank = king_sq / 8;
+    bool advanced = (side == WHITE) ? (king_rank >= 4) : (king_rank <= 3);
+    if (advanced)
+        desc += ", advanced";
+
+    int pawn_dist = distance_to_nearest_pawn(board, king_sq, side ^ 1);
+    if (pawn_dist > 0)
+    {
+        desc += ", " + std::to_string(pawn_dist);
+        desc += (pawn_dist == 1) ? " square" : " squares";
+        desc += " from the nearest enemy pawn";
+    }
+
+    return desc;
+}
+
+// ---------------------------------------------------------------------------
 // assess_king_safety()
 //
 // Evaluates the pawn shield around the king of `side`:
@@ -752,6 +849,13 @@ std::vector<Threat> PositionAnalyzer::find_threats(const Board& board, U8 side)
 // - Check for open files near the king
 // - Detect pawn storms (enemy pawns advanced near king)
 // - Generate a score (negative = unsafe) and position-aware description
+//
+// Phase gate: below KING_SAFETY_PHASE_THRESHOLD the evaluator scores the king
+// safety term as 0 (see eval_king_safety()), so this function must not keep
+// asserting danger in words or in the structured danger flags either. In an
+// endgame the shield score, the missing-shield files, the open-file flag and
+// the pawn-storm flag are all suppressed and the description switches to king
+// activity. Nothing here feeds the played evaluation.
 // ---------------------------------------------------------------------------
 KingSafety PositionAnalyzer::assess_king_safety(const Board& board, U8 side)
 {
@@ -762,6 +866,9 @@ KingSafety PositionAnalyzer::assess_king_safety(const Board& board, U8 side)
     U8 king_sq = bit_scan_forward(king_bb);
     int king_file = king_sq % 8;
     int king_rank = king_sq / 8;
+
+    // Same phase notion the evaluator gates the king-safety term on.
+    const bool endgame = is_endgame_phase(board);
 
     U64 friendly_pawns = board.bitboard(PAWN | side);
     U64 enemy_pawns = board.bitboard(PAWN | (side ^ 1));
@@ -927,13 +1034,25 @@ KingSafety PositionAnalyzer::assess_king_safety(const Board& board, U8 side)
     }
 
     KingSafety ks;
-    ks.score = score;
-    ks.description = desc;
     ks.king_square = Output::square(king_sq);
     ks.castling_status = castling_status_code;
-    ks.missing_shield_files = missing_files_vec;
-    ks.open_file_near_king = (open_files_near_king > 0);
-    ks.pawn_storm = pawn_storm;
+
+    if (endgame)
+    {
+        // Suppress the middlegame danger signals: they contradict
+        // eval_breakdown.king_safety, which is 0 here by the same phase gate.
+        // missing_shield_files stays empty and the two flags stay false.
+        ks.score = 0;
+        ks.description = endgame_king_description(board, side, king_sq);
+    }
+    else
+    {
+        ks.score = score;
+        ks.description = desc;
+        ks.missing_shield_files = missing_files_vec;
+        ks.open_file_near_king = (open_files_near_king > 0);
+        ks.pawn_storm = pawn_storm;
+    }
     return ks;
 }
 
@@ -1696,11 +1815,34 @@ bool PositionAnalyzer::is_critical_moment(const std::vector<PVLine>& pv_lines, s
 // label_line_theme()
 //
 // Heuristic labeling based on the first 2-3 moves of a PV line.
+//
+// Two vocabularies, selected by the SAME phase notion the evaluator gates its
+// king-safety term on (is_endgame_phase(), see Evaluator.h):
+//
+//   middlegame/opening — king attack, material win, king safety+castling,
+//                        central pawn break, piece development. Unchanged.
+//   endgame            — promotion, material win, pawn race, passed pawn push,
+//                        conversion, rook behind the passer, rook cuts the
+//                        king off, king activity.
+//
+// The opening/middlegame labels are phase-specific and are not offered in an
+// endgame: castling and development are meaningless there, "central pawn
+// break" describes an opening structure and not a pawn ending, and treating
+// any available check as a "king attack" mislabels ordinary endgame technique
+// (a drawn KPK came back as "king attack").
 // ---------------------------------------------------------------------------
+
+// A capture only counts as converting an advantage if the capturing side is
+// already clearly ahead. Internal eval units (~200 per pawn, see
+// NORMALIZE_TO_PAWN), so this is about a pawn and a half.
+static constexpr int CONVERSION_MATERIAL_MARGIN = 300;
+
 std::string PositionAnalyzer::label_line_theme(const Board& board, const std::vector<Move_t>& moves)
 {
     if (moves.empty())
         return "general play";
+
+    const bool endgame = is_endgame_phase(board);
 
     int moves_to_check = std::min(static_cast<int>(moves.size()), 3);
 
@@ -1709,6 +1851,20 @@ std::string PositionAnalyzer::label_line_theme(const Board& board, const std::ve
     bool has_high_value_capture = false;
     bool has_center_pawn_move = false;
     bool has_development = false;
+
+    // Endgame themes
+    bool has_promotion = false;
+    bool has_passed_push = false;
+    bool has_pawn_race = false;
+    bool has_conversion = false;
+    bool has_rook_behind_passer = false;
+    bool has_rook_cut_off = false;
+    bool has_king_activity = false;
+
+    // Material balance from the root side-to-move perspective. Read from the
+    // evaluator (never modified) and used only to decide whether a capture is
+    // converting an existing advantage.
+    const int material_stm = endgame ? compute_eval_breakdown(board).material : 0;
 
     Board board_copy = board;
 
@@ -1723,6 +1879,7 @@ std::string PositionAnalyzer::label_line_theme(const Board& board, const std::ve
             break;
 
         U8 piece_type = piece_on_from & ~1;  // strip color
+        U8 mover = piece_on_from & 1;
 
         // Check for castling
         if (m.is_castle())
@@ -1739,22 +1896,51 @@ std::string PositionAnalyzer::label_line_theme(const Board& board, const std::ve
             U8 cap_type = captured & ~1;
             if (cap_type == ROOK || cap_type == QUEEN)
                 has_high_value_capture = true;
+
+            if (endgame)
+            {
+                // A trade by the side that is already clearly ahead is a
+                // conversion, not a material win.
+                int advantage = (mover == board.side_to_move()) ? material_stm : -material_stm;
+                if (advantage >= CONVERSION_MATERIAL_MARGIN)
+                    has_conversion = true;
+            }
         }
 
-        // Check for center pawn moves (pawns moving to d4/d5/e4/e5)
-        if (piece_type == PAWN)
+        if (!endgame)
         {
-            if (to == D4 || to == D5 || to == E4 || to == E5)
-                has_center_pawn_move = true;
-        }
+            // Check for center pawn moves (pawns moving to d4/d5/e4/e5)
+            if (piece_type == PAWN)
+            {
+                if (to == D4 || to == D5 || to == E4 || to == E5)
+                    has_center_pawn_move = true;
+            }
 
-        // Check for piece development (knight/bishop moving from back rank)
-        if (piece_type == KNIGHT || piece_type == BISHOP)
+            // Check for piece development (knight/bishop moving from back rank)
+            if (piece_type == KNIGHT || piece_type == BISHOP)
+            {
+                int from_rank = from / 8;
+                if ((mover == WHITE && from_rank == 0) || (mover == BLACK && from_rank == 7))
+                    has_development = true;
+            }
+        }
+        else
         {
-            int from_rank = from / 8;
-            U8 color = piece_on_from & 1;
-            if ((color == WHITE && from_rank == 0) || (color == BLACK && from_rank == 7))
-                has_development = true;
+            if (m.is_promotion())
+                has_promotion = true;
+
+            // King activity: stepping toward the center, or toward the enemy
+            // pawns. Both are measured on the pre-move board.
+            if (piece_type == KING)
+            {
+                if (center_distance(to) < center_distance(from))
+                    has_king_activity = true;
+
+                int before = distance_to_nearest_pawn(board_copy, from, mover ^ 1);
+                int after = distance_to_nearest_pawn(board_copy, to, mover ^ 1);
+                if (before > 0 && after < before)
+                    has_king_activity = true;
+            }
         }
 
         // Apply the move and check if it gives check
@@ -1762,9 +1948,83 @@ std::string PositionAnalyzer::label_line_theme(const Board& board, const std::ve
         U8 opp = board_copy.side_to_move();
         if (MoveGenerator::in_check(board_copy, opp))
             has_check = true;
+
+        // Endgame themes that read the position after the move
+        if (endgame)
+        {
+            // Passed pawn push, and a race when the other side has a passer too
+            if (piece_type == PAWN && !m.is_promotion() && pawn_is_passed(board_copy, to, mover))
+            {
+                has_passed_push = true;
+                if (has_passed_pawn(board_copy, mover ^ 1))
+                    has_pawn_race = true;
+            }
+
+            if (piece_type == ROOK)
+            {
+                int rook_file = to % 8;
+                int rook_rank = to / 8;
+
+                // Rook behind a passed pawn (Tarrasch): same file as a passer,
+                // on the side that pawn started from. Applies to either
+                // color's passer.
+                U64 file_pawns = (board_copy.bitboard(WHITE_PAWN) | board_copy.bitboard(BLACK_PAWN))
+                    & FILE_BB[rook_file];
+                while (file_pawns)
+                {
+                    U8 psq = bit_scan_forward(file_pawns);
+                    U8 pawn_side = board_copy[psq] & 1;
+                    int pawn_rank = psq / 8;
+                    bool behind =
+                        (pawn_side == WHITE) ? (rook_rank < pawn_rank) : (rook_rank > pawn_rank);
+                    if (behind && pawn_is_passed(board_copy, psq, pawn_side))
+                        has_rook_behind_passer = true;
+                    file_pawns &= file_pawns - 1;
+                }
+
+                // Rook cutting the enemy king off: the rook's rank or file lies
+                // strictly between the two kings, so the enemy king cannot
+                // cross that line to reach the other side of the board.
+                U64 own_king_bb = board_copy.bitboard(KING | mover);
+                U64 enemy_king_bb = board_copy.bitboard(KING | (mover ^ 1));
+                if (own_king_bb != 0 && enemy_king_bb != 0)
+                {
+                    U8 own_king = bit_scan_forward(own_king_bb);
+                    U8 enemy_king = bit_scan_forward(enemy_king_bb);
+                    bool rank_cut = (rook_rank - own_king / 8) * (rook_rank - enemy_king / 8) < 0;
+                    bool file_cut = (rook_file - own_king % 8) * (rook_file - enemy_king % 8) < 0;
+                    if (rank_cut || file_cut)
+                        has_rook_cut_off = true;
+                }
+            }
+        }
     }
 
-    // Priority-based labeling
+    if (endgame)
+    {
+        // Endgame vocabulary. "material win" is phase-neutral (winning a rook
+        // or a queen is the lesson in any phase) and stays; the rest of the
+        // opening/middlegame labels do not apply here.
+        if (has_promotion)
+            return "promotion";
+        if (has_high_value_capture)
+            return "material win";
+        if (has_pawn_race)
+            return "pawn race";
+        if (has_passed_push)
+            return "passed pawn push";
+        if (has_conversion)
+            return "conversion, simplification";
+        if (has_rook_behind_passer)
+            return "rook behind the passer";
+        if (has_rook_cut_off)
+            return "rook cuts the king off";
+        if (has_king_activity)
+            return "king activity";
+        return "general play";
+    }
+
+    // Priority-based labeling (opening / middlegame)
     if (has_check)
         return "king attack";
     if (has_high_value_capture)

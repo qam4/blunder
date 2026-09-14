@@ -30,6 +30,23 @@ struct EvalConfig
     bool piece_bonuses_enabled = true;
 };
 
+// ---------------------------------------------------------------------------
+// Game phase (single definition, shared with the coaching output)
+//
+// game_phase() returns PHASE_MAX (128) for a full middlegame down to 0 for a
+// bare endgame; it is the value the tapered evaluation and the king-safety
+// gate are driven by. It is exposed here so that coaching prose can be gated
+// on the SAME phase notion the evaluator uses instead of inventing a second
+// one that could disagree with eval_breakdown.
+// ---------------------------------------------------------------------------
+int game_phase(const Board& board);
+
+/// True when the position is at or below the phase where the evaluator stops
+/// scoring king safety altogether (KING_SAFETY_PHASE_THRESHOLD). Consumers use
+/// this to decide whether middlegame concepts (pawn shield, castling,
+/// development) still apply.
+bool is_endgame_phase(const Board& board);
+
 class Evaluator
 {
 public:

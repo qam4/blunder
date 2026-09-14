@@ -247,13 +247,13 @@ limit — the search stops when the depth or time is reached.
 | `king_safety` | object | yes | King safety assessment per side |
 | `king_safety.white` | object | yes | White king safety |
 | `king_safety.black` | object | yes | Black king safety |
-| `king_safety.*.score` | integer | yes | King safety component score in centipawns |
-| `king_safety.*.description` | string | yes | Human-readable assessment (e.g. `"king exposed, missing g-pawn shield"`) |
+| `king_safety.*.score` | integer | yes | King safety component score in centipawns. `0` in an endgame (see the phase gate below) |
+| `king_safety.*.description` | string | yes | Human-readable assessment (e.g. `"king exposed, missing g-pawn shield"`); in an endgame it describes king activity instead (e.g. `"endgame king on e3, centralized"`) |
 | `top_lines` | array | yes | Top N principal variation lines |
 | `top_lines.*.depth` | integer | yes | Search depth reached |
 | `top_lines.*.eval_cp` | integer | yes | Evaluation in centipawns |
 | `top_lines.*.moves` | array | yes | Move sequence in UCI notation (e.g. `["e2e4", "e7e5", "g1f3"]`) |
-| `top_lines.*.theme` | string | yes | Short label for the line's idea (e.g. `"kingside attack"`, `"central pawn break"`) |
+| `top_lines.*.theme` | string | yes | Short label for the line's idea. Opening/middlegame: `"king attack"`, `"material win"`, `"king safety, castling"`, `"central pawn break"`, `"piece development"`, `"general play"`. Endgame: `"promotion"`, `"material win"`, `"pawn race"`, `"passed pawn push"`, `"conversion, simplification"`, `"rook behind the passer"`, `"rook cuts the king off"`, `"king activity"`, `"general play"` |
 | `tactics` | array | yes | Detected tactical motifs (may be empty `[]`) |
 | `tactics.*.type` | string | yes | One of: `"fork"`, `"pin"`, `"skewer"`, `"discovered_attack"`, `"back_rank_threat"`, `"overloaded_piece"` |
 | `tactics.*.squares` | array | yes | Squares involved in the tactic |
@@ -270,6 +270,24 @@ limit — the search stops when the depth or time is reached.
 | `threat_map.*.net_attacked` | boolean | yes | `true` if the piece on this square is attacked more times than defended by its own side |
 | `critical_moment` | boolean | yes | `true` when eval spread between best and 3rd-best move exceeds 100cp |
 | `critical_reason` | string/null | yes | Reason string when `critical_moment` is `true`, `null` otherwise |
+
+**Phase gate on king safety and themes:**
+
+The engine classifies a position as an endgame with the same phase measure the
+evaluation uses to switch off its king-safety term. In an endgame:
+
+- `king_safety.*.score` is `0`, `missing_shield_files` is empty, and
+  `open_file_near_king` / `pawn_storm` are `false`. There is no pawn shield to
+  miss and normally nothing left to attack the king with, so these fields would
+  otherwise report danger while `eval_breakdown.king_safety` reads `0`.
+- `king_safety.*.description` describes the king's activity — where it stands,
+  whether it is centralized or advanced, how far it is from the nearest enemy
+  pawn — because an advanced, centralized king is correct endgame play.
+- `top_lines.*.theme` is drawn from the endgame vocabulary; castling,
+  development and "central pawn break" are not offered, and an ordinary endgame
+  check is not labeled "king attack".
+
+`king_square` and `castling_status` are reported in every phase.
 
 **Error handling:**
 - If the FEN is invalid, the engine SHOULD respond with an error envelope (see Section 4)
