@@ -58,11 +58,21 @@
             <li>
               Reference
               <ul>
+                <li><a href="#func-members">Functions</a></li>
                 <li><a href="#var-members">Variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
+        <section id="func-members">
+          <h2><a href="#func-members">Functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ad5f2839f2b2279d4553fb99c8469fcfb" class="m-doc">normalize_score_cp</a>(</span><span class="m-doc-wrap">int score) -&gt; int</span>
+            </dt>
+            <dd></dd>
+          </dl>
+        </section>
         <section id="var-members">
           <h2><a href="#var-members">Variables</a></h2>
           <dl class="m-doc">
@@ -88,6 +98,10 @@
             <dd><span></span></dd>
             <dt id="ac871a968c9a0f15bce392ae418deb878">
               int <a href="#ac871a968c9a0f15bce392ae418deb878" class="m-doc-self">MAX_SEARCH_PLY</a> <span class="m-label m-flat m-primary">constexpr</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt id="ac89234feb6cf36ccea6c4975ed890d73">
+              int <a href="#ac89234feb6cf36ccea6c4975ed890d73" class="m-doc-self">NORMALIZE_TO_PAWN</a> <span class="m-label m-flat m-primary">constexpr</span>
             </dt>
             <dd><span></span></dd>
             <dt id="a15173aa8e0c1e4205f02db0fde25da97">
@@ -559,6 +573,15 @@
             </dt>
             <dd><span></span></dd>
           </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="ad5f2839f2b2279d4553fb99c8469fcfb"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">int </span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad5f2839f2b2279d4553fb99c8469fcfb" class="m-doc-self">normalize_score_cp</a>(</span><span class="m-doc-wrap">int score)</span></span>
+            </h3>
+<p>Convert an internal evaluation score to conventional centipawns for output.</p><p>Mate scores (encoded as values near +/-MATE_SCORE) and the out-of-band sentinels are passed through UNCHANGED and never divided. Zero/draw stays zero. Rounding is symmetric so sign is preserved.</p>
+          </div></section>
         </section>
       </div>
     </div>

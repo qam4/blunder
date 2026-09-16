@@ -71,6 +71,14 @@
               <span class="m-doc-wrap-bumper">static auto <a href="#acd35c4bcf50945c437b395cfabfea067" class="m-doc-self">adjacent_files</a>(</span><span class="m-doc-wrap">int f) -&gt; <a href="Types_8h.html#a1aec207a24754d3d65689c8da1a79f3a" class="m-doc">U64</a> <span class="m-label m-flat m-primary">constexpr</span></span>
             </dt>
             <dd><span></span></dd>
+            <dt id="aab8fb6c36d2bfd2c03a4d1cc5fa2bb53">
+              <span class="m-doc-wrap-bumper">auto <a href="#aab8fb6c36d2bfd2c03a4d1cc5fa2bb53" class="m-doc-self">game_phase</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; int</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#aeabde91f848a137264f7162542d87292" class="m-doc">is_endgame_phase</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; bool</span>
+            </dt>
+            <dd></dd>
           </dl>
         </section>
         <section id="var-members">
@@ -241,6 +249,15 @@
             </dt>
             <dd><span></span></dd>
           </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="aeabde91f848a137264f7162542d87292"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">bool </span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aeabde91f848a137264f7162542d87292" class="m-doc-self">is_endgame_phase</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board)</span></span>
+            </h3>
+<p>True when the position is at or below the phase where the evaluator stops scoring king safety altogether (KING_SAFETY_PHASE_THRESHOLD). Consumers use this to decide whether middlegame concepts (pawn shield, castling, development) still apply.</p>
+          </div></section>
         </section>
       </div>
     </div>

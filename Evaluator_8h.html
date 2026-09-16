@@ -59,6 +59,7 @@
               Reference
               <ul>
                 <li><a href="#nested-classes">Classes</a></li>
+                <li><a href="#func-members">Functions</a></li>
               </ul>
             </li>
           </ul>
@@ -83,6 +84,28 @@
             </dt>
             <dd><span></span></dd>
           </dl>
+        </section>
+        <section id="func-members">
+          <h2><a href="#func-members">Functions</a></h2>
+          <dl class="m-doc">
+            <dt id="aab8fb6c36d2bfd2c03a4d1cc5fa2bb53">
+              <span class="m-doc-wrap-bumper">auto <a href="#aab8fb6c36d2bfd2c03a4d1cc5fa2bb53" class="m-doc-self">game_phase</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; int</span>
+            </dt>
+            <dd><span></span></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#aeabde91f848a137264f7162542d87292" class="m-doc">is_endgame_phase</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board) -&gt; bool</span>
+            </dt>
+            <dd></dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="aeabde91f848a137264f7162542d87292"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">bool </span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aeabde91f848a137264f7162542d87292" class="m-doc-self">is_endgame_phase</a>(</span><span class="m-doc-wrap">const <a href="classBoard.html" class="m-doc">Board</a>&amp; board)</span></span>
+            </h3>
+<p>True when the position is at or below the phase where the evaluator stops scoring king safety altogether (KING_SAFETY_PHASE_THRESHOLD). Consumers use this to decide whether middlegame concepts (pawn shield, castling, development) still apply.</p>
+          </div></section>
         </section>
       </div>
     </div>
